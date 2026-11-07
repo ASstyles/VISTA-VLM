@@ -22,10 +22,11 @@ class ConvBlock(nn.Module):
 
 class ProgressiveSegmentationDecoder(nn.Module):
     """
-    Progressive Convolutional Segmentation Decoder (Phase 8).
+    Progressive Convolutional Segmentation Decoder with Multi-Scale Skip Connections (Phase 8).
     Upsamples spatial feature maps from grid resolution (e.g. 37x37)
     progressively back to the full image resolution (e.g. 518x518).
-    Produces pixel-level anomaly logits and calibrated anomaly heatmaps.
+    Supports lateral multi-scale skip connections from intermediate backbone blocks (4, 8)
+    to restore high-frequency boundary details and hairline cracks.
     """
     def __init__(
         self,
@@ -33,6 +34,7 @@ class ProgressiveSegmentationDecoder(nn.Module):
         hidden_dims: List[int] = [128, 64, 32, 16],
         target_size: int = 518,
         dropout: float = 0.1,
+        skip_channels: int = 384,
     ):
         super().__init__()
         self.target_size = (target_size, target_size)
@@ -44,12 +46,30 @@ class ProgressiveSegmentationDecoder(nn.Module):
             curr_in = h_dim
         self.stages = nn.ModuleList(layers)
 
+        # Multi-scale lateral skip projections for high-fidelity spatial detail
+        self.skip_proj_8 = nn.Sequential(
+            nn.Conv2d(skip_channels, hidden_dims[0], kernel_size=1, bias=False),
+            nn.GroupNorm(num_groups=min(8, hidden_dims[0]), num_channels=hidden_dims[0]),
+            nn.GELU()
+        )
+        self.skip_proj_4 = nn.Sequential(
+            nn.Conv2d(skip_channels, hidden_dims[1], kernel_size=1, bias=False),
+            nn.GroupNorm(num_groups=min(8, hidden_dims[1]), num_channels=hidden_dims[1]),
+            nn.GELU()
+        )
+
         self.final_head = nn.Conv2d(curr_in, 1, kernel_size=1)
 
-    def forward(self, x: torch.Tensor, out_size: Optional[Tuple[int, int]] = None) -> torch.Tensor:
+    def forward(
+        self,
+        x: torch.Tensor,
+        skips: Optional[List[torch.Tensor]] = None,
+        out_size: Optional[Tuple[int, int]] = None
+    ) -> torch.Tensor:
         """
         Args:
             x: Fused features [B, in_channels, H_p, W_p]
+            skips: Optional list of intermediate backbone features [skip_block4, skip_block8]
             out_size: Optional target size override (H, W)
         Returns:
             pixel_logits: [B, 1, H, W]
@@ -61,6 +81,18 @@ class ProgressiveSegmentationDecoder(nn.Module):
             if i < len(self.stages) - 1:
                 # Progressive 2x upsampling
                 x = F.interpolate(x, scale_factor=2.0, mode="bilinear", align_corners=False)
+                # Inject lateral skip connections if provided
+                if skips is not None and len(skips) >= 2:
+                    if i == 0:
+                        # Fuse Block 8 features at 74x74
+                        s8 = self.skip_proj_8(skips[1])
+                        s8_up = F.interpolate(s8, size=x.shape[-2:], mode="bilinear", align_corners=False)
+                        x = x + s8_up
+                    elif i == 1:
+                        # Fuse Block 4 features at 148x148 (rich low-level edges)
+                        s4 = self.skip_proj_4(skips[0])
+                        s4_up = F.interpolate(s4, size=x.shape[-2:], mode="bilinear", align_corners=False)
+                        x = x + s4_up
             else:
                 # Final upsampling to exact target size
                 x = F.interpolate(x, size=target, mode="bilinear", align_corners=False)

@@ -24,8 +24,8 @@ def test_split_conformal_calibrator():
 def test_ood_detector():
     detector = OODDetector(metric="cosine", threshold_percentile=95.0)
 
-    # In-distribution prototype cluster
-    proto_features = np.random.randn(50, 64)
+    # In-distribution prototype cluster centered around non-zero visual embedding centroid
+    proto_features = np.ones((50, 64)) * 2.0 + np.random.randn(50, 64) * 0.2
     detector.fit(proto_features, category="bottle")
 
     # In-distribution query

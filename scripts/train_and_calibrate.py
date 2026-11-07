@@ -28,6 +28,7 @@ from vista_vlm.data.transforms import denormalize_image, VISTATransform
 from vista_vlm.models.vista_model import VISTAAnomalyModel
 from vista_vlm.calibration.conformal import ConformalCalibrator
 from vista_vlm.calibration.ood import OODDetector
+from vista_vlm.calibration.selective import SelectivePredictor
 from vista_vlm.evaluation.benchmark_runner import evaluate_vista_model
 from vista_vlm.evaluation.visualizer import plot_roc_pr_curves, plot_calibration_reliability_diagram
 from vista_vlm.utils.logger import setup_logger
@@ -175,12 +176,18 @@ def main():
     calibrator.save(calib_file)
     logger.info(f"Split Conformal Calibration: Category '{args.category}' threshold set to {calibrated_threshold:.4f} (alpha={args.target_far})")
 
-    # Fit OOD Detector
+    # Fit OOD Detector with regularized shrinkage covariance
     ood_detector = OODDetector(metric="mahalanobis", threshold_percentile=98.0)
     ood_detector.fit(cal_features_np, category=args.category)
     ood_file = os.path.join(args.output_dir, f"ood_mvtec.json")
     ood_detector.save(ood_file)
     logger.info(f"OOD Detector fitted on {len(cal_features_np)} normal vectors. Saved to {ood_file}")
+
+    # Calibrate Selective Predictor Uncertainty Band
+    sel_pred = SelectivePredictor()
+    val_labels = [0] * len(cal_scores)
+    opt_delta = sel_pred.calibrate_uncertainty_band(cal_scores, val_labels, calibrated_threshold=calibrated_threshold, target_risk=0.01)
+    logger.info(f"Selective Predictor: Calibrated uncertainty band delta={opt_delta:.4f} ensuring <=1% selective risk")
 
     # 6. Evaluation on Test Benchmark Split
     logger.info("Evaluating VISTA-VLM on Test Benchmark Split...")

@@ -19,14 +19,16 @@ class AnomalyCLIP(nn.Module):
         self.clip.eval()
         self.image_size = image_size
 
-    def get_agnostic_prompts(self) -> Tuple[List[str], List[str]]:
+    def get_agnostic_prompts(self, category: str = "object") -> Tuple[List[str], List[str]]:
         normal_prompts = [
-            "a photo of a normal object without flaws",
-            "a close-up of a flawless, pristine surface"
+            f"a photo of a normal {category} without flaws",
+            f"a close-up of a flawless, pristine {category} surface",
+            f"a clean, defect-free {category}"
         ]
         anomaly_prompts = [
-            "a photo of a damaged object with defects",
-            "a close-up of a damaged, scratched, or cracked surface"
+            f"a photo of a damaged {category} with defects",
+            f"a close-up of a damaged, scratched, or cracked {category} surface",
+            f"a defective {category} with anomalies"
         ]
         return normal_prompts, anomaly_prompts
 
@@ -34,7 +36,7 @@ class AnomalyCLIP(nn.Module):
         device = x.device
         self.clip.to(device)
 
-        normal_prompts, anomaly_prompts = self.get_agnostic_prompts()
+        normal_prompts, anomaly_prompts = self.get_agnostic_prompts(category)
 
         with torch.no_grad():
             norm_feats = self.clip.encode_text(normal_prompts)
@@ -43,17 +45,29 @@ class AnomalyCLIP(nn.Module):
             norm_text = F.normalize(norm_feats.mean(dim=0, keepdim=True), p=2, dim=-1)
             anom_text = F.normalize(anom_feats.mean(dim=0, keepdim=True), p=2, dim=-1)
 
-            img_feats = self.clip.encode_image(x)
+            # Extract global features and spatial patch features (14x14 grid)
+            img_feats, patch_grid = self.clip.encode_image(x, return_patches=True) # [B, 512], [B, 512, G, G]
 
             sim_norm = img_feats @ norm_text.T
             sim_anom = img_feats @ anom_text.T
 
             logits = torch.cat([sim_norm, sim_anom], dim=1) * 10.0
             probs = F.softmax(logits, dim=1)
-            image_score = probs[:, 1]
+            global_score = probs[:, 1]
+
+            # Patch-level dense visual-textual spatial alignment
+            sim_patch_norm = (patch_grid * norm_text.view(1, -1, 1, 1)).sum(dim=1, keepdim=True)
+            sim_patch_anom = (patch_grid * anom_text.view(1, -1, 1, 1)).sum(dim=1, keepdim=True)
+            patch_logits = torch.cat([sim_patch_norm, sim_patch_anom], dim=1) * 10.0
+            patch_probs = F.softmax(patch_logits, dim=1)
+            raw_patch_map = patch_probs[:, 1:2, :, :] # [B, 1, G, G]
+
+            # Bilinear upsampling to original image size
+            anomaly_map = F.interpolate(raw_patch_map, size=(self.image_size, self.image_size), mode="bilinear", align_corners=False)
 
             B = x.shape[0]
-            anomaly_map = image_score.view(B, 1, 1, 1).expand(B, 1, self.image_size, self.image_size)
+            max_patch_score = anomaly_map.view(B, -1).max(dim=1)[0]
+            image_score = 0.5 * global_score + 0.5 * max_patch_score
 
         return {
             "image_score": image_score,

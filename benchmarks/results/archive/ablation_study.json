@@ -1,0 +1,76 @@
+{
+  "architectural_ablations": {
+    "Full VISTA-VLM": {
+      "image_auroc": 0.25,
+      "image_ap": 0.5775,
+      "image_f1": 0.7059,
+      "pixel_auroc": 0.5061,
+      "pixel_ap": 0.0193,
+      "aupro": 0.0014,
+      "p50_latency_ms": 578.99,
+      "throughput_fps": 1.66
+    },
+    "w/o Global Features (Local Only)": {
+      "image_auroc": 0.0833,
+      "image_ap": 0.4409,
+      "image_f1": 0.7059,
+      "pixel_auroc": 0.5621,
+      "pixel_ap": 0.0225,
+      "aupro": 0.1078,
+      "p50_latency_ms": 585.26,
+      "throughput_fps": 1.68
+    },
+    "w/o Multi-Layer (Block 12 Only)": {
+      "image_auroc": 0.6667,
+      "image_ap": 0.8369,
+      "image_f1": 0.7059,
+      "pixel_auroc": 0.5125,
+      "pixel_ap": 0.0196,
+      "aupro": 0.1321,
+      "p50_latency_ms": 597.7,
+      "throughput_fps": 1.63
+    },
+    "w/ Simple Concat Fusion": {
+      "image_auroc": 0.75,
+      "image_ap": 0.8808,
+      "image_f1": 0.7059,
+      "pixel_auroc": 0.5245,
+      "pixel_ap": 0.0195,
+      "aupro": 0.0344,
+      "p50_latency_ms": 616.36,
+      "throughput_fps": 1.58
+    },
+    "Secondary Backbone (ViT-B/14)": {
+      "image_auroc": 0.8333,
+      "image_ap": 0.9224,
+      "image_f1": 0.7059,
+      "pixel_auroc": 0.4886,
+      "pixel_ap": 0.0184,
+      "aupro": 0.0856,
+      "p50_latency_ms": 1990.33,
+      "throughput_fps": 0.52
+    }
+  },
+  "few_shot_learning": {
+    "1-shot": {
+      "image_auroc": 0.1667,
+      "pixel_auroc": 0.4526,
+      "f1": 0.7059
+    },
+    "2-shot": {
+      "image_auroc": 0.5833,
+      "pixel_auroc": 0.4784,
+      "f1": 0.7059
+    },
+    "4-shot": {
+      "image_auroc": 0.75,
+      "pixel_auroc": 0.5129,
+      "f1": 0.7059
+    },
+    "8-shot": {
+      "image_auroc": 0.0,
+      "pixel_auroc": 0.4975,
+      "f1": 0.7059
+    }
+  }
+}

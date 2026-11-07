@@ -48,24 +48,34 @@ class WinCLIP(nn.Module):
             norm_text = F.normalize(norm_feats.mean(dim=0, keepdim=True), p=2, dim=-1)
             anom_text = F.normalize(anom_feats.mean(dim=0, keepdim=True), p=2, dim=-1)
 
-            # Image global features
-            img_feats = self.clip.encode_image(x) # [B, 512]
+            # Image global features and spatial patch features (14x14 grid)
+            img_feats, patch_grid = self.clip.encode_image(x, return_patches=True) # [B, 512], [B, 512, G, G]
 
             # Cosine similarity with normal vs anomaly
             sim_norm = img_feats @ norm_text.T # [B, 1]
             sim_anom = img_feats @ anom_text.T # [B, 1]
 
-            # Softmax probability for anomaly class
+            # Softmax probability for global anomaly class
             logits = torch.cat([sim_norm, sim_anom], dim=1) * 10.0 # [B, 2]
             probs = F.softmax(logits, dim=1)
-            image_score = probs[:, 1] # Probability of anomaly
+            global_score = probs[:, 1] # [B]
 
-            # Patch-level spatial anomaly map using grid sliding crops
+            # Patch-level dense visual-textual spatial alignment (Jeong et al., WinCLIP CVPR 2023)
+            sim_patch_norm = (patch_grid * norm_text.view(1, -1, 1, 1)).sum(dim=1, keepdim=True) # [B, 1, G, G]
+            sim_patch_anom = (patch_grid * anom_text.view(1, -1, 1, 1)).sum(dim=1, keepdim=True) # [B, 1, G, G]
+            patch_logits = torch.cat([sim_patch_norm, sim_patch_anom], dim=1) * 10.0
+            patch_probs = F.softmax(patch_logits, dim=1)
+            raw_patch_map = patch_probs[:, 1:2, :, :] # [B, 1, G, G]
+
+            # Upsample patch anomaly map to image resolution
+            anomaly_map = F.interpolate(raw_patch_map, size=(self.image_size, self.image_size), mode="bilinear", align_corners=False)
+
+            # Combined WinCLIP image score (global visual-text + top patch anomaly)
             B = x.shape[0]
-            # Create smooth baseline anomaly map centered around image score
-            base_map = image_score.view(B, 1, 1, 1).expand(B, 1, self.image_size, self.image_size)
+            max_patch_score = anomaly_map.view(B, -1).max(dim=1)[0]
+            image_score = 0.5 * global_score + 0.5 * max_patch_score
 
         return {
             "image_score": image_score,
-            "anomaly_map": base_map
+            "anomaly_map": anomaly_map
         }

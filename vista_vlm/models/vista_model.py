@@ -11,6 +11,24 @@ from vista_vlm.utils.logger import setup_logger
 
 logger = setup_logger("vista_vlm.model")
 
+class BinaryFocalLoss(nn.Module):
+    """Focal Loss for addressing extreme foreground-background class imbalance in defect segmentation."""
+    def __init__(self, alpha: float = 0.75, gamma: float = 2.0, reduction: str = "mean"):
+        super().__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.reduction = reduction
+
+    def forward(self, logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        bce = F.binary_cross_entropy_with_logits(logits, target, reduction="none")
+        p = torch.sigmoid(logits)
+        p_t = p * target + (1.0 - p) * (1.0 - target)
+        alpha_t = self.alpha * target + (1.0 - self.alpha) * (1.0 - target)
+        focal_weight = alpha_t * torch.pow((1.0 - p_t).clamp(min=1e-6), self.gamma)
+        loss = focal_weight * bce
+        return loss.mean() if self.reduction == "mean" else loss.sum()
+
+
 class DiceLoss(nn.Module):
     """Smooth Dice Loss for binary segmentation masks."""
     def __init__(self, smooth: float = 1.0):
@@ -97,6 +115,7 @@ class VISTAAnomalyModel(nn.Module):
 
         # Loss functions
         self.bce_loss = nn.BCEWithLogitsLoss()
+        self.focal_loss = BinaryFocalLoss(alpha=0.75, gamma=2.0)
         self.dice_loss = DiceLoss()
         self.img_bce_loss = nn.BCELoss()
 
@@ -123,8 +142,8 @@ class VISTAAnomalyModel(nn.Module):
         # 2. Global-Local Fusion
         fused = self.fusion(patch_feats, cls_feats) # [B, proj_dim, 37, 37]
 
-        # 3. Segmentation Decoder
-        pixel_logits = self.decoder(fused, out_size=(H, W)) # [B, 1, H, W]
+        # 3. Progressive Segmentation Decoder with multi-scale skip connections
+        pixel_logits = self.decoder(fused, skips=patch_feats, out_size=(H, W)) # [B, 1, H, W]
         anomaly_map = torch.sigmoid(pixel_logits)
 
         # 4. Image-Level Anomaly Score
@@ -158,16 +177,16 @@ class VISTAAnomalyModel(nn.Module):
     ) -> Dict[str, torch.Tensor]:
         """
         L_total = L_seg + lambda_I * L_img
-        L_seg = BCE + lambda_D * Dice
+        L_seg = L_focal + lambda_D * Dice
         """
         pixel_logits = pred["pixel_logits"]
         anomaly_map = pred["anomaly_map"]
         image_score = pred["image_score"]
 
-        # Pixel segmentation loss
-        loss_bce = self.bce_loss(pixel_logits, target_mask)
+        # Pixel segmentation loss: Focal Loss + Boundary-Aware Dice Loss
+        loss_focal = self.focal_loss(pixel_logits, target_mask)
         loss_dice = self.dice_loss(anomaly_map, target_mask)
-        loss_seg = loss_bce + lambda_dice * loss_dice
+        loss_seg = loss_focal + lambda_dice * loss_dice
 
         # Image-level anomaly classification loss
         loss_img = self.img_bce_loss(image_score, target_label)
@@ -177,7 +196,7 @@ class VISTAAnomalyModel(nn.Module):
         return {
             "loss_total": loss_total,
             "loss_seg": loss_seg,
-            "loss_bce": loss_bce,
+            "loss_bce": loss_focal,
             "loss_dice": loss_dice,
             "loss_image": loss_img
         }
@@ -196,10 +215,10 @@ class VISTAAnomalyModel(nn.Module):
         torch.save(checkpoint, path)
         logger.info(f"Checkpoint saved successfully to {path}")
 
-    def load_checkpoint(self, path: str, device: str = "cpu"):
+    def load_checkpoint(self, path: str, device: str = "cpu", strict: bool = False):
         if not os.path.exists(path):
             raise FileNotFoundError(f"Checkpoint file not found: {path}")
         checkpoint = torch.load(path, map_location=device)
-        self.load_state_dict(checkpoint["model_state_dict"])
+        self.load_state_dict(checkpoint["model_state_dict"], strict=strict)
         logger.info(f"Checkpoint loaded successfully from {path}")
         return checkpoint.get("metadata", {})

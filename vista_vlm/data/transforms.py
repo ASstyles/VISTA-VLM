@@ -50,9 +50,16 @@ class VISTATransform:
         # Handle mask
         if mask is not None:
             if isinstance(mask, np.ndarray):
-                mask = Image.fromarray(mask.astype(np.uint8))
+                # If mask is float in [0, 1] or uint8 in {0, 1}, scale to 255 so TF.to_tensor correctly maps back to [0, 1]
+                m_np = mask.astype(np.float32)
+                if m_np.max() <= 1.0 and m_np.max() > 0:
+                    m_np = m_np * 255.0
+                mask = Image.fromarray(m_np.astype(np.uint8))
             elif isinstance(mask, torch.Tensor):
-                mask = Image.fromarray((mask.squeeze().cpu().numpy() * 255).astype(np.uint8))
+                m_t = mask.squeeze().float()
+                if m_t.max() <= 1.0 and m_t.max() > 0:
+                    m_t = m_t * 255.0
+                mask = Image.fromarray(m_t.cpu().numpy().astype(np.uint8))
             
             # Nearest neighbor for segmentation mask to preserve sharp defect boundaries
             mask_resized = TF.resize(mask, self.image_size, interpolation=TF.InterpolationMode.NEAREST)
@@ -60,7 +67,7 @@ class VISTATransform:
             # Ensure single channel binary mask
             if mask_tensor.shape[0] > 1:
                 mask_tensor = mask_tensor[:1, :, :]
-            mask_binary = (mask_tensor > 0.5).float()
+            mask_binary = (mask_tensor > 0.2).float()
         else:
             mask_binary = torch.zeros((1, self.image_size[0], self.image_size[1]), dtype=torch.float32)
 

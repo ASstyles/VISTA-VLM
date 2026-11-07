@@ -27,13 +27,16 @@ class OODDetector:
         mu = np.mean(features, axis=0)
         self.prototypes[category] = mu
 
-        if self.metric == "mahalanobis" and N > D:
-            # Regularized covariance
-            cov = np.cov(features, rowvar=False) + 1e-4 * np.eye(D)
-            self.cov_inv[category] = np.linalg.pinv(cov)
-            # Compute calibration distances
+        if self.metric == "mahalanobis":
+            # Shrinkage regularized covariance (Ledoit-Wolf style) guarantees invertibility for any sample size N >= 2
+            emp_cov = np.cov(features, rowvar=False) if N > 1 else np.eye(D)
+            trace_mean = float(np.trace(emp_cov)) / max(1, D)
+            shrinkage = 0.2
+            reg_cov = (1.0 - shrinkage) * emp_cov + shrinkage * trace_mean * np.eye(D) + 1e-4 * np.eye(D)
+            self.cov_inv[category] = np.linalg.pinv(reg_cov)
+            # Compute calibration Mahalanobis distances
             diff = features - mu
-            dists = np.sqrt(np.sum((diff @ self.cov_inv[category]) * diff, axis=1))
+            dists = np.sqrt(np.clip(np.sum((diff @ self.cov_inv[category]) * diff, axis=1), 0.0, None))
         else:
             # Cosine distance
             mu_norm = mu / (np.linalg.norm(mu) + 1e-8)

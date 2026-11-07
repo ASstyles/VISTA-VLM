@@ -89,16 +89,14 @@ class PatchCore(nn.Module):
                 dist_maps.append(dist_map)
 
             dist_tensor = torch.cat(dist_maps, dim=0) # [B, 1, H, W]
-            # Interpolate to input resolution
+            # Interpolate raw distance tensor to input resolution
             anomaly_map = F.interpolate(dist_tensor, size=(self.image_size, self.image_size), mode="bilinear", align_corners=False)
             
-            # Normalize map to [0, 1]
-            map_norm = torch.sigmoid((anomaly_map - anomaly_map.mean()) / (anomaly_map.std() + 1e-6))
-
-            # Image score: maximum anomaly value in map
-            image_score = map_norm.view(B, -1).max(dim=1)[0]
+            # Image score: maximum patch distance in un-normalized map (Roth et al., 2022)
+            # Preserves strict cross-image distance ranking without destructive per-image z-score distortion
+            image_score = anomaly_map.view(B, -1).max(dim=1)[0]
 
         return {
             "image_score": image_score,
-            "anomaly_map": map_norm
+            "anomaly_map": anomaly_map
         }

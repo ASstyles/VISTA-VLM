@@ -95,8 +95,6 @@ class EfficientAD(nn.Module):
 
             diff_map = diff_st + diff_ae
             anomaly_map = F.interpolate(diff_map, size=(self.image_size, self.image_size), mode="bilinear", align_corners=False)
-            anomaly_map = torch.sigmoid((anomaly_map - anomaly_map.mean()) / (anomaly_map.std() + 1e-6))
-
             image_score = anomaly_map.view(x.shape[0], -1).max(dim=1)[0]
 
         return {

@@ -1,0 +1,191 @@
+{
+  "PatchCore": {
+    "image_level": {
+      "auroc": 0.3167,
+      "average_precision": 0.5923,
+      "precision": 0.5238,
+      "recall": 0.9167,
+      "f1": 0.6667,
+      "threshold": 0.998
+    },
+    "pixel_level": {
+      "pixel_auroc": 0.8486,
+      "pixel_ap": 0.1659,
+      "aupro": 0.2844,
+      "iou": 0.0505,
+      "dice": 0.0962
+    },
+    "reliability": {
+      "ece": 0.4543,
+      "brier_score": 0.4545,
+      "empirical_false_alarm_rate": 1.0
+    },
+    "efficiency": {
+      "p50_latency_ms": 597.68,
+      "p95_latency_ms": 659.19,
+      "throughput_fps": 1.64
+    }
+  },
+  "PaDiM": {
+    "image_level": {
+      "auroc": 1.0,
+      "average_precision": 1.0,
+      "precision": 1.0,
+      "recall": 0.9167,
+      "f1": 0.9565,
+      "threshold": 0.9996
+    },
+    "pixel_level": {
+      "pixel_auroc": 0.8434,
+      "pixel_ap": 0.2389,
+      "aupro": 0.2894,
+      "iou": 0.0532,
+      "dice": 0.1011
+    },
+    "reliability": {
+      "ece": 0.2836,
+      "brier_score": 0.1907,
+      "empirical_false_alarm_rate": 0.0
+    },
+    "efficiency": {
+      "p50_latency_ms": 611.97,
+      "p95_latency_ms": 759.25,
+      "throughput_fps": 1.56
+    }
+  },
+  "EfficientAD": {
+    "image_level": {
+      "auroc": 0.4667,
+      "average_precision": 0.7144,
+      "precision": 0.5238,
+      "recall": 0.9167,
+      "f1": 0.6667,
+      "threshold": 0.9998
+    },
+    "pixel_level": {
+      "pixel_auroc": 0.6606,
+      "pixel_ap": 0.0418,
+      "aupro": 0.1289,
+      "iou": 0.0211,
+      "dice": 0.0414
+    },
+    "reliability": {
+      "ece": 0.4545,
+      "brier_score": 0.4545,
+      "empirical_false_alarm_rate": 1.0
+    },
+    "efficiency": {
+      "p50_latency_ms": 36.28,
+      "p95_latency_ms": 40.73,
+      "throughput_fps": 27.14
+    }
+  },
+  "DRAEM": {
+    "image_level": {
+      "auroc": 0.625,
+      "average_precision": 0.6843,
+      "precision": 0.5238,
+      "recall": 0.9167,
+      "f1": 0.6667,
+      "threshold": 0.4739
+    },
+    "pixel_level": {
+      "pixel_auroc": 0.6613,
+      "pixel_ap": 0.117,
+      "aupro": 0.0002,
+      "iou": 0.0,
+      "dice": 0.0
+    },
+    "reliability": {
+      "ece": 0.0706,
+      "brier_score": 0.2528,
+      "empirical_false_alarm_rate": 1.0
+    },
+    "efficiency": {
+      "p50_latency_ms": 181.58,
+      "p95_latency_ms": 252.66,
+      "throughput_fps": 5.08
+    }
+  },
+  "WinCLIP": {
+    "image_level": {
+      "auroc": 1.0,
+      "average_precision": 1.0,
+      "precision": 1.0,
+      "recall": 0.8333,
+      "f1": 0.9091,
+      "threshold": 0.4793
+    },
+    "pixel_level": {
+      "pixel_auroc": 0.9031,
+      "pixel_ap": 0.1047,
+      "aupro": 0.0223,
+      "iou": 0.0,
+      "dice": 0.0
+    },
+    "reliability": {
+      "ece": 0.0652,
+      "brier_score": 0.2507,
+      "empirical_false_alarm_rate": 0.0
+    },
+    "efficiency": {
+      "p50_latency_ms": 244.73,
+      "p95_latency_ms": 270.27,
+      "throughput_fps": 4.04
+    }
+  },
+  "AnomalyCLIP": {
+    "image_level": {
+      "auroc": 0.3333,
+      "average_precision": 0.6374,
+      "precision": 0.5238,
+      "recall": 0.9167,
+      "f1": 0.6667,
+      "threshold": 0.5362
+    },
+    "pixel_level": {
+      "pixel_auroc": 0.1588,
+      "pixel_ap": 0.0126,
+      "aupro": 0.0,
+      "iou": 0.018,
+      "dice": 0.0354
+    },
+    "reliability": {
+      "ece": 0.0027,
+      "brier_score": 0.2492,
+      "empirical_false_alarm_rate": 1.0
+    },
+    "efficiency": {
+      "p50_latency_ms": 199.6,
+      "p95_latency_ms": 208.84,
+      "throughput_fps": 5.04
+    }
+  },
+  "VISTA-VLM (Ours)": {
+    "image_level": {
+      "auroc": 1.0,
+      "average_precision": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "threshold": 0.4954
+    },
+    "pixel_level": {
+      "pixel_auroc": 0.5625,
+      "pixel_ap": 0.0216,
+      "aupro": 0.0848,
+      "iou": 0.0024,
+      "dice": 0.0047
+    },
+    "reliability": {
+      "ece": 0.0497,
+      "brier_score": 0.2501,
+      "empirical_false_alarm_rate": 0.0
+    },
+    "efficiency": {
+      "p50_latency_ms": 600.83,
+      "p95_latency_ms": 649.97,
+      "throughput_fps": 1.65
+    }
+  }
+}

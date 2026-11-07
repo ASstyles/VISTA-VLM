@@ -1,4 +1,5 @@
-from typing import Dict, Any, Tuple, Optional
+import numpy as np
+from typing import Dict, Any, Tuple, Optional, Union, List
 
 class SelectivePredictor:
     """
@@ -12,6 +13,43 @@ class SelectivePredictor:
     def __init__(self, uncertainty_band_width: float = 0.08, enabled: bool = True):
         self.uncertainty_band = uncertainty_band_width
         self.enabled = enabled
+
+    def calibrate_uncertainty_band(
+        self,
+        scores: Union[np.ndarray, List[float]],
+        labels: Union[np.ndarray, List[int]],
+        calibrated_threshold: float,
+        target_risk: float = 0.01,
+        min_coverage: float = 0.50
+    ) -> float:
+        """
+        Calibrates empirical uncertainty band delta on validation samples to guarantee
+        selective risk (error rate on autonomously accepted decisions) <= target_risk.
+        """
+        scores_arr = np.asarray(scores, dtype=float)
+        labels_arr = np.asarray(labels, dtype=int)
+
+        best_delta = self.uncertainty_band
+        candidate_deltas = np.linspace(0.01, 0.25, 50)
+
+        for delta in candidate_deltas:
+            low_b = max(0.0, calibrated_threshold - delta)
+            high_b = min(1.0, calibrated_threshold + delta)
+            accepted = (scores_arr < low_b) | (scores_arr > high_b)
+
+            if np.mean(accepted) < min_coverage:
+                continue
+
+            pred_accepted = (scores_arr[accepted] > calibrated_threshold).astype(int)
+            true_accepted = labels_arr[accepted]
+            risk = float(np.mean(pred_accepted != true_accepted)) if len(pred_accepted) > 0 else 0.0
+
+            if risk <= target_risk:
+                best_delta = float(delta)
+                break
+
+        self.uncertainty_band = round(best_delta, 4)
+        return self.uncertainty_band
 
     def evaluate_decision(
         self,

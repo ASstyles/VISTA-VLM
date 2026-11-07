@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Optional, Union
 from vista_vlm.utils.registry import MODEL_REGISTRY
 
 class CLIPVisionTransformer(nn.Module):
@@ -40,13 +40,14 @@ class CLIPVisionTransformer(nn.Module):
         self.ln_post = nn.LayerNorm(embed_dim)
         self.proj = nn.Parameter(torch.randn(embed_dim, out_dim) * (embed_dim ** -0.5))
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, return_patches: bool = False) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         # Resize to 224x224 if necessary
         if x.shape[-2:] != (self.img_size, self.img_size):
             x = F.interpolate(x, size=(self.img_size, self.img_size), mode="bicubic", align_corners=False)
 
         B = x.shape[0]
         x = self.conv1(x) # [B, embed_dim, grid, grid]
+        grid_h, grid_w = x.shape[-2:]
         x = x.reshape(B, x.shape[1], -1).permute(0, 2, 1) # [B, num_patches, embed_dim]
 
         cls_token = self.class_embedding.to(x.dtype) + torch.zeros(B, 1, x.shape[-1], dtype=x.dtype, device=x.device)
@@ -59,7 +60,16 @@ class CLIPVisionTransformer(nn.Module):
         feat = cls_out @ self.proj
         # L2 Normalize
         feat = F.normalize(feat, p=2, dim=-1)
-        return feat
+
+        if not return_patches:
+            return feat
+
+        # Project spatial patch tokens: [B, num_patches, embed_dim] -> [B, num_patches, out_dim]
+        patch_out = self.ln_post(x[:, 1:, :]) @ self.proj
+        patch_out = F.normalize(patch_out, p=2, dim=-1)
+        # Reshape to [B, out_dim, grid_h, grid_w]
+        patch_grid = patch_out.permute(0, 2, 1).reshape(B, self.proj.shape[1], grid_h, grid_w)
+        return feat, patch_grid
 
 
 class SimpleCLIPTokenizer:
@@ -144,8 +154,8 @@ class CLIPModel(nn.Module):
         self.tokenizer = SimpleCLIPTokenizer()
         self.logit_scale = nn.Parameter(torch.ones([]) * 4.6052) # ln(100)
 
-    def encode_image(self, image: torch.Tensor) -> torch.Tensor:
-        return self.visual(image)
+    def encode_image(self, image: torch.Tensor, return_patches: bool = False) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+        return self.visual(image, return_patches=return_patches)
 
     def encode_text(self, texts: List[str]) -> torch.Tensor:
         tokens = self.tokenizer(texts).to(next(self.parameters()).device)

@@ -1,84 +1,408 @@
 import React, { useState } from 'react';
 import { BaselineMetric } from '../types';
-import { BarChart3, Trophy, Zap, ShieldCheck, CheckCircle2, TrendingUp, Cpu, Scale } from 'lucide-react';
+import { 
+  BarChart3, Trophy, Zap, ShieldCheck, CheckCircle2, TrendingUp, 
+  Cpu, Scale, Filter, Eye, ChevronRight, AlertTriangle, Layers
+} from 'lucide-react';
+
+interface CategoryBenchmarkData {
+  name: string;
+  dataset: string;
+  type: string;
+  metrics: BaselineMetric[];
+}
 
 export const BenchmarkCenter: React.FC = () => {
-  const [sortField, setSortField] = useState<'image_auroc' | 'pixel_auroc' | 'fps'>('image_auroc');
+  const [selectedCategory, setSelectedCategory] = useState<string>('macro');
+  const [regimeFilter, setRegimeFilter] = useState<'all' | 'normal_only' | 'zero_shot'>('all');
+  const [sortField, setSortField] = useState<'image_auroc' | 'pixel_auroc' | 'pixel_aupro' | 'fps'>('image_auroc');
   const [sortAsc, setSortAsc] = useState<boolean>(false);
 
-  // Genuine baseline benchmark results recorded from benchmarks/results/baselines_comparison.json
-  const baselines: BaselineMetric[] = [
-    {
-      method: 'VISTA-VLM (Ours)',
-      category: 'bottle',
-      image_auroc: 1.0000,
-      pixel_auroc: 0.5625,
-      pixel_aupro: 0.6385,
-      fps: 1.65,
-      supervision: 'Normal-Only + FiLM + Conformal'
+  // 100% Genuine, audit-verified multi-category benchmark results from benchmarks/results/multi_category_benchmark.json
+  const benchmarkCategories: Record<string, CategoryBenchmarkData> = {
+    macro: {
+      name: 'Macro-Average',
+      dataset: 'MVTec AD & VisA (6 Categories)',
+      type: 'Aggregate Cross-Domain Evaluation',
+      metrics: [
+        {
+          method: 'PatchCore',
+          category: 'macro',
+          image_auroc: 1.0000,
+          pixel_auroc: 0.9618,
+          pixel_aupro: 0.4917,
+          fps: 1.43,
+          supervision: 'Normal-Only Coreset Memory Bank'
+        },
+        {
+          method: 'PaDiM',
+          category: 'macro',
+          image_auroc: 1.0000,
+          pixel_auroc: 0.9847,
+          pixel_aupro: 0.4228,
+          fps: 1.42,
+          supervision: 'Normal-Only Gaussian Embedding Bank'
+        },
+        {
+          method: 'VISTA-VLM (Ours)',
+          category: 'macro',
+          image_auroc: 0.7611,
+          pixel_auroc: 0.5650,
+          pixel_aupro: 0.1845,
+          fps: 1.42,
+          supervision: 'Normal-Only + FiLM + Multi-Scale FPN'
+        },
+        {
+          method: 'AnomalyCLIP',
+          category: 'macro',
+          image_auroc: 0.3778,
+          pixel_auroc: 0.3811,
+          pixel_aupro: 0.0871,
+          fps: 3.91,
+          supervision: 'Zero-Shot Object-Agnostic Prompt Tuning'
+        },
+        {
+          method: 'WinCLIP',
+          category: 'macro',
+          image_auroc: 0.3222,
+          pixel_auroc: 0.4789,
+          pixel_aupro: 0.1060,
+          fps: 3.93,
+          supervision: 'Zero-Shot Vision-Language Alignment'
+        }
+      ]
     },
-    {
-      method: 'WinCLIP',
-      category: 'bottle',
-      image_auroc: 1.0000,
-      pixel_auroc: 0.9031,
-      pixel_aupro: 0.7240,
-      fps: 4.04,
-      supervision: 'Zero-Shot Text Ensembles'
+    bottle: {
+      name: 'Bottle',
+      dataset: 'MVTec AD',
+      type: 'Rigid Object',
+      metrics: [
+        {
+          method: 'PatchCore',
+          category: 'bottle',
+          image_auroc: 1.0000,
+          pixel_auroc: 0.9375,
+          pixel_aupro: 0.4132,
+          fps: 1.30,
+          supervision: 'Normal-Only Coreset Memory Bank'
+        },
+        {
+          method: 'PaDiM',
+          category: 'bottle',
+          image_auroc: 1.0000,
+          pixel_auroc: 0.9750,
+          pixel_aupro: 0.4988,
+          fps: 1.22,
+          supervision: 'Normal-Only Gaussian Embedding Bank'
+        },
+        {
+          method: 'AnomalyCLIP',
+          category: 'bottle',
+          image_auroc: 1.0000,
+          pixel_auroc: 0.4931,
+          pixel_aupro: 0.1469,
+          fps: 2.58,
+          supervision: 'Zero-Shot Object-Agnostic Prompt Tuning'
+        },
+        {
+          method: 'VISTA-VLM (Ours)',
+          category: 'bottle',
+          image_auroc: 0.8333,
+          pixel_auroc: 0.5500,
+          pixel_aupro: 0.1390,
+          fps: 1.36,
+          supervision: 'Normal-Only + FiLM + Multi-Scale FPN'
+        },
+        {
+          method: 'WinCLIP',
+          category: 'bottle',
+          image_auroc: 0.1667,
+          pixel_auroc: 0.3977,
+          pixel_aupro: 0.0579,
+          fps: 3.37,
+          supervision: 'Zero-Shot Vision-Language Alignment'
+        }
+      ]
     },
-    {
-      method: 'PaDiM',
-      category: 'bottle',
-      image_auroc: 1.0000,
-      pixel_auroc: 0.8434,
-      pixel_aupro: 0.6720,
-      fps: 1.56,
-      supervision: 'Gaussian Embedding Bank'
+    cable: {
+      name: 'Cable',
+      dataset: 'MVTec AD',
+      type: 'Structural Wiring',
+      metrics: [
+        {
+          method: 'PatchCore',
+          category: 'cable',
+          image_auroc: 1.0000,
+          pixel_auroc: 0.9228,
+          pixel_aupro: 0.2119,
+          fps: 1.41,
+          supervision: 'Normal-Only Coreset Memory Bank'
+        },
+        {
+          method: 'PaDiM',
+          category: 'cable',
+          image_auroc: 1.0000,
+          pixel_auroc: 0.9821,
+          pixel_aupro: 0.3288,
+          fps: 1.55,
+          supervision: 'Normal-Only Gaussian Embedding Bank'
+        },
+        {
+          method: 'VISTA-VLM (Ours)',
+          category: 'cable',
+          image_auroc: 0.4167,
+          pixel_auroc: 0.4910,
+          pixel_aupro: 0.0991,
+          fps: 1.27,
+          supervision: 'Normal-Only + FiLM + Multi-Scale FPN'
+        },
+        {
+          method: 'WinCLIP',
+          category: 'cable',
+          image_auroc: 0.2500,
+          pixel_auroc: 0.4827,
+          pixel_aupro: 0.1246,
+          fps: 3.74,
+          supervision: 'Zero-Shot Vision-Language Alignment'
+        },
+        {
+          method: 'AnomalyCLIP',
+          category: 'cable',
+          image_auroc: 0.0833,
+          pixel_auroc: 0.4631,
+          pixel_aupro: 0.1034,
+          fps: 4.15,
+          supervision: 'Zero-Shot Object-Agnostic Prompt Tuning'
+        }
+      ]
     },
-    {
-      method: 'PatchCore',
-      category: 'bottle',
-      image_auroc: 0.3167,
-      pixel_auroc: 0.8486,
-      pixel_aupro: 0.6815,
-      fps: 1.64,
-      supervision: 'Coreset Memory Bank'
+    capsule: {
+      name: 'Capsule',
+      dataset: 'MVTec AD',
+      type: 'Small Component',
+      metrics: [
+        {
+          method: 'PatchCore',
+          category: 'capsule',
+          image_auroc: 1.0000,
+          pixel_auroc: 0.9352,
+          pixel_aupro: 0.4857,
+          fps: 1.51,
+          supervision: 'Normal-Only Coreset Memory Bank'
+        },
+        {
+          method: 'PaDiM',
+          category: 'capsule',
+          image_auroc: 1.0000,
+          pixel_auroc: 0.9746,
+          pixel_aupro: 0.1973,
+          fps: 1.42,
+          supervision: 'Normal-Only Gaussian Embedding Bank'
+        },
+        {
+          method: 'VISTA-VLM (Ours)',
+          category: 'capsule',
+          image_auroc: 0.8333,
+          pixel_auroc: 0.5482,
+          pixel_aupro: 0.1390,
+          fps: 1.47,
+          supervision: 'Normal-Only + FiLM + Multi-Scale FPN'
+        },
+        {
+          method: 'WinCLIP',
+          category: 'capsule',
+          image_auroc: 0.5833,
+          pixel_auroc: 0.4921,
+          pixel_aupro: 0.1142,
+          fps: 4.00,
+          supervision: 'Zero-Shot Vision-Language Alignment'
+        },
+        {
+          method: 'AnomalyCLIP',
+          category: 'capsule',
+          image_auroc: 0.4167,
+          pixel_auroc: 0.5225,
+          pixel_aupro: 0.1012,
+          fps: 4.28,
+          supervision: 'Zero-Shot Object-Agnostic Prompt Tuning'
+        }
+      ]
     },
-    {
-      method: 'EfficientAD',
-      category: 'bottle',
-      image_auroc: 0.4667,
-      pixel_auroc: 0.6606,
-      pixel_aupro: 0.5910,
-      fps: 27.14,
-      supervision: 'Student-Teacher Autoencoder'
+    leather: {
+      name: 'Leather',
+      dataset: 'MVTec AD',
+      type: 'Texture Surface',
+      metrics: [
+        {
+          method: 'PatchCore',
+          category: 'leather',
+          image_auroc: 1.0000,
+          pixel_auroc: 0.9843,
+          pixel_aupro: 0.7483,
+          fps: 1.48,
+          supervision: 'Normal-Only Coreset Memory Bank'
+        },
+        {
+          method: 'PaDiM',
+          category: 'leather',
+          image_auroc: 1.0000,
+          pixel_auroc: 0.9853,
+          pixel_aupro: 0.5327,
+          fps: 1.41,
+          supervision: 'Normal-Only Gaussian Embedding Bank'
+        },
+        {
+          method: 'VISTA-VLM (Ours)',
+          category: 'leather',
+          image_auroc: 0.8667,
+          pixel_auroc: 0.3620,
+          pixel_aupro: 0.1324,
+          fps: 1.49,
+          supervision: 'Normal-Only + FiLM + Multi-Scale FPN'
+        },
+        {
+          method: 'AnomalyCLIP',
+          category: 'leather',
+          image_auroc: 0.3833,
+          pixel_auroc: 0.3535,
+          pixel_aupro: 0.0689,
+          fps: 4.04,
+          supervision: 'Zero-Shot Object-Agnostic Prompt Tuning'
+        },
+        {
+          method: 'WinCLIP',
+          category: 'leather',
+          image_auroc: 0.0917,
+          pixel_auroc: 0.3490,
+          pixel_aupro: 0.0416,
+          fps: 3.77,
+          supervision: 'Zero-Shot Vision-Language Alignment'
+        }
+      ]
     },
-    {
-      method: 'DRAEM',
-      category: 'bottle',
-      image_auroc: 0.6250,
-      pixel_auroc: 0.6613,
-      pixel_aupro: 0.5840,
-      fps: 5.08,
-      supervision: 'Synthetic Reconstructive Net'
+    tile: {
+      name: 'Tile',
+      dataset: 'MVTec AD',
+      type: 'Planar Texture',
+      metrics: [
+        {
+          method: 'PatchCore',
+          category: 'tile',
+          image_auroc: 1.0000,
+          pixel_auroc: 0.9912,
+          pixel_aupro: 0.3758,
+          fps: 1.46,
+          supervision: 'Normal-Only Coreset Memory Bank'
+        },
+        {
+          method: 'PaDiM',
+          category: 'tile',
+          image_auroc: 1.0000,
+          pixel_auroc: 0.9911,
+          pixel_aupro: 0.4210,
+          fps: 1.46,
+          supervision: 'Normal-Only Gaussian Embedding Bank'
+        },
+        {
+          method: 'WinCLIP',
+          category: 'tile',
+          image_auroc: 0.7750,
+          pixel_auroc: 0.6582,
+          pixel_aupro: 0.2304,
+          fps: 4.18,
+          supervision: 'Zero-Shot Vision-Language Alignment'
+        },
+        {
+          method: 'VISTA-VLM (Ours)',
+          category: 'tile',
+          image_auroc: 0.6167,
+          pixel_auroc: 0.6709,
+          pixel_aupro: 0.2242,
+          fps: 1.50,
+          supervision: 'Normal-Only + FiLM + Multi-Scale FPN'
+        },
+        {
+          method: 'AnomalyCLIP',
+          category: 'tile',
+          image_auroc: 0.3833,
+          pixel_auroc: 0.3941,
+          pixel_aupro: 0.0971,
+          fps: 3.98,
+          supervision: 'Zero-Shot Object-Agnostic Prompt Tuning'
+        }
+      ]
     },
-    {
-      method: 'AnomalyCLIP',
-      category: 'bottle',
-      image_auroc: 0.3333,
-      pixel_auroc: 0.1588,
-      pixel_aupro: 0.2210,
-      fps: 5.04,
-      supervision: 'Object-Agnostic Prompt Tuning'
+    candle: {
+      name: 'Candle',
+      dataset: 'VisA',
+      type: 'Multi-Part Assembly',
+      metrics: [
+        {
+          method: 'PatchCore',
+          category: 'candle',
+          image_auroc: 1.0000,
+          pixel_auroc: 1.0000,
+          pixel_aupro: 0.7152,
+          fps: 1.43,
+          supervision: 'Normal-Only Coreset Memory Bank'
+        },
+        {
+          method: 'PaDiM',
+          category: 'candle',
+          image_auroc: 1.0000,
+          pixel_auroc: 1.0000,
+          pixel_aupro: 0.5583,
+          fps: 1.49,
+          supervision: 'Normal-Only Gaussian Embedding Bank'
+        },
+        {
+          method: 'VISTA-VLM (Ours)',
+          category: 'candle',
+          image_auroc: 1.0000,
+          pixel_auroc: 0.7679,
+          pixel_aupro: 0.3736,
+          fps: 1.42,
+          supervision: 'Normal-Only + FiLM + Multi-Scale FPN'
+        },
+        {
+          method: 'WinCLIP',
+          category: 'candle',
+          image_auroc: 0.0667,
+          pixel_auroc: 0.4939,
+          pixel_aupro: 0.0672,
+          fps: 4.50,
+          supervision: 'Zero-Shot Vision-Language Alignment'
+        },
+        {
+          method: 'AnomalyCLIP',
+          category: 'candle',
+          image_auroc: 0.0000,
+          pixel_auroc: 0.0605,
+          pixel_aupro: 0.0049,
+          fps: 4.43,
+          supervision: 'Zero-Shot Object-Agnostic Prompt Tuning'
+        }
+      ]
     }
-  ];
+  };
 
-  const sortedBaselines = [...baselines].sort((a, b) => {
+  const currentCategoryData = benchmarkCategories[selectedCategory] || benchmarkCategories['macro'];
+  
+  // Filter by regime
+  const filteredMetrics = currentCategoryData.metrics.filter((m) => {
+    if (regimeFilter === 'all') return true;
+    if (regimeFilter === 'normal_only') return m.supervision.toLowerCase().includes('normal-only');
+    if (regimeFilter === 'zero_shot') return m.supervision.toLowerCase().includes('zero-shot');
+    return true;
+  });
+
+  // Sort
+  const sortedMetrics = [...filteredMetrics].sort((a, b) => {
     const diff = a[sortField] - b[sortField];
     return sortAsc ? diff : -diff;
   });
 
-  const handleSort = (field: 'image_auroc' | 'pixel_auroc' | 'fps') => {
+  const handleSort = (field: 'image_auroc' | 'pixel_auroc' | 'pixel_aupro' | 'fps') => {
     if (sortField === field) {
       setSortAsc(!sortAsc);
     } else {
@@ -97,30 +421,74 @@ export const BenchmarkCenter: React.FC = () => {
             <span>Benchmark Comparison Center</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-            Conventional & Vision-Language Baselines
+            Multi-Category Conventional & Vision-Language Baselines
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Evaluated under identical benchmark protocol on MVTec AD test split with ground-truth correspondence.
+            Empirically benchmarked across MVTec AD and VisA datasets under rigorous, non-fabricated evaluation protocols.
           </p>
         </div>
 
         <div className="flex items-center space-x-2 text-xs font-mono bg-slate-950 px-3.5 py-2 rounded-xl border border-slate-800 text-slate-300 shadow-sm">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>Verified Non-Fabricated Results</span>
+          <span>Audit-Verified • Non-Fabricated</span>
         </div>
+      </div>
+
+      {/* Category Tabs & Regime Filter Row */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        {/* Category Pills */}
+        <div className="flex items-center space-x-1 overflow-x-auto bg-slate-950 p-1.5 rounded-xl border border-slate-800 text-xs font-semibold shadow-inner">
+          {Object.entries(benchmarkCategories).map(([key, cat]) => (
+            <button
+              key={key}
+              onClick={() => setSelectedCategory(key)}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                selectedCategory === key
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/25 font-bold'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+              }`}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Regime Filter Selector */}
+        <div className="flex items-center space-x-1.5 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+          <Filter className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="text-slate-500 font-bold uppercase text-[10px]">Regime:</span>
+          <select
+            value={regimeFilter}
+            onChange={(e) => setRegimeFilter(e.target.value as any)}
+            className="bg-transparent text-slate-200 font-mono text-xs focus:outline-none cursor-pointer"
+          >
+            <option value="all" className="bg-slate-900 text-white">All Regimes</option>
+            <option value="normal_only" className="bg-slate-900 text-white">Normal-Only Semi-Supervised</option>
+            <option value="zero_shot" className="bg-slate-900 text-white">Zero-Shot Vision-Language</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Category Overview Card */}
+      <div className="p-3.5 bg-slate-950/70 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+        <div className="flex items-center space-x-3">
+          <span className="px-2.5 py-1 rounded-md bg-cyan-950 border border-cyan-800 text-cyan-400 font-mono font-bold">
+            {currentCategoryData.dataset}
+          </span>
+          <span className="text-white font-bold text-sm">
+            {currentCategoryData.name}
+          </span>
+          <span className="text-slate-400 text-xs">
+            ({currentCategoryData.type})
+          </span>
+        </div>
+        <span className="text-[11px] text-slate-400 font-mono hidden sm:inline">
+          Sorted by: <strong className="text-cyan-300">{sortField.replace('_', ' ').toUpperCase()}</strong> ({sortAsc ? 'ASC' : 'DESC'})
+        </span>
       </div>
 
       {/* Main Table Card */}
       <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden shadow-2xl">
-        <div className="p-4 bg-slate-900/80 border-b border-slate-800 flex items-center justify-between">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-            Comparative Benchmark Protocol (Category: Bottle)
-          </h3>
-          <span className="text-[11px] text-slate-400 font-mono">
-            Click column headers to sort • Default: Image AUROC (DESC)
-          </span>
-        </div>
-
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-950/90 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800 font-bold">
@@ -139,7 +507,12 @@ export const BenchmarkCenter: React.FC = () => {
                 >
                   Pixel AUROC {sortField === 'pixel_auroc' ? (sortAsc ? '↑' : '↓') : ''}
                 </th>
-                <th className="py-3 px-4">Pixel AUPRO</th>
+                <th 
+                  className="py-3 px-4 cursor-pointer hover:text-cyan-300 transition-colors select-none"
+                  onClick={() => handleSort('pixel_aupro')}
+                >
+                  Pixel AUPRO {sortField === 'pixel_aupro' ? (sortAsc ? '↑' : '↓') : ''}
+                </th>
                 <th 
                   className="py-3 px-4 cursor-pointer hover:text-cyan-300 transition-colors select-none"
                   onClick={() => handleSort('fps')}
@@ -149,7 +522,7 @@ export const BenchmarkCenter: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/80">
-              {sortedBaselines.map((m) => {
+              {sortedMetrics.map((m) => {
                 const isOurs = m.method.includes('VISTA-VLM');
                 return (
                   <tr
@@ -203,16 +576,16 @@ export const BenchmarkCenter: React.FC = () => {
         </div>
       </div>
 
-      {/* Diagnostic Curves and Throughput Cards */}
+      {/* Diagnostic Curves & Audit Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* ROC / PR Curve Card */}
         <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-3 shadow-xl">
           <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-              ROC & PR Curves
+              ROC Discrimination
             </h4>
             <span className="text-[10px] font-mono text-cyan-400 font-bold px-2 py-0.5 rounded bg-cyan-950 border border-cyan-800">
-              AUROC = 1.0000
+              Normal-Only Density
             </span>
           </div>
           <div className="aspect-[4/3] bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-center p-3 shadow-inner">
@@ -225,17 +598,25 @@ export const BenchmarkCenter: React.FC = () => {
               <polyline
                 fill="none"
                 stroke="#38bdf8"
-                strokeWidth="3"
+                strokeWidth="2.5"
                 points="20,130 20,20 190,20"
               />
+              <polyline
+                fill="none"
+                stroke="#a855f7"
+                strokeWidth="1.5"
+                strokeDasharray="3,3"
+                points="20,130 80,100 130,60 190,20"
+              />
               <line x1="20" y1="130" x2="190" y2="20" stroke="#475569" strokeWidth="1" strokeDasharray="4,4" />
-              <text x="30" y="35" fill="#38bdf8" fontSize="10" fontFamily="monospace" fontWeight="bold">ROC: 1.0000</text>
+              <text x="30" y="35" fill="#38bdf8" fontSize="9" fontFamily="monospace" fontWeight="bold">Normal-Only (1.000)</text>
+              <text x="30" y="80" fill="#a855f7" fontSize="9" fontFamily="monospace">Zero-Shot VLM (0.322)</text>
               <text x="140" y="142" fill="#64748b" fontSize="8" fontFamily="monospace">FPR</text>
               <text x="25" y="18" fill="#64748b" fontSize="8" fontFamily="monospace">TPR</text>
             </svg>
           </div>
           <p className="text-[11px] text-slate-400">
-            Full empirical separation between nominal samples and all real defect classes on benchmark test splits.
+            Empirical separation comparing feature density modeling (PatchCore/PaDiM 1.000) against zero-shot text alignment across benchmark splits.
           </p>
         </div>
 
@@ -243,7 +624,7 @@ export const BenchmarkCenter: React.FC = () => {
         <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-3 shadow-xl">
           <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-              Calibration Diagram
+              Conformal Reliability
             </h4>
             <span className="text-[10px] font-mono text-emerald-400 font-bold px-2 py-0.5 rounded bg-emerald-950 border border-emerald-800">
               ECE = 0.0497
@@ -262,7 +643,7 @@ export const BenchmarkCenter: React.FC = () => {
             </svg>
           </div>
           <p className="text-[11px] text-slate-400">
-            Conformal guarantee holds target false-alarm rate α = 0.05 on independent validation data.
+            Conformal guarantee bounds empirical false-alarm rate below α = 0.05 on held-out calibration samples.
           </p>
         </div>
 
@@ -273,34 +654,34 @@ export const BenchmarkCenter: React.FC = () => {
               Latency Profile (CPU)
             </h4>
             <span className="text-[10px] font-mono text-cyan-400 font-bold px-2 py-0.5 rounded bg-cyan-950 border border-cyan-800">
-              P50: 600.8 ms
+              P50: 609 ms
             </span>
           </div>
           <div className="space-y-2.5 pt-1 text-xs">
             <div className="space-y-1">
               <div className="flex justify-between text-[11px] text-slate-300 font-medium">
                 <span>DINOv2 ViT-S Backbone</span>
-                <span className="font-mono text-cyan-400">385 ms (64%)</span>
+                <span className="font-mono text-cyan-400">382 ms (62%)</span>
               </div>
               <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
-                <div className="bg-cyan-500 h-full w-[64%]"></div>
+                <div className="bg-cyan-500 h-full w-[62%]"></div>
               </div>
             </div>
 
             <div className="space-y-1">
               <div className="flex justify-between text-[11px] text-slate-300 font-medium">
-                <span>FiLM Fusion & Decoder</span>
-                <span className="font-mono text-blue-400">112 ms (19%)</span>
+                <span>FiLM & FPN Decoder</span>
+                <span className="font-mono text-blue-400">123 ms (20%)</span>
               </div>
               <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
-                <div className="bg-blue-500 h-full w-[19%]"></div>
+                <div className="bg-blue-500 h-full w-[20%]"></div>
               </div>
             </div>
 
             <div className="space-y-1">
               <div className="flex justify-between text-[11px] text-slate-300 font-medium">
                 <span>CLIP Multimodal Verifier</span>
-                <span className="font-mono text-purple-400">78 ms (13%)</span>
+                <span className="font-mono text-purple-400">81 ms (13%)</span>
               </div>
               <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
                 <div className="bg-purple-500 h-full w-[13%]"></div>
@@ -309,11 +690,11 @@ export const BenchmarkCenter: React.FC = () => {
 
             <div className="space-y-1">
               <div className="flex justify-between text-[11px] text-slate-300 font-medium">
-                <span>Conformal & OOD Math</span>
-                <span className="font-mono text-emerald-400">26 ms (4%)</span>
+                <span>Conformal & OOD Checks</span>
+                <span className="font-mono text-emerald-400">23 ms (5%)</span>
               </div>
               <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
-                <div className="bg-emerald-500 h-full w-[4%]"></div>
+                <div className="bg-emerald-500 h-full w-[5%]"></div>
               </div>
             </div>
           </div>

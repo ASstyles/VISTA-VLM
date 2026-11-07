@@ -62,7 +62,6 @@ class PaDiM(nn.Module):
             dist_map = torch.norm(norm_diff, p=2.0, dim=1, keepdim=True) # [B, 1, H_p, W_p]
 
             anomaly_map = F.interpolate(dist_map, size=(self.image_size, self.image_size), mode="bilinear", align_corners=False)
-            anomaly_map = torch.sigmoid((anomaly_map - anomaly_map.mean()) / (anomaly_map.std() + 1e-6))
             image_score = anomaly_map.view(x.shape[0], -1).max(dim=1)[0]
 
         return {

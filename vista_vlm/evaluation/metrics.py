@@ -85,7 +85,15 @@ def compute_pixel_metrics(
         pix_auroc = 1.0
         pix_ap = 1.0
 
-    eval_thresh = 0.5 if threshold is None else threshold
+    # Determine evaluation threshold (calibrated or optimal F1)
+    if threshold is None:
+        precisions, recalls, thresholds = precision_recall_curve(y_t_eval, y_p_eval)
+        f1_scores = 2 * (precisions * recalls) / (precisions + recalls + 1e-8)
+        best_idx = np.argmax(f1_scores)
+        eval_thresh = float(thresholds[best_idx]) if best_idx < len(thresholds) else float(np.median(y_p_eval))
+    else:
+        eval_thresh = float(threshold)
+
     pred_bin = (y_pred_flat > eval_thresh).astype(int)
 
     intersection = np.sum(pred_bin * y_true_flat)
@@ -93,7 +101,7 @@ def compute_pixel_metrics(
     iou = float(intersection / (union + 1e-8))
     dice = float((2.0 * intersection) / (np.sum(pred_bin) + np.sum(y_true_flat) + 1e-8))
 
-    # AUPRO approximation
+    # AUPRO: calculated on globally scaled continuous maps to preserve dynamic range
     aupro = compute_aupro_score(y_true_masks, y_pred_maps)
 
     return {
@@ -109,10 +117,19 @@ def compute_aupro_score(y_true_masks: np.ndarray, y_pred_maps: np.ndarray, max_f
     """
     Computes Area Under the Per-Region Overlap (AUPRO) curve up to max_fpr.
     Evaluates how well localized connected defect regions are detected across thresholds.
+    Globally normalizes maps to [0, 1] if unnormalized distances are passed.
     """
     N = len(y_true_masks)
     if N == 0:
         return 0.0
+
+    # Ensure continuous scores are mapped to [0, 1] for threshold sweep
+    min_v = float(np.min(y_pred_maps))
+    max_v = float(np.max(y_pred_maps))
+    if max_v > min_v:
+        maps_scaled = (y_pred_maps - min_v) / (max_v - min_v)
+    else:
+        maps_scaled = y_pred_maps
 
     # Pre-extract connected components for each image once
     region_masks = []
@@ -128,14 +145,14 @@ def compute_aupro_score(y_true_masks: np.ndarray, y_pred_maps: np.ndarray, max_f
     if not region_masks:
         return 1.0
 
-    thresholds = np.linspace(0.0, 1.0, 40)
+    thresholds = np.linspace(0.0, 1.0, 50)
     pro_list = []
     fpr_list = []
     normal_pixels = (y_true_masks == 0)
     total_normal_pix = float(normal_pixels.sum()) + 1e-8
 
     for t in thresholds:
-        pred_bin = (y_pred_maps > t)
+        pred_bin = (maps_scaled > t)
         
         # Calculate per-region overlap
         total_overlap = 0.0
@@ -185,7 +202,17 @@ def compute_reliability_metrics(
     - Empirical False Alarm Rate on normal samples
     """
     y_true = np.asarray(y_true).astype(int)
-    y_probs = np.asarray(y_probs).astype(float)
+    y_raw_scores = np.asarray(y_probs).astype(float)
+
+    # Scale continuous distance scores into [0, 1] if unnormalized
+    min_s = float(np.min(y_raw_scores))
+    max_s = float(np.max(y_raw_scores))
+    if max_s > min_s and (min_s < 0.0 or max_s > 1.0):
+        y_probs = (y_raw_scores - min_s) / (max_s - min_s)
+        cal_thresh = (calibrated_threshold - min_s) / (max_s - min_s)
+    else:
+        y_probs = np.clip(y_raw_scores, 0.0, 1.0)
+        cal_thresh = calibrated_threshold
 
     # Brier Score: MSE between predicted probability and binary truth
     brier = float(brier_score_loss(y_true, y_probs))
@@ -209,7 +236,7 @@ def compute_reliability_metrics(
     # Empirical False Alarm Rate (FPR on normal images at calibrated threshold)
     normal_mask = (y_true == 0)
     if normal_mask.sum() > 0:
-        false_alarms = np.sum((y_probs[normal_mask] > calibrated_threshold))
+        false_alarms = np.sum((y_raw_scores[normal_mask] > calibrated_threshold))
         empirical_far = float(false_alarms / normal_mask.sum())
     else:
         empirical_far = 0.0

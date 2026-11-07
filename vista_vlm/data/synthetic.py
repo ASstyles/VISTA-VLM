@@ -38,14 +38,70 @@ def generate_perlin_noise_mask(
     binary_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_OPEN, kernel)
     return binary_mask
 
+def generate_scratch_and_crack_mask(height: int, width: int) -> np.ndarray:
+    """
+    Generates realistic hairline scratches and structural crack defects.
+    Produces thin, branching, curvilinear trajectories with variable width.
+    """
+    mask = np.zeros((height, width), dtype=np.float32)
+    num_cracks = random.randint(1, 3)
+
+    for _ in range(num_cracks):
+        length = random.randint(30, max(40, min(height, width) // 3))
+        sx = random.randint(width // 6, 5 * width // 6)
+        sy = random.randint(height // 6, 5 * height // 6)
+        angle = random.uniform(0, 2 * np.pi)
+
+        points = [(sx, sy)]
+        curr_x, curr_y = float(sx), float(sy)
+        seg_len = 8.0
+
+        for _ in range(int(length / seg_len)):
+            angle += random.uniform(-0.4, 0.4)
+            curr_x += seg_len * np.cos(angle)
+            curr_y += seg_len * np.sin(angle)
+            cx_clamped = int(np.clip(curr_x, 5, width - 5))
+            cy_clamped = int(np.clip(curr_y, 5, height - 5))
+            points.append((cx_clamped, cy_clamped))
+
+        pts = np.array(points, dtype=np.int32).reshape((-1, 1, 2))
+        thickness = random.randint(1, 3)
+        cv2.polylines(mask, [pts], isClosed=False, color=1.0, thickness=thickness)
+
+    return (mask > 0.5).astype(np.float32)
+
+
+def generate_contamination_mask(height: int, width: int) -> np.ndarray:
+    """
+    Generates clusters of subtle contamination spots, dust, and stains.
+    """
+    mask = np.zeros((height, width), dtype=np.float32)
+    cx = random.randint(width // 4, 3 * width // 4)
+    cy = random.randint(height // 4, 3 * height // 4)
+    num_spots = random.randint(3, 10)
+
+    for _ in range(num_spots):
+        sx = int(np.clip(cx + np.random.normal(0, 25), 5, width - 5))
+        sy = int(np.clip(cy + np.random.normal(0, 25), 5, height - 5))
+        r = random.randint(2, 8)
+        cv2.circle(mask, (sx, sy), r, 1.0, -1)
+
+    mask = cv2.GaussianBlur(mask, (5, 5), 0)
+    return (mask > 0.3).astype(np.float32)
+
+
 def generate_geometric_mask(height: int, width: int) -> np.ndarray:
     """
     Generates realistic geometric anomaly masks: scratches, dents, lines, or polygons.
     """
     mask = np.zeros((height, width), dtype=np.float32)
-    choice = random.choice(["scratch", "dent", "polygon"])
+    choice = random.choice(["scratch", "crack", "contamination", "dent", "polygon"])
 
-    if choice == "scratch":
+    if choice == "crack":
+        return generate_scratch_and_crack_mask(height, width)
+    elif choice == "contamination":
+        return generate_contamination_mask(height, width)
+    elif choice == "scratch":
         # Draw curved polyline
         num_points = random.randint(3, 7)
         points = []
@@ -58,7 +114,7 @@ def generate_geometric_mask(height: int, width: int) -> np.ndarray:
             points.append((cx, cy))
         
         pts = np.array(points, dtype=np.int32).reshape((-1, 1, 2))
-        thickness = random.randint(2, 8)
+        thickness = random.randint(2, 6)
         cv2.polylines(mask, [pts], isClosed=False, color=1.0, thickness=thickness)
 
     elif choice == "dent":
@@ -160,9 +216,10 @@ class SyntheticAnomalyGenerator:
         else:  # blur / out-of-focus defect
             pert_img = cv2.GaussianBlur(pert_img, (25, 25), 0)
 
-        # Alpha blending
+        # Soft boundary blending to eliminate unnatural step-artifacts
+        soft_mask = cv2.GaussianBlur(mask, (5, 5), 1.0)
+        mask_3d = np.expand_dims(soft_mask, axis=-1)  # [H, W, 1]
         alpha = random.uniform(*self.opacity_range)
-        mask_3d = np.expand_dims(mask, axis=-1)  # [H, W, 1]
         blended = (1.0 - alpha * mask_3d) * image.astype(np.float32) + (alpha * mask_3d) * pert_img
         anomalous_image = np.clip(blended, 0, 255).astype(np.uint8)
 
