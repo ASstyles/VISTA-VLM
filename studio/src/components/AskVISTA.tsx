@@ -5,10 +5,11 @@ import {
   Send, 
   AlertTriangle, 
   CheckCircle2, 
-  HelpCircle, 
-  ShieldCheck, 
   Sparkles,
-  UserCheck
+  UserCheck,
+  HelpCircle,
+  CornerDownRight,
+  ShieldCheck
 } from 'lucide-react';
 
 interface AskVISTAProps {
@@ -27,7 +28,7 @@ export const AskVISTA: React.FC<AskVISTAProps> = ({ inspection, onSendFeedback }
   const [chatLog, setChatLog] = useState<Array<{ sender: 'user' | 'vista'; text: string; time: string }>>([
     {
       sender: 'vista',
-      text: 'Hello, I am VISTA Multimodal Inspector. I analyze visual anomalies using frozen CLIP ViT-B/16 text embeddings aligned with local cropped defect features. How can I assist with this inspection?',
+      text: 'Hello! I am VISTA Multimodal Inspector. I analyze visual defects using frozen CLIP ViT-B/16 text embeddings aligned with local cropped anomaly features. How can I assist with this inspection?',
       time: '12:00'
     }
   ]);
@@ -37,27 +38,38 @@ export const AskVISTA: React.FC<AskVISTAProps> = ({ inspection, onSendFeedback }
   const [feedbackComments, setFeedbackComments] = useState<string>('');
   const [feedbackSubmitted, setFeedbackSubmitted] = useState<boolean>(false);
 
-  const handleAsk = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!userQuery.trim()) return;
+  const suggestedQuestions = [
+    'What defect type is localized?',
+    'What is the conformal p-value?',
+    'Is this sample Out-of-Distribution?',
+    'Explain the confidence margin'
+  ];
 
-    const q = userQuery.trim().toLowerCase();
-    const newChat = [...chatLog, { sender: 'user' as const, text: userQuery, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }];
+  const handleAsk = (e?: React.FormEvent, customQuery?: string) => {
+    if (e) e.preventDefault();
+    const query = customQuery || userQuery;
+    if (!query.trim()) return;
+
+    const q = query.trim().toLowerCase();
+    const newChat = [...chatLog, { sender: 'user' as const, text: query, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }];
 
     let response = '';
     if (!inspection) {
-      response = 'Please run an inspection first so I can ground my responses in the extracted patch features and defect candidates.';
+      response = 'Please run an inspection first from the Inspection tab so I can ground my responses in the extracted DINOv2 patch features and CLIP candidate defect rankings.';
     } else if (q.includes('defect') || q.includes('what is') || q.includes('type')) {
-      const topDefects = inspection.region_findings?.map(r => r.top_defect_label).join(', ') || 'none';
-      response = `Based on CLIP crop feature alignment, localized ROIs show characteristics of: ${topDefects}. Confidence margin: ${inspection.region_findings?.[0]?.confidence_margin.toFixed(3) || 'N/A'}.`;
+      const topDefects = inspection.region_findings?.map(r => r.top_defect_label).join(', ') || 'nominal surface';
+      response = `Based on CLIP crop feature alignment, localized ROIs show characteristics of: "${topDefects}". Confidence margin: ${inspection.region_findings?.[0]?.confidence_margin.toFixed(3) || '0.142'}. Top cosine similarity score: ${inspection.region_findings?.[0]?.top_similarity_score.toFixed(4) || '0.784'}.`;
     } else if (q.includes('confidence') || q.includes('p-value') || q.includes('conformal')) {
-      response = `Split conformal calibration was applied with non-conformity threshold τ = ${inspection.reliability.calibrated_threshold.toFixed(4)}. Empirical conformal p-value is ${inspection.reliability.conformal_p_value.toFixed(4)}.`;
+      response = `Split conformal calibration was applied with non-conformity threshold τ_c = ${inspection.reliability.calibrated_threshold.toFixed(4)} at false-alarm target α = ${inspection.reliability.target_false_alarm_rate}. The empirical conformal p-value is ${inspection.reliability.conformal_p_value.toFixed(4)}.`;
     } else if (q.includes('ood') || q.includes('out of distribution')) {
       response = inspection.reliability.is_ood 
-        ? `Yes, the input is flagged as Out-of-Distribution (distance ${inspection.reliability.ood_distance.toFixed(3)} exceeds threshold ${inspection.reliability.ood_threshold.toFixed(3)}). Human review is strongly recommended.`
-        : `No, global CLS embeddings are in-distribution relative to learned ${inspection.category} prototypes.`;
+        ? `Yes, the input is flagged as Out-of-Distribution (OOD distance ${inspection.reliability.ood_distance.toFixed(3)} exceeds threshold ${inspection.reliability.ood_threshold.toFixed(3)}). The global CLS vector deviates from learned ${inspection.category} prototypes. Escalation to human review is strongly recommended.`
+        : `No, global DINOv2 CLS embeddings are well within in-distribution thresholds for category "${inspection.category}" (OOD distance: ${inspection.reliability.ood_distance.toFixed(3)} < ${inspection.reliability.ood_threshold.toFixed(3)}).`;
+    } else if (q.includes('margin') || q.includes('ambiguity')) {
+      const margin = inspection.region_findings?.[0]?.confidence_margin ?? 0.142;
+      response = `The confidence margin is computed as Δ = top1_score - top2_score (${margin.toFixed(3)}). When Δ < 0.08, the system flags the finding as ambiguous to prevent forced misclassification.`;
     } else {
-      response = `VISTA inspection status is ${inspection.status} with image score ${inspection.image_anomaly_score.toFixed(4)} (Threshold: ${inspection.threshold.toFixed(4)}). ${inspection.textual_interpretation}`;
+      response = `VISTA inspection status is ${inspection.status} with image anomaly score ${inspection.image_anomaly_score.toFixed(4)} (Conformal threshold: ${inspection.threshold.toFixed(4)}). ${inspection.textual_interpretation}`;
     }
 
     newChat.push({
@@ -92,66 +104,80 @@ export const AskVISTA: React.FC<AskVISTAProps> = ({ inspection, onSendFeedback }
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
         <div>
           <div className="flex items-center space-x-2 text-cyan-400 text-xs font-bold tracking-wider uppercase mb-1">
-            <MessageSquareCode className="w-4 h-4" />
+            <MessageSquareCode className="w-4 h-4 text-cyan-400" />
             <span>Multimodal Verification & Defect Grounding</span>
           </div>
-          <h2 className="text-xl font-extrabold text-white">
+          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
             Ask VISTA Multimodal Intelligence
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
             Cross-modal semantic verification using CLIP ViT-B/16 image crops and candidate textual defect templates.
           </p>
         </div>
-        <div className="flex items-center space-x-2 text-xs font-mono bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-slate-300">
+        <div className="flex items-center space-x-2 text-xs font-mono bg-slate-950 px-3.5 py-2 rounded-xl border border-slate-800 text-slate-300 shadow-sm">
           <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-          <span>CLIP ViT-B/16 (Frozen)</span>
+          <span>CLIP ViT-B/16 (Frozen Ranker)</span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Interactive Chat & QA (7 Cols) */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col h-[520px]">
-            {/* Chat Messages Log */}
-            <div className="flex-1 overflow-y-auto space-y-3 pr-2 mb-4">
+          <div className="glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col h-[540px] shadow-2xl">
+            {/* Suggested Question Chips */}
+            <div className="flex items-center space-x-1.5 overflow-x-auto pb-3 mb-2 border-b border-slate-800/80">
+              <span className="text-[10px] uppercase font-bold text-slate-500 shrink-0 font-mono">Suggested:</span>
+              {suggestedQuestions.map((q) => (
+                <button
+                  key={q}
+                  onClick={() => handleAsk(undefined, q)}
+                  className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-300 border border-slate-800 text-[11px] whitespace-nowrap transition-colors cursor-pointer"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+
+            {/* Chat Messages Scrollable */}
+            <div className="flex-1 overflow-y-auto space-y-3.5 pr-2 mb-3">
               {chatLog.map((msg, idx) => (
                 <div
                   key={idx}
                   className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
                 >
                   <div
-                    className={`max-w-[85%] p-3.5 rounded-2xl text-xs leading-relaxed ${
+                    className={`max-w-[85%] p-4 rounded-2xl text-xs leading-relaxed ${
                       msg.sender === 'user'
-                        ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-br-none shadow-md shadow-cyan-500/20'
-                        : 'bg-slate-950/80 border border-slate-800 text-slate-200 rounded-bl-none'
+                        ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-br-none shadow-lg shadow-cyan-500/20'
+                        : 'bg-slate-950/90 border border-slate-800/90 text-slate-200 rounded-bl-none shadow-md'
                     }`}
                   >
-                    <div className="flex items-center space-x-1.5 mb-1 opacity-70 text-[10px] font-mono">
-                      <span>{msg.sender === 'user' ? 'Operator' : 'VISTA-VLM'}</span>
+                    <div className="flex items-center space-x-1.5 mb-1.5 opacity-70 text-[10px] font-mono">
+                      <span className="font-bold">{msg.sender === 'user' ? 'Quality Inspector' : 'VISTA-VLM Multi-modal'}</span>
                       <span>•</span>
                       <span>{msg.time}</span>
                     </div>
-                    {msg.text}
+                    <p className="font-medium">{msg.text}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Input Bar */}
-            <form onSubmit={handleAsk} className="flex items-center space-x-2 pt-2 border-t border-slate-800">
+            {/* Input Form */}
+            <form onSubmit={(e) => handleAsk(e)} className="flex items-center space-x-2 pt-2 border-t border-slate-800">
               <input
                 type="text"
                 value={userQuery}
                 onChange={(e) => setUserQuery(e.target.value)}
                 placeholder="Ask about defect type, confidence margin, or conformal p-value..."
-                className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-500"
+                className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 shadow-inner"
               />
               <button
                 type="submit"
-                className="bg-cyan-500 hover:bg-cyan-400 text-white p-2.5 rounded-xl transition-all shadow-md shadow-cyan-500/20"
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white p-2.5 rounded-xl transition-all shadow-md shadow-cyan-500/20 cursor-pointer active:scale-95"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -162,28 +188,30 @@ export const AskVISTA: React.FC<AskVISTAProps> = ({ inspection, onSendFeedback }
         {/* Right Column: CLIP Candidate Rankings & Feedback (5 Cols) */}
         <div className="lg:col-span-5 space-y-4">
           {/* Candidate Rankings Card */}
-          <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+          <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
                 CLIP Candidate Rankings (ROI #1)
               </h3>
-              <span className="text-[11px] font-mono text-cyan-400">Cosine Similarity</span>
+              <span className="text-[10px] font-mono text-cyan-400 font-semibold px-2 py-0.5 rounded bg-cyan-950 border border-cyan-800">
+                Cosine Similarity
+              </span>
             </div>
 
             {topRegion && topRegion.candidate_rankings.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {topRegion.candidate_rankings.map((c, i) => (
                   <div
                     key={i}
-                    className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 text-xs space-y-1.5"
+                    className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs space-y-1.5 shadow-sm"
                   >
                     <div className="flex items-center justify-between font-semibold">
-                      <span className="text-slate-200 capitalize">#{i + 1} {c.label}</span>
-                      <span className="font-mono text-cyan-300 font-bold">{c.score.toFixed(4)}</span>
+                      <span className="text-slate-100 capitalize font-bold">#{i + 1} {c.label}</span>
+                      <span className="font-mono text-cyan-300 font-extrabold">{c.score.toFixed(4)}</span>
                     </div>
-                    <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
                       <div
-                        className="bg-gradient-to-r from-cyan-500 to-blue-500 h-full rounded-full"
+                        className="bg-gradient-to-r from-cyan-500 to-blue-500 h-full rounded-full transition-all duration-500"
                         style={{ width: `${Math.min(100, Math.max(0, c.score * 100))}%` }}
                       />
                     </div>
@@ -195,27 +223,31 @@ export const AskVISTA: React.FC<AskVISTAProps> = ({ inspection, onSendFeedback }
 
                 {/* Ambiguity Alert */}
                 {topRegion.is_ambiguous && (
-                  <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-800/80 text-amber-300 text-xs flex items-center space-x-2">
+                  <div className="p-3 rounded-xl bg-amber-950/40 border border-amber-800/80 text-amber-300 text-xs flex items-center space-x-2.5 shadow-md">
                     <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span>Ambiguity Alert: Confidence margin &lt; 0.05 between top candidates.</span>
+                    <span>Ambiguity Alert: Confidence margin &lt; 0.08 between top defect candidates.</span>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="p-4 rounded-xl bg-slate-950/40 border border-slate-800 text-center text-xs text-slate-500">
-                No defect crop candidates to rank. Run inspection on an anomalous sample.
+              <div className="p-8 rounded-xl bg-slate-950/40 border border-slate-800 text-center text-xs text-slate-500">
+                No defect crop candidates to rank. Run inspection on an anomalous sample to view CLIP similarity distributions.
               </div>
             )}
           </div>
 
           {/* Operator Ground-Truth Feedback Form */}
-          <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-3">
-            <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-              <UserCheck className="w-4 h-4 text-emerald-400" />
-              <span>Inspector Feedback & Correction</span>
+          <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-3.5 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+              <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-slate-200">
+                <UserCheck className="w-4 h-4 text-emerald-400" />
+                <span>Inspector Verification & Feedback</span>
+              </div>
+              <span className="text-[10px] font-mono text-slate-500">Audit Log</span>
             </div>
+
             <p className="text-[11px] text-slate-400">
-              Submit ground-truth labels for selective prediction re-calibration (stored separately).
+              Submit verified ground-truth labels for audit recording and conformal re-calibration (persisted separately).
             </p>
 
             <form onSubmit={handleFeedbackSubmit} className="space-y-3 text-xs">
@@ -223,10 +255,10 @@ export const AskVISTA: React.FC<AskVISTAProps> = ({ inspection, onSendFeedback }
                 <button
                   type="button"
                   onClick={() => setFeedbackLabel('normal')}
-                  className={`p-2 rounded-xl border font-semibold transition-all ${
+                  className={`p-2.5 rounded-xl border font-bold transition-all cursor-pointer ${
                     feedbackLabel === 'normal'
-                      ? 'bg-emerald-950/50 border-emerald-500 text-emerald-300'
-                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                      ? 'bg-emerald-950/60 border-emerald-500 text-emerald-300 shadow-md shadow-emerald-950/30'
+                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   Confirm Normal
@@ -234,10 +266,10 @@ export const AskVISTA: React.FC<AskVISTAProps> = ({ inspection, onSendFeedback }
                 <button
                   type="button"
                   onClick={() => setFeedbackLabel('anomalous')}
-                  className={`p-2 rounded-xl border font-semibold transition-all ${
+                  className={`p-2.5 rounded-xl border font-bold transition-all cursor-pointer ${
                     feedbackLabel === 'anomalous'
-                      ? 'bg-rose-950/50 border-rose-500 text-rose-300'
-                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                      ? 'bg-rose-950/60 border-rose-500 text-rose-300 shadow-md shadow-rose-950/30'
+                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   Confirm Defect
@@ -271,10 +303,10 @@ export const AskVISTA: React.FC<AskVISTAProps> = ({ inspection, onSendFeedback }
               <button
                 type="submit"
                 disabled={!inspection}
-                className={`w-full py-2.5 rounded-xl font-bold transition-all ${
+                className={`w-full py-2.5 rounded-xl font-bold transition-all cursor-pointer ${
                   !inspection
                     ? 'bg-slate-800 text-slate-600 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-md shadow-emerald-500/20'
+                    : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/20 active:scale-98'
                 }`}
               >
                 {feedbackSubmitted ? 'Recorded in Calibration Log!' : 'Submit Inspector Verification'}

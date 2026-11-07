@@ -80,3 +80,4 @@ export interface FewShotPoint {
   pixel_auroc: number;
   pixel_aupro: number;
 }
+
