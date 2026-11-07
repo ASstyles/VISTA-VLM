@@ -1,0 +1,31 @@
+# VisA Experiment Configuration
+data:
+  dataset_name: "visa"
+  categories:
+    - "candle"
+    - "capsules"
+    - "cashew"
+    - "chewinggum"
+    - "fryum"
+    - "macaroni"
+    - "pcb1"
+    - "pcb2"
+    - "pcb3"
+    - "pcb4"
+    - "pipe_fryum"
+  image_size: 518
+  normal_only_train: true
+
+model:
+  backbone: "dinov2_vits14"
+  embed_dim: 384
+  out_indices: [4, 8, 12]
+  fusion:
+    type: "global_local"
+    proj_dim: 256
+    use_film_conditioning: true
+
+training:
+  epochs: 15
+  learning_rate: 0.0001
+  batch_size: 4

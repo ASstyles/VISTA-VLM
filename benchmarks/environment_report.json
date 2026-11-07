@@ -1,0 +1,79 @@
+{
+  "os": {
+    "platform": "Windows-11-10.0.26300-SP0",
+    "system": "Windows",
+    "release": "11",
+    "architecture": "64bit",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel"
+  },
+  "python": {
+    "version": "3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]",
+    "executable": "C:\\Python314\\python.exe"
+  },
+  "torch": {
+    "installed": true,
+    "version": "2.12.1+cpu",
+    "cuda_available": false,
+    "device_count": 0,
+    "devices": [
+      {
+        "id": -1,
+        "name": "CPU (Optimized with multi-threading)",
+        "threads": 8
+      }
+    ],
+    "cudnn_enabled": true
+  },
+  "packages": {
+    "torchvision": {
+      "status": "ok",
+      "version": "0.27.1+cpu"
+    },
+    "numpy": {
+      "status": "ok",
+      "version": "2.4.4"
+    },
+    "scipy": {
+      "status": "ok",
+      "version": "1.17.1"
+    },
+    "sklearn": {
+      "status": "ok",
+      "version": "1.9.0"
+    },
+    "PIL": {
+      "status": "ok",
+      "version": "12.2.0"
+    },
+    "cv2": {
+      "status": "ok",
+      "version": "4.13.0"
+    },
+    "matplotlib": {
+      "status": "ok",
+      "version": "3.11.0"
+    },
+    "pydantic": {
+      "status": "ok",
+      "version": "2.12.5"
+    },
+    "fastapi": {
+      "status": "ok",
+      "version": "0.141.1"
+    },
+    "uvicorn": {
+      "status": "ok",
+      "version": "0.49.0"
+    },
+    "yaml": {
+      "status": "ok",
+      "version": "6.0.3"
+    }
+  },
+  "hardware_recommendation": {
+    "device": "cpu",
+    "batch_size": 4,
+    "mixed_precision": false,
+    "num_workers": 0
+  }
+}

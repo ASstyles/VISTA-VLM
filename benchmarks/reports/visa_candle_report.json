@@ -1,0 +1,34 @@
+{
+  "dataset_name": "VisA (candle)",
+  "total_samples": 45,
+  "categories": [
+    "candle"
+  ],
+  "split_distribution": {
+    "val_calibration": 6,
+    "test": 19,
+    "train": 20
+  },
+  "anomaly_distribution": {
+    "normal": 30,
+    "anomalous": 15
+  },
+  "defect_types_per_category": {
+    "candle": [
+      "anomaly",
+      "normal"
+    ]
+  },
+  "dimension_ranges": {
+    "width": [
+      518,
+      518
+    ],
+    "height": [
+      518,
+      518
+    ]
+  },
+  "mask_correspondence_valid": true,
+  "leakage_check_passed": true
+}

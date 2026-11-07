@@ -1,0 +1,83 @@
+# VISTA-VLM Default System Configuration
+system:
+  seed: 42
+  device: "cpu" # Auto-detected: cuda or cpu
+  mixed_precision: false
+  num_workers: 0
+
+data:
+  root_dir: "data"
+  dataset_name: "mvtec" # mvtec, visa, btad, mpdd
+  category: "bottle"
+  image_size: 518
+  patch_size: 14
+  grid_size: 37
+  normal_only_train: true
+  train_batch_size: 4
+  eval_batch_size: 4
+  few_shot_k: null # e.g. 1, 2, 4, 8 for few-normal-shot experiments
+
+synthetic:
+  enabled: true
+  perlin_scale: 6
+  perlin_min_scale: 0
+  noise_threshold: 0.5
+  opacity_range: [0.2, 0.95]
+  geometric_prob: 0.5
+  texture_perturb_prob: 0.5
+
+model:
+  backbone: "dinov2_vits14" # dinov2_vits14 or dinov2_vitb14
+  embed_dim: 384 # 384 for vits14, 768 for vitb14
+  out_indices: [4, 8, 12] # Multi-layer feature blocks
+  freeze_backbone: true
+  fusion:
+    type: "global_local" # global_local, local_only, concat_only
+    proj_dim: 256
+    global_dim: 384
+    use_film_conditioning: true
+  decoder:
+    type: "progressive_conv"
+    in_channels: 256
+    hidden_dims: [128, 64, 32, 16]
+    out_channels: 1
+    dropout: 0.1
+  scoring:
+    top_k_ratio: 0.01 # Top 1% pixel mean for image-level anomaly score
+    global_head_weight: 0.5
+
+training:
+  epochs: 15
+  learning_rate: 0.0001
+  weight_decay: 0.0001
+  lambda_dice: 1.0
+  lambda_image: 0.5
+  save_dir: "checkpoints"
+  val_interval: 1
+
+language_verifier:
+  enabled: true
+  clip_model: "ViT-B/16"
+  embed_dim: 512
+  roi_threshold: 0.5
+  min_box_area: 100
+  box_padding: 0.15
+  ambiguity_margin: 0.10
+  min_confidence: 0.25
+
+calibration:
+  method: "split_conformal"
+  target_false_alarm_rate: 0.05 # alpha = 0.05 (95% normal coverage)
+  calibration_split_ratio: 0.20
+  ood:
+    enabled: true
+    metric: "mahalanobis" # mahalanobis or cosine
+    threshold_percentile: 98.0
+  selective:
+    uncertainty_band_width: 0.08
+    enable_human_escalation: true
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 1
