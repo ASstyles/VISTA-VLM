@@ -43,6 +43,7 @@ def test_package_metadata():
         assert "torch" in req_names
         assert "numpy" in req_names
         assert "fastapi" in req_names
+        assert any("multipart" in r.lower() for r in req_names)
     except importlib.metadata.PackageNotFoundError:
         pytest.skip("vista-vlm not installed via pip in current environment")
 
