@@ -21,7 +21,7 @@ def compute_image_metrics(
     Computes Image-Level Metrics: AUROC, AP, F1, Precision, Recall.
     """
     y_true = np.asarray(y_true).astype(int)
-    y_scores = np.asarray(y_scores).astype(float)
+    y_scores = np.nan_to_num(np.asarray(y_scores).astype(float), nan=0.0)
 
     # If only one class present in test set, AUROC cannot be calculated; return 1.0 or fallback
     if len(np.unique(y_true)) > 1:
@@ -67,7 +67,7 @@ def compute_pixel_metrics(
         y_pred_maps: [N, H, W] continuous anomaly heatmaps in [0, 1]
     """
     y_true_flat = y_true_masks.reshape(-1).astype(int)
-    y_pred_flat = y_pred_maps.reshape(-1).astype(float)
+    y_pred_flat = np.nan_to_num(y_pred_maps.reshape(-1).astype(float), nan=0.0)
 
     # Subsample if pixel count is huge (e.g. > 2 million pixels) to ensure fast exact computation
     if len(y_true_flat) > 1_000_000:
@@ -101,6 +101,10 @@ def compute_pixel_metrics(
     iou = float(intersection / (union + 1e-8))
     dice = float((2.0 * intersection) / (np.sum(pred_bin) + np.sum(y_true_flat) + 1e-8))
 
+    # Validate map spatial variation to detect degenerate constant scalar predictions
+    val_info = check_spatial_map_validity(y_pred_maps)
+    is_degenerate = val_info.get("is_constant_scalar", False)
+
     # AUPRO: calculated on globally scaled continuous maps to preserve dynamic range
     aupro = compute_aupro_score(y_true_masks, y_pred_maps)
 
@@ -110,14 +114,50 @@ def compute_pixel_metrics(
         "aupro": round(aupro, 4),
         "iou": round(iou, 4),
         "dice": round(dice, 4),
+        "is_constant_map": is_degenerate,
+        "spatial_variance": val_info.get("mean_spatial_std", 0.0),
     }
 
 
-def compute_aupro_score(y_true_masks: np.ndarray, y_pred_maps: np.ndarray, max_fpr: float = 0.3) -> float:
+def check_spatial_map_validity(maps: np.ndarray, min_variance: float = 1e-7) -> Dict[str, Any]:
     """
-    Computes Area Under the Per-Region Overlap (AUPRO) curve up to max_fpr.
+    Validates spatial anomaly maps to reject degenerate constant predictions.
+    Rejects any method whose supposed localization map is merely a replicated scalar.
+    """
+    maps_arr = np.asarray(maps)
+    if maps_arr.ndim < 2:
+        return {"is_valid": False, "reason": "Map dimensions must be at least 2D [H, W]"}
+    
+    # Check per-image spatial variance
+    if maps_arr.ndim == 2:
+        spatial_stds = [float(np.std(maps_arr))]
+    else:
+        # [N, H, W] or [N, 1, H, W]
+        flat_maps = maps_arr.reshape(maps_arr.shape[0], -1)
+        spatial_stds = [float(s) for s in np.std(flat_maps, axis=1)]
+
+    mean_std = float(np.mean(spatial_stds))
+    min_std = float(np.min(spatial_stds))
+    is_constant = min_std < min_variance
+
+    return {
+        "is_valid": not is_constant,
+        "mean_spatial_std": round(mean_std, 6),
+        "min_spatial_std": round(min_std, 6),
+        "is_constant_scalar": is_constant,
+        "reason": "Map has zero or negligible spatial variance (replicated scalar artifact)" if is_constant else "Valid non-constant spatial map"
+    }
+
+
+def compute_aupro_score(y_true_masks: np.ndarray, y_pred_maps: np.ndarray, max_fpr: float = 0.3, num_thresholds: int = 100) -> float:
+    """
+    Computes Area Under the Per-Region Overlap (AUPRO) curve up to max_fpr (Bergmann et al.).
     Evaluates how well localized connected defect regions are detected across thresholds.
-    Globally normalizes maps to [0, 1] if unnormalized distances are passed.
+    Features:
+    1. Pre-extracts connected components for each defect region.
+    2. Sweeps fine thresholds across the full dynamic range of predicted scores.
+    3. Rigorously interpolates endpoints to (0, 0) and (max_fpr, PRO(max_fpr))
+       to prevent under-integration truncation errors.
     """
     N = len(y_true_masks)
     if N == 0:
@@ -131,8 +171,8 @@ def compute_aupro_score(y_true_masks: np.ndarray, y_pred_maps: np.ndarray, max_f
     else:
         maps_scaled = y_pred_maps
 
-    # Pre-extract connected components for each image once
-    region_masks = []
+    # Pre-extract 1D score arrays for each connected defect region
+    region_score_arrays = []
     for i in range(N):
         gt = y_true_masks[i]
         if gt.sum() == 0:
@@ -140,52 +180,65 @@ def compute_aupro_score(y_true_masks: np.ndarray, y_pred_maps: np.ndarray, max_f
         labeled_gt, num_features = label(gt)
         for reg_id in range(1, num_features + 1):
             reg_m = (labeled_gt == reg_id)
-            region_masks.append((i, reg_m, reg_m.sum()))
+            reg_scores = maps_scaled[i][reg_m]
+            region_score_arrays.append(reg_scores)
 
-    if not region_masks:
+    if not region_score_arrays:
         return 1.0
 
-    thresholds = np.linspace(0.0, 1.0, 50)
+    normal_scores = maps_scaled[y_true_masks == 0]
+    total_normal_pix = float(len(normal_scores)) + 1e-8
+
+    thresholds = np.linspace(0.0, 1.0, num_thresholds)
     pro_list = []
     fpr_list = []
-    normal_pixels = (y_true_masks == 0)
-    total_normal_pix = float(normal_pixels.sum()) + 1e-8
 
     for t in thresholds:
-        pred_bin = (maps_scaled > t)
-        
-        # Calculate per-region overlap
-        total_overlap = 0.0
-        for img_idx, reg_m, reg_area in region_masks:
-            overlap = (pred_bin[img_idx] & reg_m).sum()
-            total_overlap += overlap / (reg_area + 1e-8)
+        # Fast vectorized calculation over 1D arrays
+        fp = float(np.count_nonzero(normal_scores > t))
+        fpr = fp / total_normal_pix
 
-        mean_pro = total_overlap / len(region_masks)
-
-        # Calculate FPR across all normal pixels
-        fp = (pred_bin & normal_pixels).sum()
-        fpr = float(fp) / total_normal_pix
+        overlaps = [float(np.count_nonzero(r_s > t)) / len(r_s) for r_s in region_score_arrays]
+        mean_pro = float(np.mean(overlaps))
 
         pro_list.append(mean_pro)
         fpr_list.append(fpr)
 
-    # Sort by FPR
+    # Sort by FPR monotonically
     sorted_indices = np.argsort(fpr_list)
     fpr_sorted = np.array(fpr_list)[sorted_indices]
     pro_sorted = np.array(pro_list)[sorted_indices]
 
-    # Integrate up to max_fpr using trapezoid (NumPy 2.0+ compatible)
+    # Ensure origin (0, 0) is included if fpr_sorted[0] > 0
+    if fpr_sorted[0] > 0.0:
+        fpr_sorted = np.insert(fpr_sorted, 0, 0.0)
+        pro_sorted = np.insert(pro_sorted, 0, 0.0)
+
+    # Filter to max_fpr
     valid_idx = fpr_sorted <= max_fpr
-    if valid_idx.sum() < 2:
+    fpr_valid = list(fpr_sorted[valid_idx])
+    pro_valid = list(pro_sorted[valid_idx])
+
+    if len(fpr_valid) < 2:
         return float(np.mean(pro_list))
 
-    # Use trapezoid
+    # Exact endpoint interpolation: if last valid FPR < max_fpr, interpolate to exact max_fpr
+    if fpr_valid[-1] < max_fpr:
+        # Interpolate PRO at exact max_fpr boundary
+        pro_at_max = float(np.interp(max_fpr, fpr_sorted, pro_sorted))
+        fpr_valid.append(max_fpr)
+        pro_valid.append(pro_at_max)
+
+    fpr_final = np.array(fpr_valid)
+    pro_final = np.array(pro_valid)
+
+    # Integrate up to max_fpr using trapezoid (NumPy 2.0+ compatible)
     if hasattr(np, "trapezoid"):
         trap_fn = np.trapezoid
     else:
         from scipy.integrate import trapezoid as trap_fn
 
-    aupro = trap_fn(pro_sorted[valid_idx], fpr_sorted[valid_idx]) / max_fpr
+    aupro = trap_fn(pro_final, fpr_final) / max_fpr
     return float(np.clip(aupro, 0.0, 1.0))
 
 

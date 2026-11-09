@@ -40,7 +40,10 @@ class PaDiM(nn.Module):
 
         # Compute empirical mean and variance per spatial patch position
         self.mean = torch.mean(all_feats, dim=0) # [C, H_p, W_p]
-        variance = torch.var(all_feats, dim=0, unbiased=True) + 0.01 # [C, H_p, W_p]
+        if all_feats.shape[0] > 1:
+            variance = torch.var(all_feats, dim=0, unbiased=False) + 0.01 # [C, H_p, W_p]
+        else:
+            variance = torch.ones_like(self.mean) * 0.01
         self.inv_cov = 1.0 / torch.sqrt(variance) # Diagonal standard deviation scale
 
     def predict(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:

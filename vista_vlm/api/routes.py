@@ -119,6 +119,7 @@ def get_benchmark_results():
     base_file = "benchmarks/results/baselines_comparison.json"
     ablation_file = "benchmarks/results/ablation_study.json"
     vista_file = "benchmarks/results/vista_results_bottle.json"
+    multi_track_file = "benchmarks/results/multi_track_benchmark.json"
 
     if os.path.exists(base_file):
         with open(base_file, "r") as f:
@@ -129,6 +130,9 @@ def get_benchmark_results():
     if os.path.exists(vista_file):
         with open(vista_file, "r") as f:
             results["vista_detailed_bottle"] = json.load(f)
+    if os.path.exists(multi_track_file):
+        with open(multi_track_file, "r") as f:
+            results["multi_track_benchmark"] = json.load(f)
 
     return JSONResponse(content=results)
 

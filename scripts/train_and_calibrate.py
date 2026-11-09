@@ -72,8 +72,8 @@ def train_one_epoch(
         batch_mask = torch.cat(target_masks, dim=0).to(device)
         batch_label = torch.tensor(target_labels, dtype=torch.float32, device=device)
 
-        # Forward pass
-        pred = model(batch_x)
+        # Forward pass with deep supervision
+        pred = model(batch_x, return_aux=True)
         loss_dict = model.compute_loss(pred, batch_mask, batch_label)
 
         loss = loss_dict["loss_total"]
@@ -145,12 +145,18 @@ def main():
     # 4. Save Model Checkpoint
     os.makedirs(args.output_dir, exist_ok=True)
     ckpt_path = os.path.join(args.output_dir, f"vista_mvtec_{args.category}.pth")
-    model.save_checkpoint(ckpt_path, extra_metadata={
-        "category": args.category,
-        "epochs": args.epochs,
-        "training_time_s": training_time,
-        "train_samples": len(train_ds),
-    })
+    model.save_checkpoint(
+        ckpt_path,
+        optimizer=optimizer,
+        epoch=args.epochs,
+        extra_metadata={
+            "category": args.category,
+            "epochs": args.epochs,
+            "training_time_s": training_time,
+            "train_samples": len(train_ds),
+            "architecture": "v3.0.0-fpn-deep-supervision"
+        }
+    )
 
     # 5. Split Conformal Calibration on Holdout Normal Data
     logger.info("Executing Split Conformal Calibration on independent normal validation samples...")

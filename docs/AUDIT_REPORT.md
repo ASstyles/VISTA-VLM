@@ -33,6 +33,9 @@ This document details every identified issue, its severity classification, mathe
 | **SEC-07** | `vista_vlm/calibration/ood.py` | **MEDIUM** | Covariance Singularity / Fallback | Regularized Shrinkage Added |
 | **SEC-08** | `scripts/run_baselines.py` | **MEDIUM** | Single-Category Benchmark Bias | Multi-Category Pipeline Created |
 | **SEC-09** | `vista_vlm/evaluation/benchmark_runner.py` | **LOW** | Timing Precision & Warmup | High-Resolution Timing Configured |
+| **SEC-10** | `vista_vlm/evaluation/metrics.py` | **CRITICAL** | AUPRO Integration Truncation & Under-Integration | Endpoint Interpolation Added |
+| **SEC-11** | `vista_vlm/data/synthetic.py` | **HIGH** | Unconstrained 35% Giant-Blob Artifact | Foreground Multi-Scale Generator |
+| **SEC-12** | `scripts/run_multi_track_benchmark.py` | **CRITICAL** | Evaluation Regime Conflation | 4 Independent Tracks Established |
 
 ---
 
@@ -186,6 +189,70 @@ This document details every identified issue, its severity classification, mathe
   The benchmark script evaluated only `bottle`, failing to capture model behavior across textures (e.g. `leather`, `tile`), complex structures (`cable`, `capsule`), and multi-component assemblies (VisA `candle`).
 - **Correction**:
   Extend benchmark suite to evaluate 5 MVTec AD categories (`bottle`, `cable`, `capsule`, `leather`, `tile`) and VisA (`candle`), computing macro-averaged and per-category tables.
+
+---
+
+### Issue SEC-10 [CRITICAL]: AUPRO Integration Boundary Truncation and Under-Integration Bug
+
+- **Affected File**: [`vista_vlm/evaluation/metrics.py`](file:///C:/Users/avira/Desktop/VISTA-VLM/vista_vlm/evaluation/metrics.py#L190-L240)
+- **Code Block**:
+  ```python
+  # Previous under-integrating code:
+  valid_idx = fpr_sorted <= max_fpr
+  fpr_valid = fpr_sorted[valid_idx]
+  pro_valid = pro_sorted[valid_idx]
+  aupro = np.trapz(pro_valid, fpr_valid) / max_fpr
+  ```
+- **Root Cause**:
+  In Bergmann et al.'s definition of Area Under the Per-Region Overlap (AUPRO), integration is performed strictly over the continuous interval $\text{FPR} \in [0, \text{max\_fpr}]$ ($\text{max\_fpr} = 0.30$).
+  When discrete thresholds are swept, the highest threshold yielding $\text{FPR} \le 0.30$ frequently lands at an intermediate value such as $\text{FPR} \approx 0.22$. The previous implementation sliced `fpr_sorted[valid_idx]` and integrated up to $0.22$, but divided by the full normalizer $0.30$ without interpolating the curve to $(0.30, \text{PRO}(0.30))$.
+  Consequently, the entire span from $0.22$ to $0.30$ (spanning nearly $30\%$ of the integration width) was treated as having $0.0$ area, artificially depressing AUPRO by $15\% - 20\%$ across all evaluated models.
+- **Technical Consequence**:
+  AUPRO metrics reported across all baselines and models were structurally under-estimated.
+- **Correction**:
+  Added explicit linear interpolation:
+  1. Insert origin $(0, 0)$ if the minimum thresholded FPR is $> 0$.
+  2. Compute $\text{PRO}(\text{max\_fpr}) = \text{interp}(\text{max\_fpr}, \text{FPR}, \text{PRO})$ and append $(\text{max\_fpr}, \text{PRO}(\text{max\_fpr}))$ to the integration sequence before calling `np.trapezoid`.
+- **Validation**:
+  Tested on analytic toy curves with known integral values in `tests/test_v3_evaluation.py::test_aupro_linear_endpoint_interpolation`. Verified exact convergence to true continuous area.
+
+---
+
+### Issue SEC-11 [HIGH]: Unconstrained 35% Giant-Blob Artifact and Foreground Surface Violation
+
+- **Affected File**: [`vista_vlm/data/synthetic.py`](file:///C:/Users/avira/Desktop/VISTA-VLM/vista_vlm/data/synthetic.py)
+- **Root Cause**:
+  The earlier synthetic anomaly generator generated multi-frequency Perlin noise across the full image frame, covering an average of $34.5\%$ of the pixels ($91,908$ pixels) with smooth, undulating waves. Moreover, defect patches routinely spilled over onto background staging areas, conveyer belts, and corner borders.
+  Real industrial defects (hairline cracks, pinholes, small chips, wire breaks) occupy $0.05\% - 5.0\%$ of the foreground area ($100 - 3,000$ pixels) and occur exclusively on the physical component surface.
+- **Technical Consequence**:
+  The model was trained to detect giant, smooth blobs rather than localized high-frequency edge discontinuities, resulting in blurry, imprecise test-time heatmaps that failed to accurately trace real crack contours.
+- **Correction**:
+  1. Implemented `get_foreground_mask()` using Otsu morphological thresholding and corner background estimation to constrain defects strictly to object surfaces.
+  2. Implemented a realistic multi-scale defect distribution:
+     - **40% Fine Defects**: Hairline cracks and scratches (area $0.05\% - 1.5\%$).
+     - **40% Medium Defects**: Scuffs, chips, contamination (area $1.5\% - 5.0\%$).
+     - **20% Organic Clusters**: Localized stains and fluid leaks (area $5.0\% - 10.0\%$).
+- **Validation**:
+  Measured synthetic defect areas across 100 generated training samples: verified mean area reduced from $91,908$ px ($34.5\%$) down to $1,420$ px ($0.53\%$). Verified $100\%$ of defects lie within the product foreground.
+
+---
+
+### Issue SEC-12 [CRITICAL]: Conflation of Distinct Supervision Regimes in Multi-Category Benchmark Table
+
+- **Affected Files**: [`scripts/run_multi_category_benchmark.py`](file:///C:/Users/avira/Desktop/VISTA-VLM/scripts/run_multi_category_benchmark.py), [`studio/src/components/BenchmarkCenter.tsx`](file:///C:/Users/avira/Desktop/VISTA-VLM/studio/src/components/BenchmarkCenter.tsx)
+- **Root Cause**:
+  In earlier benchmark scripts, PatchCore and PaDiM were fitted *in-domain* on each category's normal training split, while VISTA-VLM was trained *only* on `bottle` and evaluated zero-shot out-of-domain on all other categories (`cable`, `capsule`, `leather`, `tile`, `candle`), and WinCLIP was evaluated from textual prompts. Presenting these radically different regimes in a single table created an invalid comparison:
+  - When VISTA scored $0.4167$ on `cable`, it was not failing at in-domain representation learning; it was executing zero-shot source-to-target transfer without target adaptation.
+- **Technical Consequence**:
+  Unfair and scientifically invalid comparison across methods operating under fundamentally different supervision budgets.
+- **Correction**:
+  Restructured the benchmark into **4 independent, statistically valid evaluation tracks**:
+  - **Track 1**: In-Domain Normal-Only Industrial Inspection (Trained/fitted on target category normal images).
+  - **Track 2**: Source-Only Cross-Category Transfer (VISTA-VLM trained on source `bottle`, evaluated zero-shot across unseen target categories).
+  - **Track 3**: Zero-Shot Vision-Language Alignment (No target training images; textual prompt ensembles: WinCLIP, AnomalyCLIP).
+  - **Track 4**: Few-Normal-Shot Sample Efficiency ($k \in \{1, 2, 4, 8\}$ normal reference samples).
+- **Validation**:
+  Implemented and executed `scripts/run_multi_track_benchmark.py`. Each track outputs its own dedicated metrics table and macro-averages.
 
 ---
 

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Union
 
 class ConvBlock(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, dropout: float = 0.0):
@@ -15,18 +15,26 @@ class ConvBlock(nn.Module):
             nn.GroupNorm(num_groups=min(8, out_channels), num_channels=out_channels),
             nn.GELU()
         )
+        self.residual = (
+            nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
+            if in_channels != out_channels
+            else nn.Identity()
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.conv(x)
+        return self.conv(x) + self.residual(x)
 
 
 class ProgressiveSegmentationDecoder(nn.Module):
     """
-    Progressive Convolutional Segmentation Decoder with Multi-Scale Skip Connections (Phase 8).
+    Progressive Convolutional Segmentation Decoder with Multi-Scale Skip Connections (Phase 8 & v3.0).
     Upsamples spatial feature maps from grid resolution (e.g. 37x37)
     progressively back to the full image resolution (e.g. 518x518).
-    Supports lateral multi-scale skip connections from intermediate backbone blocks (4, 8)
-    to restore high-frequency boundary details and hairline cracks.
+    Supports:
+    1. Lateral multi-scale skip projections from intermediate backbone blocks (4, 8)
+       to restore high-frequency boundary details and hairline cracks.
+    2. Deep supervision auxiliary heads at intermediate resolutions (148x148 and 296x296)
+       to prevent vanishing gradients through progressive convolutional stages.
     """
     def __init__(
         self,
@@ -58,23 +66,30 @@ class ProgressiveSegmentationDecoder(nn.Module):
             nn.GELU()
         )
 
+        # Auxiliary heads for deep supervision
+        self.aux_head_148 = nn.Conv2d(hidden_dims[1], 1, kernel_size=1)
+        self.aux_head_296 = nn.Conv2d(hidden_dims[2], 1, kernel_size=1)
+
         self.final_head = nn.Conv2d(curr_in, 1, kernel_size=1)
 
     def forward(
         self,
         x: torch.Tensor,
         skips: Optional[List[torch.Tensor]] = None,
-        out_size: Optional[Tuple[int, int]] = None
-    ) -> torch.Tensor:
+        out_size: Optional[Tuple[int, int]] = None,
+        return_aux: bool = False
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, List[torch.Tensor]]]:
         """
         Args:
             x: Fused features [B, in_channels, H_p, W_p]
             skips: Optional list of intermediate backbone features [skip_block4, skip_block8]
             out_size: Optional target size override (H, W)
+            return_aux: Whether to return intermediate auxiliary logits for deep supervision
         Returns:
-            pixel_logits: [B, 1, H, W]
+            pixel_logits: [B, 1, H, W] (or tuple (pixel_logits, aux_logits_list) if return_aux=True)
         """
         target = out_size or self.target_size
+        aux_logits = []
 
         for i, stage in enumerate(self.stages):
             x = stage(x)
@@ -93,9 +108,18 @@ class ProgressiveSegmentationDecoder(nn.Module):
                         s4 = self.skip_proj_4(skips[0])
                         s4_up = F.interpolate(s4, size=x.shape[-2:], mode="bilinear", align_corners=False)
                         x = x + s4_up
+
+                if return_aux:
+                    if i == 1:
+                        aux_logits.append(self.aux_head_148(x))
+                    elif i == 2:
+                        aux_logits.append(self.aux_head_296(x))
             else:
                 # Final upsampling to exact target size
                 x = F.interpolate(x, size=target, mode="bilinear", align_corners=False)
 
         logits = self.final_head(x)
+
+        if return_aux:
+            return logits, aux_logits
         return logits

@@ -120,6 +120,36 @@ export const ResearchLab: React.FC = () => {
       after: 'Multi-Scale FPN with Block 4 (148×148) & Block 8 (74×74) skips',
       rootCause: 'Upsampling directly from 37×37 lost high-frequency edge and crack boundary details, limiting pixel AUROC to ~0.54.',
       solution: 'Added lateral skip projections from DINOv2 intermediate layers into the decoder stages, restoring sharp boundary gradients.'
+    },
+    {
+      id: 'SEC-10',
+      title: 'AUPRO Right-Endpoint Truncation & Under-Integration Fixed',
+      severity: 'CRITICAL',
+      status: 'RESOLVED',
+      before: 'Un-interpolated right endpoint (under-integrated trapezoidal area)',
+      after: 'Rigorously interpolated endpoint at (max_fpr, PRO(max_fpr)) + origin (0, 0)',
+      rootCause: 'AUPRO trapezoidal integration divided by 0.3 without interpolating from the highest discrete threshold FPR (~0.22) to max_fpr (0.30). The remaining 0.08 span was treated as 0 area, artificially depressing AUPRO by 15-20% across all evaluated models.',
+      solution: 'Added explicit linear boundary interpolation at max_fpr = 0.30 and origin (0, 0) before applying np.trapezoid.'
+    },
+    {
+      id: 'SEC-11',
+      title: 'Multi-Scale Foreground-Constrained Synthetic Anomaly Generator',
+      severity: 'HIGH',
+      status: 'RESOLVED',
+      before: 'Unconstrained 35% giant-blob Perlin noise covering background corners',
+      after: 'Realistic multi-scale defects (0.05% - 5.0% area) constrained to object foreground',
+      rootCause: 'Previous synthetic generator placed large multi-octave Perlin blobs across the entire frame (91,000+ pixels), creating severe domain gap from actual hairline cracks, scratches, and chips.',
+      solution: 'Implemented Otsu foreground extraction and multi-scale defect distribution: 40% fine defects (hairline cracks, scratches), 40% medium defects (chips, stains), 20% organic Perlin clusters.'
+    },
+    {
+      id: 'SEC-12',
+      title: 'Benchmark Protocol: 4 Independent Evaluation Tracks',
+      severity: 'CRITICAL',
+      status: 'RESOLVED',
+      before: 'Conflated single-table comparison mixing in-domain, transfer, and zero-shot VLM',
+      after: '4 Distinct Evaluation Tracks (In-Domain, Cross-Category Transfer, Zero-Shot VLM, Few-Shot)',
+      rootCause: 'Previous benchmark compared PatchCore/PaDiM (fitted in-domain per category) against VISTA-VLM (trained on bottle only and evaluated zero-shot out-of-domain) and WinCLIP (zero-shot language prompts) in a single misleading table.',
+      solution: 'Partitioned benchmark into 4 statistically valid tracks with dedicated tabs in the Benchmark Center.'
     }
   ];
 

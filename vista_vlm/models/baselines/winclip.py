@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from vista_vlm.models.backbones.clip_vision import CLIPModel
 from vista_vlm.utils.registry import BASELINE_REGISTRY
 
