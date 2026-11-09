@@ -1,6 +1,6 @@
-# VISTA-VLM REST API Reference
+# VISTA-VLM v4.0 REST API Reference
 
-The VISTA-VLM FastAPI backend provides fully typed REST endpoints for industrial inspection, batch evaluation, benchmark reporting, and inspector feedback.
+The VISTA-VLM FastAPI backend provides a high-throughput, fully typed REST API for industrial inspection, batch evaluation, benchmark reporting, and inspector feedback.
 
 **Default Base URL**: `http://localhost:8000`
 
@@ -15,7 +15,7 @@ Returns system status, active execution device, backbone architecture, and calib
 ```json
 {
   "status": "healthy",
-  "system_version": "1.0.0",
+  "system_version": "4.0.0",
   "device": "cpu",
   "backbone": "dinov2_vits14",
   "models_loaded": true,
@@ -25,130 +25,138 @@ Returns system status, active execution device, backbone architecture, and calib
 
 ---
 
-### 2. `GET /model/info`
-Returns architectural metadata, parameter counts, and calibration methodology.
+### 2. `GET /health/live` (Kubernetes Liveness Probe)
+Checks whether the FastAPI application process is alive and responsive. Returns immediately without waiting on hardware or model resources.
+
+**Response `200 OK`**:
+```json
+{
+  "status": "live",
+  "timestamp": "2026-11-09T14:00:00"
+}
+```
+
+---
+
+### 3. `GET /health/ready` (Kubernetes Readiness Probe)
+Verifies that foundation models, conformal thresholds, and OOD detection matrices are loaded into memory and ready to serve inspection traffic.
+
+**Response `200 OK`**:
+```json
+{
+  "status": "ready",
+  "models_initialized": true,
+  "calibrator_loaded": true,
+  "ood_detector_loaded": true,
+  "timestamp": "2026-11-09T14:00:00"
+}
+```
+
+---
+
+### 4. `GET /model/info`
+Returns architectural metadata, parameter counts, and calibration parameters.
 
 **Response `200 OK`**:
 ```json
 {
   "architecture": "VISTA-VLM (Vision Intelligence through Spatial and Textual Alignment)",
+  "version": "4.0.0",
   "backbone": "dinov2_vits14",
   "embed_dim": 384,
   "patch_size": 14,
   "grid_size": 37,
-  "parameters_total": 23997394,
-  "parameters_trainable": 1950418,
-  "language_verifier": "CLIP ViT-B/16 (Frozen Multimodal Ranker)",
+  "parameters_total": 24124340,
+  "parameters_trainable": 2073908,
+  "language_verifier": "CLIP ViT-B/16 (Frozen Multimodal Ranker with Text Cache)",
   "calibration_method": "split_conformal",
-  "supported_categories": ["bottle", "cable", "leather", "capsule", "tile", "candle", "pcb1"]
+  "supported_categories": ["bottle", "cable", "leather", "capsule", "tile", "candle"]
 }
 ```
 
 ---
 
-### 3. `POST /inspect`
+### 5. `POST /inspect`
 Executes end-to-end visual anomaly detection, localization, and multimodal verification on a single image.
 
 **Request**:
 - Content-Type: `multipart/form-data`
 - Parameters:
-  - `file`: Image file (PNG, JPG, BMP up to 20MB)
+  - `file`: Image binary (PNG, JPEG, BMP, TIFF, WEBP; max 20MB)
   - `category`: Target category name (e.g. `bottle`, `cable`)
 
+**Security & Validation**:
+- Inspects binary magic bytes. Returns `415 Unsupported Media Type` if the payload does not match valid image headers.
+- Enforces 20MB file size limits.
+
 **Response `200 OK`**:
 ```json
 {
-  "inspection_id": "insp_6e919ef7",
-  "timestamp": "2026-11-07T13:20:57.123456",
+  "inspection_id": "c71a39bf-90e6-4277-a06f-702fe6198f79",
+  "timestamp": "2026-11-09T14:00:00",
   "category": "bottle",
-  "status": "ANOMALOUS",
-  "image_anomaly_score": 0.6842,
-  "is_anomaly": true,
-  "threshold": 0.4954,
-  "num_defects_found": 1,
-  "bounding_boxes": [
-    {
-      "x1": 210,
-      "y1": 180,
-      "x2": 340,
-      "y2": 310,
-      "confidence": 0.88,
-      "label": "broken_large"
-    }
-  ],
-  "region_findings": [
-    {
-      "box": [210, 180, 340, 310],
-      "area": 16900,
-      "spatial_anomaly_score": 0.842,
-      "top_defect_label": "broken_large",
-      "top_similarity_score": 0.784,
-      "confidence_margin": 0.142,
-      "is_ambiguous": false,
-      "candidate_rankings": [
-        { "label": "broken_large", "score": 0.784, "prompt": "a photo of a broken bottle" }
-      ]
-    }
-  ],
-  "textual_interpretation": "Localized structural defect at bottle mouth with high confidence margin (0.142).",
-  "reliability": {
-    "calibrated_threshold": 0.4954,
-    "conformal_p_value": 0.021,
-    "target_false_alarm_rate": 0.05,
-    "is_ood": false,
-    "ood_distance": 0.241,
-    "ood_threshold": 0.850,
-    "in_uncertainty_band": false,
-    "human_review_recommended": false,
-    "review_reason": "Defect score significantly exceeds conformal threshold."
+  "decision": {
+    "is_anomaly": true,
+    "confidence_level": 0.95,
+    "conformal_p_value": 0.0124,
+    "autonomous_action": "ANOMALY_DETECTED",
+    "requires_human_review": false,
+    "escalation_reason": null
   },
-  "heatmap_base64": "iVBORw0KGgo...",
-  "mask_base64": "iVBORw0KGgo..."
+  "metrics": {
+    "anomaly_score": 0.7421,
+    "calibrated_threshold": 0.3962,
+    "raw_score": 0.7421,
+    "ood_distance": 0.000412,
+    "is_ood": false,
+    "defect_area_percentage": 2.45
+  },
+  "localization": {
+    "has_defect_regions": true,
+    "num_regions": 1,
+    "bounding_boxes": [
+      {
+        "box_id": 1,
+        "x_min": 180,
+        "y_min": 210,
+        "x_max": 255,
+        "y_max": 310,
+        "area_pixels": 7500,
+        "mean_anomaly_score": 0.8124,
+        "max_anomaly_score": 0.9412
+      }
+    ],
+    "heatmap_base64": "data:image/png;base64,...",
+    "mask_base64": "data:image/png;base64,..."
+  },
+  "language_verification": {
+    "verified": true,
+    "defect_candidate": "broken glass",
+    "confidence": 0.894,
+    "grounded_explanation": "Inspection of bottle reveals anomaly score of 0.7421 (calibrated threshold: 0.3962). Detected 1 localized defect region(s) covering 2.45% of total surface area. Primary anomaly located at bounding box (180, 210, 255, 310) with peak intensity 0.9412.",
+    "is_ambiguous": false
+  },
+  "latency_breakdown_ms": {
+    "feature_extraction": 42.1,
+    "fusion_and_decoding": 18.4,
+    "calibration_and_ood": 1.2,
+    "language_verification": 1.8,
+    "total_ms": 63.5
+  }
 }
 ```
 
 ---
 
-### 4. `POST /inspect/batch`
-Batch evaluation over multiple local image paths.
-
-**Request Body**:
-```json
-{
-  "image_paths": [
-    "data/processed/mvtec/bottle/test/broken_large/000.png",
-    "data/processed/mvtec/bottle/test/good/000.png"
-  ],
-  "category": "bottle"
-}
-```
+### 6. `POST /inspect/batch`
+Executes inspection across a batch of images (maximum 50 items per payload).
 
 ---
 
-### 5. `GET /benchmark/results`
-Returns genuine baseline comparison results and ablation study metrics directly from verified JSON artifacts.
+### 7. `GET /benchmark/results`
+Serves current 4-track benchmark metrics and category evaluations to the frontend dashboard.
 
 ---
 
-### 6. `POST /feedback`
-Records inspector verification decisions and manual corrections.
-
-**Request Body**:
-```json
-{
-  "inspection_id": "insp_6e919ef7",
-  "category": "bottle",
-  "user_label": "anomalous",
-  "comments": "Surface crack verified under microscope.",
-  "correct_defect_type": "broken_large"
-}
-```
-
-**Response `200 OK`**:
-```json
-{
-  "status": "recorded",
-  "message": "Human-review feedback stored separately from model predictions.",
-  "feedback_id": "fb_54737e9623"
-}
-```
+### 8. `POST /feedback`
+Appends inspector annotations and review decisions to an immutable audit ledger (`benchmarks/feedback/*.json`).

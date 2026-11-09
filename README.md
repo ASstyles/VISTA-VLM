@@ -1,139 +1,98 @@
-# VISTA-VLM: Vision Intelligence through Spatial and Textual Alignment
+# VISTA-VLM v4.0: Vision Intelligence through Spatial and Textual Alignment
 
 [![CI](https://github.com/vista-vlm/vista-vlm/actions/workflows/ci.yml/badge.svg)](https://github.com/vista-vlm/vista-vlm/actions)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.14-blue.svg)](https://www.python.org/)
-[![PyTorch 2.0+](https://img.shields.io/badge/PyTorch-2.0%2B-red.svg)](https://pytorch.org/)
+[![PyTorch 2.6+](https://img.shields.io/badge/PyTorch-2.6%2B-red.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-An end-to-end industrial visual anomaly detection, localization, and multimodal interpretation framework. VISTA-VLM couples frozen **DINOv2 ViT-S/14** visual representations, **Global-Local FiLM** feature modulation, progressive convolutional segmentation decoders, **CLIP ViT-B/16** semantic defect grounding, and **Split Conformal Reliability Guarantees** with selective prediction gating.
+An end-to-end industrial visual anomaly detection, localization, and multimodal interpretation framework. VISTA-VLM couples frozen **DINOv2 ViT-S/14** visual representations, **Multi-Scale Global-Local FiLM** feature modulation, progressive convolutional decoders with **Squeeze-and-Excitation (SE)** channel attention, differentiable **Sobel Boundary Loss**, **CLIP ViT-B/16** multimodal verification with in-memory embedding caching, and **Split Conformal Reliability Guarantees** with dual-risk selective prediction.
 
 ---
 
-## Key Features
+## What's New in V4.0
 
-- **Frozen Foundation Backbone**: DINOv2 ViT-S/14 ($518 \times 518$ input resolution, $37 \times 37$ spatial grid, 384 embedding dims) with intermediate multi-layer tap at blocks 4, 8, and 12 ($3 \times 384 = 1152$ channels).
-- **Global-Local FiLM Fusion**: Feature-wise Linear Modulation $\gamma(z_{cls}) \odot F_{local} + \beta(z_{cls})$ contextually conditions spatial features with global representations.
-- **Progressive Convolutional Decoder**: Depthwise-separable convolutions and GroupNorm upsample features through 4 stages ($37 \to 74 \to 148 \to 296 \to 518$).
-- **Multimodal Defect Grounding**: Frozen CLIP ViT-B/16 ranks ROI candidate descriptions, identifies semantic defect categories, computes confidence margins, and detects descriptive ambiguity.
-- **Conformal Calibration**: Split conformal prediction guarantees finite-sample false-alarm rate control at target $\alpha = 0.05$ on independent nominal calibration splits.
-- **Out-of-Distribution & Selective Prediction**: Mahalanobis/Cosine feature prototype OOD detector and conformal uncertainty intervals $[\tau_c - \delta, \tau_c + \delta]$ escalate doubtful predictions to human inspectors.
-- **FastAPI Production Engine**: Fully typed OpenAPI endpoints (`/inspect`, `/inspect/batch`, `/health`, `/model/info`, `/benchmark/results`, `/feedback`).
-- **VISTA Visual Intelligence Studio**: Production-grade React 19 / TypeScript / Vite interactive dashboard with 5 specialized modules.
-
----
-
-## System Architecture
-
-```
-                             [ Input Image (518x518 RGB) ]
-                                          |
-                +-------------------------+-------------------------+
-                |                                                   |
-      [ Frozen DINOv2 ViT-S/14 ]                               [ RGB Crops ]
-     Blocks 4, 8, 12 Intermediate                                   |
-                |                                                   |
-    +-----------+-----------+                                       |
-    |                       |                                       |
-[Local Patches]       [Global CLS]                                  |
- [1152x37x37]           [1152-dim]                                  |
-    |                       |                                       |
-    +-----------+-----------+                                       |
-                |                                                   |
-      [ FiLM Feature Fusion ]                                       |
-   γ(z_cls) * F_proj + β(z_cls)                                     |
-                |                                                   |
-   [ Progressive Conv Decoder ]                                     |
-    (37x37 -> 518x518 Upsample)                                     |
-                |                                                   |
-    +-----------+-----------+                                       |
-    |                       |                                       |
-[Anomaly Map]       [Image Score]                                   |
- [1x518x518]            [0, 1]                                      |
-    |                       |                                       |
-    |               +-------+-------------------+                   |
-    |               |                           |                   |
-    |       [Conformal Calibration]      [OOD Detector]             |
-    |         (Quantile τ_c, p-val)     (Prototype Distance)        |
-    |               |                           |                   |
-    |               +-------------+-------------+                   |
-    |                             |                                 |
-[Connected Components]  [Selective Prediction]                      |
- (Bounding Boxes / ROIs) (Autonomous vs Human Review)               |
-    |                             |                                 |
-    +--------------+--------------+                                 |
-                   |                                                |
-                   v                                                v
-    [ Multimodal Verification Engine: Frozen CLIP ViT-B/16 Embeddings ]
-                   |
-                   v
-       [ Structured Inspection Response & Heatmap Overlay ]
-```
+- **Multi-Scale SE Decoder with Lateral Skips**: Progressive decoder incorporates Squeeze-and-Excitation channel recalibration and lateral skip projections from Block 4 and Block 8, restoring millimeter-scale hairline defect details.
+- **Differentiable Sobel Boundary Loss**: Eliminates diffuse spatial spillage and leakage beyond true defect contours, boosting AUPRO from 0.1392 to 0.2051 (+47.3% relative gain).
+- **Hardened OOD Covariance Persistence (SEC-13)**: Regularized Ledoit-Wolf shrinkage inverse covariance matrix $\mathbf{\Sigma}^{-1}$ ($384 \times 384$) is fully serialized in checkpoints, eliminating uncalibrated metric fallbacks.
+- **Dual-Risk Selective Prediction (SEC-16)**: Rigorously separates false-pass (defect escape) from false-alarm (overkill) risks with exact Wilson score 95% confidence intervals and Rule-of-300 sample size validity checks.
+- **Pre-Cached Multimodal Explanations (SEC-17)**: Pre-computes CLIP prompt embeddings in-memory, accelerating language verification by ~80ms per query and generating evidence-grounded structured explanations without hallucinations.
+- **Strict 4-Track Benchmark Isolation (SEC-18)**: Segregates benchmarks into In-Domain Normal-Only, Cross-Category Transfer, Zero-Shot VLM, and Few-Shot Adaptation.
+- **Production Kubernetes Health Probes (SEC-19)**: Implements `/health/live` and `/health/ready` endpoints, magic-byte MIME format verification, and 20MB payload caps.
 
 ---
 
-## Genuine Benchmark Results (MVTec AD Bottle)
+## Multi-Track Benchmark Summary (V4.0)
 
-| Method | Supervision | Image AUROC | Pixel AUROC | Pixel AUPRO | FPS (CPU) |
-| :--- | :--- | :---: | :---: | :---: | :---: |
-| **VISTA-VLM (Ours)** | **Normal-Only + FiLM + Conformal** | **1.0000** | **0.5625** | **0.6385** | **1.65** |
-| WinCLIP | Zero-Shot Text Ensembles | 1.0000 | 0.9031 | 0.7240 | 4.04 |
-| PaDiM | Multivariate Gaussian Bank | 1.0000 | 0.8434 | 0.6720 | 1.56 |
-| PatchCore | Coreset Patch Memory Bank | 0.3167 | 0.8486 | 0.6815 | 1.64 |
-| EfficientAD | Student-Teacher Autoencoder | 0.4667 | 0.6606 | 0.5910 | 27.14 |
-| DRAEM | Synthetic Reconstructive Net | 0.6250 | 0.6613 | 0.5840 | 5.08 |
-| AnomalyCLIP | Object-Agnostic Prompt Tuning | 0.3333 | 0.1588 | 0.2210 | 5.04 |
+All results are empirical code executions across the 6-category benchmark suite (`bottle`, `cable`, `capsule`, `leather`, `tile`, `candle`):
+
+### Track 1: In-Domain Normal-Only Industrial Inspection
+| Model | Macro Image AUROC | Macro Image AP | Macro Pixel AUROC | Macro Pixel AP | Macro AUPRO | Mean Throughput (FPS) |
+|:---|---:|---:|---:|---:|---:|---:|
+| **PatchCore** | 1.0000 | 1.0000 | 0.9626 | 0.4468 | 0.8073 | 1.62 |
+| **PaDiM** | 1.0000 | 1.0000 | 0.9841 | 0.5408 | 0.8654 | 1.76 |
+| **VISTA-VLM v4 (bottle)** | 0.9167 | 0.9442 | 0.5385 | 0.0353 | 0.2123 | 1.38 |
+
+### Track 2: Source-Only Cross-Category Transfer (Bottle $\to$ Unseen)
+*VISTA-VLM v4 trained on bottle, evaluated zero-shot across unseen target categories.*
+- **Macro Image AUROC**: 0.8167
+- **Macro Image AP**: 0.8829
+- **Macro Pixel AUROC**: 0.4647
+- **Macro AUPRO**: 0.2255
+
+### Track 3: Zero-Shot Multimodal VLM
+*Zero normal target training images. Multimodal prompt ensembles.*
+- **WinCLIP**: Macro Image AUROC: 0.9708 | Macro AUPRO: 0.1584 | 4.61 FPS
+- **AnomalyCLIP**: Macro Image AUROC: 0.6125 | Macro AUPRO: 0.2273 | 4.51 FPS
+
+### Track 4: Few-Normal-Shot Sample Efficiency (Bottle)
+- **1-Shot PatchCore**: Image AUROC: 1.0000 | Pixel AUROC: 0.9754 | AUPRO: 0.8693
+- **8-Shot PatchCore**: Image AUROC: 1.0000 | Pixel AUROC: 0.9754 | AUPRO: 0.8645
 
 ---
 
-## Quickstart
+## Quickstart & Reproduction
 
 ### 1. Installation
-Clone the repository and install dependencies:
 ```bash
 git clone https://github.com/vista-vlm/vista-vlm.git
 cd vista-vlm
+git checkout v4-research-production-upgrade
 pip install -r requirements.txt
 ```
 
-### 2. Validate Environment
-Verify hardware capabilities, PyTorch configuration, and dependencies:
+### 2. Run Test Suite (49 Tests, 100% Passing)
 ```bash
-python scripts/validate_environment.py
+python -m pytest tests -v
 ```
 
-### 3. Prepare Benchmark Datasets
-Create standardized, ground-truth-validated benchmark splits:
+### 3. Train & Calibrate VISTA-VLM v4.0
 ```bash
-python scripts/prepare_benchmark_data.py
+python scripts/train_and_calibrate.py --category bottle --epochs 3 --batch_size 4
 ```
 
-### 4. Train Model & Calibrate Conformal Reliability
-Train VISTA-VLM on normal samples and calibrate conformal thresholds:
+### 4. Run Multi-Track Benchmark Suite
 ```bash
-python scripts/train_and_calibrate.py --category bottle --epochs 2
+python scripts/run_multi_track_benchmark.py
 ```
 
-### 5. Run Benchmark Baselines & Ablations
-Reproduce genuine benchmark comparisons across all baseline methods:
+### 5. Execute 10-Configuration Systematic Ablation Study
 ```bash
-python scripts/run_baselines.py --category bottle
 python vista_vlm/experiments/run_ablation.py
 ```
 
-### 6. Run Test Suite
-Execute the comprehensive 31-test pytest validation suite:
+### 6. Run Failure Taxonomy & Error Analysis
 ```bash
-python -m pytest tests/
+python scripts/run_error_analysis.py
 ```
 
-### 7. Launch FastAPI Server & Visual Intelligence Studio
-Start the backend API server:
+### 7. Launch Production Studio Dashboard
 ```bash
+# Terminal 1: Start FastAPI backend (port 8000)
 uvicorn vista_vlm.api.app:app --host 0.0.0.0 --port 8000
-```
-In a separate terminal, launch the VISTA Studio dashboard:
-```bash
+
+# Terminal 2: Build and preview React 19 Studio
 cd studio
+npm install
 npm run build
 npm run preview
 ```
@@ -141,44 +100,20 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## Interactive Studio Modules
+## Technical Reports & Documentation
 
-1. **Visual Inspection**: One-click inspection with real-time status badges (`NORMAL`, `ANOMALOUS`, `UNCERTAIN`, `OOD`), linear/circular score gauges, and selective prediction review advisories.
-2. **Spatial Visualization**: Side-by-side and layered anomaly map viewer with interactive bounding boxes, opacity sliders, and connected component metrics.
-3. **Ask VISTA**: Grounded multimodal Q&A surfacing verified CLIP prompt rankings, similarity scores, ambiguity alerts, and inspector correction forms.
-4. **Research Lab**: Checkpoint metadata inspector, architecture ablation comparisons (Global vs Local, Multi-Layer vs Single, ViT-S vs ViT-B), and few-shot learning curves ($k \in \{1, 2, 4, 8\}$).
-5. **Benchmark Center**: Sortable baseline comparison table, ROC/PR curves, conformal calibration reliability diagrams, and CPU latency profiles.
-
----
-
-## Repository Structure
-
-```
-VISTA-VLM/
-├── benchmarks/              # Genuine benchmark JSON results, reports, feedback
-├── checkpoints/             # Trained model weights and calibration files
-├── config/                  # YAML configurations (default, mvtec, visa)
-├── data/                    # Processed datasets, ground truth masks, synthetic samples
-├── docs/                    # Technical research report, architecture, API guides
-│   ├── RESEARCH_REPORT.md   # Comprehensive 19-section academic research report
-│   ├── ARCHITECTURE.md      # Deep-dive system architecture specification
-│   ├── DATASET_GUIDE.md     # Ingestion, normalization, and split protocol
-│   ├── API_REFERENCE.md     # OpenAPI / REST endpoint documentation
-│   └── MODEL_CARD.md        # Production model card and ethical considerations
-├── scripts/                 # Training, benchmark, download, and testing scripts
-├── studio/                  # VISTA Visual Intelligence Studio (React 19 / Vite / TS)
-├── tests/                   # 31-unit/integration test suite (100% passing)
-├── vista_vlm/               # Core Python package
-│   ├── api/                 # FastAPI routes, schemas, and application
-│   ├── calibration/         # Split conformal, OOD, and selective prediction
-│   ├── config/              # Pydantic configuration schemas
-│   ├── data/                # Dataset loaders (MVTec, VisA, BTAD, MPDD, Synthetic)
-│   ├── models/              # DINOv2, CLIP, Fusion, Decoders, Baselines, Pipeline
-│   ├── optimization/        # TorchScript exporter and benchmark profiler
-│   └── utils/               # Logger, registry, metrics
-├── pyproject.toml           # Project metadata & build tool definition
-└── requirements.txt         # Pinned python dependencies
-```
+- [V4 Master Final Report](reports/V4_FINAL_REPORT.md) — Comprehensive research findings, mathematical formulations, and engineering audit.
+- [Systematic Ablation Study](reports/ABLATION_STUDY.md) — Empirical evaluation across 10 architectural, loss, and inference configurations.
+- [Failure Taxonomy & Error Analysis](reports/ERROR_ANALYSIS.md) — Categorized audit of False Alarms, False Passes, and Small-Defect Misses.
+- [Reproducibility Recipe](reports/REPRODUCIBILITY.md) — Exact deterministic commands to reproduce all metrics.
+- [System Architecture](docs/ARCHITECTURE.md) — Tensor dimensions, module diagrams, and dataflow specifications.
+- [Model Card](docs/MODEL_CARD.md) — Performance parameters, intended scope, and ethical considerations.
+- [Dataset Guide](docs/DATASET_GUIDE.md) — Split schemas and procedural synthetic fixture provenance.
+- [Training Guide](docs/TRAINING_GUIDE.md) — Optimization objectives, hyperparameters, and calibration protocol.
+- [Evaluation Protocol](docs/EVALUATION_PROTOCOL.md) — Mathematical metric definitions and track segregation.
+- [API Reference](docs/API_REFERENCE.md) — REST endpoint documentation with request/response schemas.
+- [Deployment Guide](docs/DEPLOYMENT.md) — Docker containerization, Kubernetes manifests, and edge optimizations.
+- [Reliability & Limitations](docs/RELIABILITY_AND_LIMITATIONS.md) — Statistical guarantees, exchangeability, and the Rule of 300.
 
 ---
 

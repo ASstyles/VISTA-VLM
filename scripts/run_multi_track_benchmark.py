@@ -107,14 +107,14 @@ def main():
     args = parser.parse_args()
 
     device = "cpu"
-    logger.info(f"Launching VISTA-VLM v3.0 Multi-Track Benchmark Suite on {device}...")
+    logger.info(f"Launching VISTA-VLM v4.0 Multi-Track Benchmark Suite on {device}...")
 
     # Load calibrated VISTA model
     vista_bottle = VISTAAnomalyModel(image_size=518).to(device)
     ckpt_path = "checkpoints/vista_mvtec_bottle.pth"
     if os.path.exists(ckpt_path):
         vista_bottle.load_checkpoint(ckpt_path, device=device, strict=False)
-        logger.info(f"Loaded VISTA v3.0 checkpoint from {ckpt_path}")
+        logger.info(f"Loaded VISTA v4.0 checkpoint from {ckpt_path}")
     else:
         logger.warning(f"Checkpoint {ckpt_path} not found. Running with initialized weights.")
 
@@ -128,9 +128,11 @@ def main():
 
     benchmark_data = {
         "metadata": {
-            "version": "3.0.0",
+            "version": "4.0.0",
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "device": device,
+            "dataset_provenance": "procedural_synthetic_benchmark_fixture",
+            "provenance_disclosure": "Data derived from procedural synthetic benchmark fixtures conforming to official MVTec AD and VisA directory schemas.",
             "categories": [c["name"] for c in CATEGORIES],
             "track_definitions": {
                 "track_1_in_domain": "Trained/fitted on target category normal images. PatchCore, PaDiM, VISTA-VLM (bottle).",
@@ -292,3 +294,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

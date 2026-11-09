@@ -1,75 +1,178 @@
 {
+  "metadata": {
+    "category": "bottle",
+    "device": "cpu",
+    "timestamp": "2026-11-09 13:43:10",
+    "dataset_provenance": "procedural_synthetic_benchmark_fixture"
+  },
   "architectural_ablations": {
-    "Full VISTA-VLM": {
-      "image_auroc": 0.25,
-      "image_ap": 0.5775,
-      "image_f1": 0.7059,
-      "pixel_auroc": 0.5061,
-      "pixel_ap": 0.0193,
-      "aupro": 0.0014,
-      "p50_latency_ms": 578.99,
-      "throughput_fps": 1.66
+    "1. Full VISTA-VLM v4 (FiLM + SE + Lateral + Sobel + Aux)": {
+      "image_auroc": 0.9167,
+      "image_ap": 0.9621,
+      "image_f1": 0.0,
+      "pixel_auroc": 0.5146,
+      "pixel_ap": 0.0396,
+      "aupro": 0.2051,
+      "p50_latency_ms": 679.69,
+      "throughput_fps": 1.4,
+      "trainable_parameters": 2073908,
+      "fusion_type": "film",
+      "scoring_mode": "hybrid"
     },
-    "w/o Global Features (Local Only)": {
-      "image_auroc": 0.0833,
-      "image_ap": 0.4409,
+    "2. Gated Feature Fusion": {
+      "image_auroc": 0.5833,
+      "image_ap": 0.7931,
       "image_f1": 0.7059,
-      "pixel_auroc": 0.5621,
-      "pixel_ap": 0.0225,
-      "aupro": 0.1078,
-      "p50_latency_ms": 585.26,
-      "throughput_fps": 1.68
+      "pixel_auroc": 0.4681,
+      "pixel_ap": 0.019,
+      "aupro": 0.1425,
+      "p50_latency_ms": 614.25,
+      "throughput_fps": 1.6,
+      "trainable_parameters": 2008116,
+      "fusion_type": "gated",
+      "scoring_mode": "hybrid"
     },
-    "w/o Multi-Layer (Block 12 Only)": {
-      "image_auroc": 0.6667,
-      "image_ap": 0.8369,
+    "3. Cross-Attention Fusion": {
+      "image_auroc": 0.1667,
+      "image_ap": 0.5149,
       "image_f1": 0.7059,
-      "pixel_auroc": 0.5125,
-      "pixel_ap": 0.0196,
-      "aupro": 0.1321,
-      "p50_latency_ms": 597.7,
-      "throughput_fps": 1.63
+      "pixel_auroc": 0.4035,
+      "pixel_ap": 0.0156,
+      "aupro": 0.1374,
+      "p50_latency_ms": 618.05,
+      "throughput_fps": 1.59,
+      "trainable_parameters": 2206004,
+      "fusion_type": "cross_attention",
+      "scoring_mode": "hybrid"
     },
-    "w/ Simple Concat Fusion": {
-      "image_auroc": 0.75,
-      "image_ap": 0.8808,
+    "4. Concat Projection Fusion": {
+      "image_auroc": 0.5833,
+      "image_ap": 0.7931,
       "image_f1": 0.7059,
-      "pixel_auroc": 0.5245,
-      "pixel_ap": 0.0195,
-      "aupro": 0.0344,
-      "p50_latency_ms": 616.36,
-      "throughput_fps": 1.58
+      "pixel_auroc": 0.4262,
+      "pixel_ap": 0.0163,
+      "aupro": 0.1281,
+      "p50_latency_ms": 706.05,
+      "throughput_fps": 1.39,
+      "trainable_parameters": 1417780,
+      "fusion_type": "concat_proj",
+      "scoring_mode": "hybrid"
     },
-    "Secondary Backbone (ViT-B/14)": {
+    "5. Local-Only (No Global CLS Conditioning)": {
+      "image_auroc": 0.5833,
+      "image_ap": 0.7931,
+      "image_f1": 0.7059,
+      "pixel_auroc": 0.5021,
+      "pixel_ap": 0.0522,
+      "aupro": 0.1369,
+      "p50_latency_ms": 646.36,
+      "throughput_fps": 1.54,
+      "trainable_parameters": 1647156,
+      "fusion_type": "local_only",
+      "scoring_mode": "hybrid"
+    },
+    "6. Single-Layer Feature (Block 12 Only)": {
+      "image_auroc": 0.5833,
+      "image_ap": 0.7931,
+      "image_f1": 0.7059,
+      "pixel_auroc": 0.3851,
+      "pixel_ap": 0.0155,
+      "aupro": 0.1325,
+      "p50_latency_ms": 588.9,
+      "throughput_fps": 1.67,
+      "trainable_parameters": 1680692,
+      "fusion_type": "film",
+      "scoring_mode": "hybrid"
+    },
+    "7. Loss Ablation: w/o Sobel Boundary Loss (lambda_B=0)": {
+      "image_auroc": 1.0,
+      "image_ap": 1.0,
+      "image_f1": 0.0,
+      "pixel_auroc": 0.5531,
+      "pixel_ap": 0.0989,
+      "aupro": 0.1392,
+      "p50_latency_ms": 642.19,
+      "throughput_fps": 1.56,
+      "trainable_parameters": 2073908,
+      "fusion_type": "film",
+      "scoring_mode": "hybrid"
+    },
+    "8. Loss Ablation: w/o Deep Aux Supervision (lambda_aux=0)": {
       "image_auroc": 0.8333,
-      "image_ap": 0.9224,
+      "image_ap": 0.9242,
+      "image_f1": 0.0,
+      "pixel_auroc": 0.3698,
+      "pixel_ap": 0.0203,
+      "aupro": 0.1839,
+      "p50_latency_ms": 758.13,
+      "throughput_fps": 1.32,
+      "trainable_parameters": 2073908,
+      "fusion_type": "film",
+      "scoring_mode": "hybrid"
+    },
+    "9. Scaled Backbone: DINOv2 ViT-B/14 (embed_dim=768)": {
+      "image_auroc": 0.9167,
+      "image_ap": 0.9621,
       "image_f1": 0.7059,
-      "pixel_auroc": 0.4886,
-      "pixel_ap": 0.0184,
-      "aupro": 0.0856,
-      "p50_latency_ms": 1990.33,
-      "throughput_fps": 0.52
+      "pixel_auroc": 0.5072,
+      "pixel_ap": 0.0223,
+      "aupro": 0.141,
+      "p50_latency_ms": 1659.08,
+      "throughput_fps": 0.6,
+      "trainable_parameters": 2786612,
+      "fusion_type": "film",
+      "scoring_mode": "hybrid"
+    }
+  },
+  "scoring_policy_ablations": {
+    "Scoring: hybrid": {
+      "image_auroc": 0.6667,
+      "image_ap": 0.8391,
+      "image_f1": 0.7059,
+      "p50_latency_ms": 697.99
+    },
+    "Scoring: top_k": {
+      "image_auroc": 0.8333,
+      "image_ap": 0.9242,
+      "image_f1": 0.7059,
+      "p50_latency_ms": 623.2
+    },
+    "Scoring: max": {
+      "image_auroc": 0.8333,
+      "image_ap": 0.9242,
+      "image_f1": 0.7059,
+      "p50_latency_ms": 718.49
+    },
+    "Scoring: percentile_99": {
+      "image_auroc": 1.0,
+      "image_ap": 1.0,
+      "image_f1": 0.7059,
+      "p50_latency_ms": 716.69
     }
   },
   "few_shot_learning": {
     "1-shot": {
-      "image_auroc": 0.1667,
-      "pixel_auroc": 0.4526,
+      "image_auroc": 0.75,
+      "pixel_auroc": 0.3803,
+      "aupro": 0.0787,
       "f1": 0.7059
     },
     "2-shot": {
       "image_auroc": 0.5833,
-      "pixel_auroc": 0.4784,
+      "pixel_auroc": 0.4776,
+      "aupro": 0.0988,
       "f1": 0.7059
     },
     "4-shot": {
-      "image_auroc": 0.75,
-      "pixel_auroc": 0.5129,
+      "image_auroc": 0.5833,
+      "pixel_auroc": 0.4988,
+      "aupro": 0.0965,
       "f1": 0.7059
     },
     "8-shot": {
-      "image_auroc": 0.0,
-      "pixel_auroc": 0.4975,
+      "image_auroc": 1.0,
+      "pixel_auroc": 0.5603,
+      "aupro": 0.0955,
       "f1": 0.7059
     }
   }

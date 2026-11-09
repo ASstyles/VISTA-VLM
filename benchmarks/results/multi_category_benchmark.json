@@ -1,8 +1,10 @@
 {
   "metadata": {
-    "version": "3.0.0",
-    "timestamp": "2026-11-09 12:50:13",
+    "version": "4.0.0",
+    "timestamp": "2026-11-09 13:43:34",
     "device": "cpu",
+    "dataset_provenance": "procedural_synthetic_benchmark_fixture",
+    "provenance_disclosure": "Data derived from procedural synthetic benchmark fixtures conforming to official MVTec AD and VisA directory schemas.",
     "categories": [
       "bottle",
       "cable",
@@ -28,26 +30,26 @@
             "precision": 1.0,
             "recall": 0.8333,
             "f1": 0.9091,
-            "threshold": 9.2218
+            "threshold": 11.0191
           },
           "pixel_level": {
-            "pixel_auroc": 0.9342,
-            "pixel_ap": 0.3607,
-            "aupro": 0.6841,
-            "iou": 0.2439,
-            "dice": 0.3921,
+            "pixel_auroc": 0.9394,
+            "pixel_ap": 0.3711,
+            "aupro": 0.6997,
+            "iou": 0.2469,
+            "dice": 0.3961,
             "is_constant_map": false,
-            "spatial_variance": 0.848417
+            "spatial_variance": 0.813343
           },
           "reliability": {
-            "ece": 0.1826,
-            "brier_score": 0.0963,
+            "ece": 0.1627,
+            "brier_score": 0.0657,
             "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 645.9,
-            "p95_latency_ms": 690.16,
-            "throughput_fps": 1.54
+            "p50_latency_ms": 592.61,
+            "p95_latency_ms": 645.12,
+            "throughput_fps": 1.68
           }
         },
         "PaDiM": {
@@ -57,55 +59,55 @@
             "precision": 1.0,
             "recall": 0.8333,
             "f1": 0.9091,
-            "threshold": 36.7956
+            "threshold": 33.4754
           },
           "pixel_level": {
-            "pixel_auroc": 0.9754,
-            "pixel_ap": 0.4503,
-            "aupro": 0.8571,
-            "iou": 0.2563,
-            "dice": 0.408,
+            "pixel_auroc": 0.9755,
+            "pixel_ap": 0.4517,
+            "aupro": 0.8684,
+            "iou": 0.258,
+            "dice": 0.4101,
             "is_constant_map": false,
-            "spatial_variance": 1.949445
+            "spatial_variance": 1.962321
           },
           "reliability": {
-            "ece": 0.0886,
-            "brier_score": 0.0179,
+            "ece": 0.0673,
+            "brier_score": 0.0128,
             "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 568.85,
-            "p95_latency_ms": 611.59,
-            "throughput_fps": 1.74
+            "p50_latency_ms": 521.49,
+            "p95_latency_ms": 564.82,
+            "throughput_fps": 1.88
           }
         },
         "VISTA-VLM (In-Domain)": {
           "image_level": {
-            "auroc": 0.75,
-            "average_precision": 0.8828,
+            "auroc": 0.0833,
+            "average_precision": 0.4436,
             "precision": 1.0,
-            "recall": 0.75,
-            "f1": 0.8571,
-            "threshold": 0.431
+            "recall": 0.0833,
+            "f1": 0.1538,
+            "threshold": 0.3962
           },
           "pixel_level": {
-            "pixel_auroc": 0.5382,
-            "pixel_ap": 0.04,
-            "aupro": 0.1984,
-            "iou": 0.0404,
-            "dice": 0.0777,
+            "pixel_auroc": 0.5363,
+            "pixel_ap": 0.0353,
+            "aupro": 0.2123,
+            "iou": 0.0054,
+            "dice": 0.0107,
             "is_constant_map": false,
-            "spatial_variance": 0.063173
+            "spatial_variance": 0.035578
           },
           "reliability": {
-            "ece": 0.1142,
-            "brier_score": 0.2607,
+            "ece": 0.1495,
+            "brier_score": 0.2705,
             "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 621.78,
-            "p95_latency_ms": 688.91,
-            "throughput_fps": 1.58
+            "p50_latency_ms": 626.4,
+            "p95_latency_ms": 699.52,
+            "throughput_fps": 1.56
           }
         }
       },
@@ -117,25 +119,25 @@
             "precision": 1.0,
             "recall": 0.8333,
             "f1": 0.9091,
-            "threshold": 3.6775
+            "threshold": 3.882
           },
           "pixel_level": {
-            "pixel_auroc": 0.9154,
-            "pixel_ap": 0.2656,
-            "aupro": 0.5785,
+            "pixel_auroc": 0.9241,
+            "pixel_ap": 0.275,
+            "aupro": 0.6089,
             "iou": 0.1627,
-            "dice": 0.2799,
+            "dice": 0.2798,
             "is_constant_map": false,
-            "spatial_variance": 0.584447
+            "spatial_variance": 0.545161
           },
           "reliability": {
-            "ece": 0.3006,
-            "brier_score": 0.2296,
+            "ece": 0.3181,
+            "brier_score": 0.2494,
             "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 601.57,
-            "p95_latency_ms": 618.37,
+            "p50_latency_ms": 592.4,
+            "p95_latency_ms": 654.09,
             "throughput_fps": 1.66
           }
         },
@@ -146,26 +148,26 @@
             "precision": 1.0,
             "recall": 0.8333,
             "f1": 0.9091,
-            "threshold": 3.2576
+            "threshold": 3.3228
           },
           "pixel_level": {
-            "pixel_auroc": 0.9826,
-            "pixel_ap": 0.4586,
-            "aupro": 0.8722,
-            "iou": 0.337,
-            "dice": 0.5041,
+            "pixel_auroc": 0.9771,
+            "pixel_ap": 0.4377,
+            "aupro": 0.8266,
+            "iou": 0.3323,
+            "dice": 0.4989,
             "is_constant_map": false,
-            "spatial_variance": 1.179056
+            "spatial_variance": 1.039353
           },
           "reliability": {
-            "ece": 0.2267,
-            "brier_score": 0.1404,
+            "ece": 0.2275,
+            "brier_score": 0.1397,
             "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 609.81,
-            "p95_latency_ms": 632.9,
-            "throughput_fps": 1.64
+            "p50_latency_ms": 663.4,
+            "p95_latency_ms": 848.6,
+            "throughput_fps": 1.45
           }
         }
       },
@@ -177,26 +179,26 @@
             "precision": 1.0,
             "recall": 0.8333,
             "f1": 0.9091,
-            "threshold": 10.1253
+            "threshold": 9.4304
           },
           "pixel_level": {
-            "pixel_auroc": 0.938,
-            "pixel_ap": 0.3723,
-            "aupro": 0.695,
-            "iou": 0.2478,
-            "dice": 0.3972,
+            "pixel_auroc": 0.9348,
+            "pixel_ap": 0.3638,
+            "aupro": 0.6824,
+            "iou": 0.2461,
+            "dice": 0.3949,
             "is_constant_map": false,
-            "spatial_variance": 0.830757
+            "spatial_variance": 0.841314
           },
           "reliability": {
-            "ece": 0.1479,
-            "brier_score": 0.0581,
+            "ece": 0.1948,
+            "brier_score": 0.1014,
             "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 655.73,
-            "p95_latency_ms": 691.94,
-            "throughput_fps": 1.52
+            "p50_latency_ms": 608.19,
+            "p95_latency_ms": 673.86,
+            "throughput_fps": 1.61
           }
         },
         "PaDiM": {
@@ -206,26 +208,26 @@
             "precision": 1.0,
             "recall": 0.8333,
             "f1": 0.9091,
-            "threshold": 34.9719
+            "threshold": 35.0146
           },
           "pixel_level": {
-            "pixel_auroc": 0.9754,
-            "pixel_ap": 0.4539,
-            "aupro": 0.8691,
+            "pixel_auroc": 0.9751,
+            "pixel_ap": 0.4499,
+            "aupro": 0.8647,
             "iou": 0.2546,
-            "dice": 0.4059,
+            "dice": 0.4058,
             "is_constant_map": false,
-            "spatial_variance": 1.968703
+            "spatial_variance": 1.919966
           },
           "reliability": {
-            "ece": 0.0365,
-            "brier_score": 0.0056,
+            "ece": 0.0352,
+            "brier_score": 0.0053,
             "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 607.15,
-            "p95_latency_ms": 653.9,
-            "throughput_fps": 1.62
+            "p50_latency_ms": 534.36,
+            "p95_latency_ms": 562.16,
+            "throughput_fps": 1.86
           }
         }
       },
@@ -237,26 +239,26 @@
             "precision": 1.0,
             "recall": 0.9167,
             "f1": 0.9565,
-            "threshold": 6.957
+            "threshold": 7.3836
           },
           "pixel_level": {
-            "pixel_auroc": 0.9867,
-            "pixel_ap": 0.558,
-            "aupro": 0.9204,
-            "iou": 0.3952,
-            "dice": 0.5665,
+            "pixel_auroc": 0.9864,
+            "pixel_ap": 0.5517,
+            "aupro": 0.9222,
+            "iou": 0.3938,
+            "dice": 0.5651,
             "is_constant_map": false,
-            "spatial_variance": 0.300069
+            "spatial_variance": 0.318167
           },
           "reliability": {
-            "ece": 0.0999,
-            "brier_score": 0.032,
+            "ece": 0.1218,
+            "brier_score": 0.0404,
             "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 658.26,
-            "p95_latency_ms": 690.99,
-            "throughput_fps": 1.5
+            "p50_latency_ms": 581.26,
+            "p95_latency_ms": 624.44,
+            "throughput_fps": 1.7
           }
         },
         "PaDiM": {
@@ -266,26 +268,26 @@
             "precision": 1.0,
             "recall": 0.9167,
             "f1": 0.9565,
-            "threshold": 17.3956
+            "threshold": 16.1055
           },
           "pixel_level": {
-            "pixel_auroc": 0.9878,
-            "pixel_ap": 0.5991,
-            "aupro": 0.9157,
-            "iou": 0.4148,
-            "dice": 0.5864,
+            "pixel_auroc": 0.9866,
+            "pixel_ap": 0.5595,
+            "aupro": 0.928,
+            "iou": 0.3621,
+            "dice": 0.5317,
             "is_constant_map": false,
-            "spatial_variance": 0.828306
+            "spatial_variance": 0.987054
           },
           "reliability": {
-            "ece": 0.0903,
-            "brier_score": 0.0223,
+            "ece": 0.1376,
+            "brier_score": 0.0514,
             "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 602.39,
-            "p95_latency_ms": 640.98,
-            "throughput_fps": 1.66
+            "p50_latency_ms": 593.28,
+            "p95_latency_ms": 653.58,
+            "throughput_fps": 1.68
           }
         }
       },
@@ -297,26 +299,26 @@
             "precision": 1.0,
             "recall": 0.8333,
             "f1": 0.9091,
-            "threshold": 9.9209
+            "threshold": 9.7249
           },
           "pixel_level": {
-            "pixel_auroc": 0.991,
-            "pixel_ap": 0.687,
-            "aupro": 0.9323,
-            "iou": 0.4529,
-            "dice": 0.6234,
+            "pixel_auroc": 0.9908,
+            "pixel_ap": 0.6852,
+            "aupro": 0.9305,
+            "iou": 0.4542,
+            "dice": 0.6247,
             "is_constant_map": false,
-            "spatial_variance": 0.528572
+            "spatial_variance": 0.531132
           },
           "reliability": {
-            "ece": 0.04,
-            "brier_score": 0.0057,
+            "ece": 0.0504,
+            "brier_score": 0.0097,
             "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 603.33,
-            "p95_latency_ms": 686.01,
-            "throughput_fps": 1.61
+            "p50_latency_ms": 659.21,
+            "p95_latency_ms": 694.27,
+            "throughput_fps": 1.52
           }
         },
         "PaDiM": {
@@ -326,26 +328,26 @@
             "precision": 1.0,
             "recall": 0.8333,
             "f1": 0.9091,
-            "threshold": 23.3975
+            "threshold": 23.5082
           },
           "pixel_level": {
-            "pixel_auroc": 0.9909,
-            "pixel_ap": 0.6825,
-            "aupro": 0.9312,
-            "iou": 0.449,
-            "dice": 0.6198,
+            "pixel_auroc": 0.9906,
+            "pixel_ap": 0.6653,
+            "aupro": 0.9328,
+            "iou": 0.4446,
+            "dice": 0.6155,
             "is_constant_map": false,
-            "spatial_variance": 1.449134
+            "spatial_variance": 1.380877
           },
           "reliability": {
-            "ece": 0.0584,
-            "brier_score": 0.0104,
+            "ece": 0.0819,
+            "brier_score": 0.016,
             "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 566.38,
-            "p95_latency_ms": 642.58,
-            "throughput_fps": 1.73
+            "p50_latency_ms": 565.4,
+            "p95_latency_ms": 586.55,
+            "throughput_fps": 1.77
           }
         }
       },
@@ -357,26 +359,26 @@
             "precision": 1.0,
             "recall": 0.9333,
             "f1": 0.9655,
-            "threshold": 10.6616
+            "threshold": 9.468
           },
           "pixel_level": {
             "pixel_auroc": 1.0,
-            "pixel_ap": 0.9988,
+            "pixel_ap": 0.9985,
             "aupro": 0.9999,
-            "iou": 0.9627,
-            "dice": 0.981,
+            "iou": 0.9567,
+            "dice": 0.9779,
             "is_constant_map": false,
-            "spatial_variance": 1.04551
+            "spatial_variance": 0.952237
           },
           "reliability": {
-            "ece": 0.0061,
-            "brier_score": 0.0001,
+            "ece": 0.0204,
+            "brier_score": 0.0006,
             "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 614.52,
-            "p95_latency_ms": 627.4,
-            "throughput_fps": 1.65
+            "p50_latency_ms": 649.11,
+            "p95_latency_ms": 659.73,
+            "throughput_fps": 1.58
           }
         },
         "PaDiM": {
@@ -386,26 +388,26 @@
             "precision": 1.0,
             "recall": 0.9333,
             "f1": 0.9655,
-            "threshold": 29.6335
+            "threshold": 26.6464
           },
           "pixel_level": {
-            "pixel_auroc": 1.0,
-            "pixel_ap": 0.9967,
-            "aupro": 0.9999,
-            "iou": 0.9433,
-            "dice": 0.9708,
+            "pixel_auroc": 0.9999,
+            "pixel_ap": 0.996,
+            "aupro": 0.9998,
+            "iou": 0.9346,
+            "dice": 0.9662,
             "is_constant_map": false,
-            "spatial_variance": 2.758239
+            "spatial_variance": 2.558052
           },
           "reliability": {
-            "ece": 0.0163,
-            "brier_score": 0.0004,
+            "ece": 0.0221,
+            "brier_score": 0.0009,
             "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 615.1,
-            "p95_latency_ms": 638.83,
-            "throughput_fps": 1.65
+            "p50_latency_ms": 629.99,
+            "p95_latency_ms": 701.12,
+            "throughput_fps": 1.55
           }
         }
       }
@@ -415,28 +417,28 @@
         "macro_image_auroc": 1.0,
         "std_image_auroc": 0.0,
         "macro_image_ap": 1.0,
-        "macro_pixel_auroc": 0.9609,
-        "std_pixel_auroc": 0.0327,
-        "macro_aupro": 0.8017,
-        "mean_throughput_fps": 1.58
+        "macro_pixel_auroc": 0.9626,
+        "std_pixel_auroc": 0.0304,
+        "macro_aupro": 0.8073,
+        "mean_throughput_fps": 1.62
       },
       "PaDiM": {
         "macro_image_auroc": 1.0,
         "std_image_auroc": 0.0,
         "macro_image_ap": 1.0,
-        "macro_pixel_auroc": 0.9854,
-        "std_pixel_auroc": 0.0087,
-        "macro_aupro": 0.9075,
-        "mean_throughput_fps": 1.67
+        "macro_pixel_auroc": 0.9841,
+        "std_pixel_auroc": 0.0091,
+        "macro_aupro": 0.9034,
+        "mean_throughput_fps": 1.7
       },
       "VISTA-VLM (In-Domain)": {
-        "macro_image_auroc": 0.75,
+        "macro_image_auroc": 0.0833,
         "std_image_auroc": 0.0,
-        "macro_image_ap": 0.8828,
-        "macro_pixel_auroc": 0.5382,
+        "macro_image_ap": 0.4436,
+        "macro_pixel_auroc": 0.5363,
         "std_pixel_auroc": 0.0,
-        "macro_aupro": 0.1984,
-        "mean_throughput_fps": 1.58
+        "macro_aupro": 0.2123,
+        "mean_throughput_fps": 1.56
       }
     }
   },
@@ -446,92 +448,92 @@
       "cable": {
         "VISTA-VLM (Source: Bottle)": {
           "image_level": {
-            "auroc": 1.0,
-            "average_precision": 1.0,
+            "auroc": 0.75,
+            "average_precision": 0.8808,
             "precision": 0.0,
             "recall": 0.0,
             "f1": 0.0,
             "threshold": 0.5
           },
           "pixel_level": {
-            "pixel_auroc": 0.549,
-            "pixel_ap": 0.0989,
-            "aupro": 0.1795,
+            "pixel_auroc": 0.55,
+            "pixel_ap": 0.0273,
+            "aupro": 0.1698,
             "iou": 0.0,
             "dice": 0.0,
             "is_constant_map": false,
-            "spatial_variance": 0.037717
+            "spatial_variance": 0.02642
           },
           "reliability": {
-            "ece": 0.1381,
-            "brier_score": 0.264,
+            "ece": 0.1557,
+            "brier_score": 0.2721,
             "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 622.84,
-            "p95_latency_ms": 760.17,
-            "throughput_fps": 1.53
+            "p50_latency_ms": 648.57,
+            "p95_latency_ms": 743.1,
+            "throughput_fps": 1.49
           }
         }
       },
       "capsule": {
         "VISTA-VLM (Source: Bottle)": {
           "image_level": {
-            "auroc": 0.75,
-            "average_precision": 0.8828,
+            "auroc": 0.0833,
+            "average_precision": 0.4436,
             "precision": 0.0,
             "recall": 0.0,
             "f1": 0.0,
             "threshold": 0.5
           },
           "pixel_level": {
-            "pixel_auroc": 0.537,
-            "pixel_ap": 0.0393,
-            "aupro": 0.1984,
+            "pixel_auroc": 0.5383,
+            "pixel_ap": 0.0364,
+            "aupro": 0.2123,
             "iou": 0.0,
             "dice": 0.0,
             "is_constant_map": false,
-            "spatial_variance": 0.063173
+            "spatial_variance": 0.035578
           },
           "reliability": {
-            "ece": 0.1142,
-            "brier_score": 0.2607,
+            "ece": 0.1495,
+            "brier_score": 0.2705,
             "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 612.48,
-            "p95_latency_ms": 659.53,
-            "throughput_fps": 1.61
+            "p50_latency_ms": 644.96,
+            "p95_latency_ms": 684.93,
+            "throughput_fps": 1.54
           }
         }
       },
       "leather": {
         "VISTA-VLM (Source: Bottle)": {
           "image_level": {
-            "auroc": 0.5083,
-            "average_precision": 0.6698,
-            "precision": 0.5,
-            "recall": 0.8333,
-            "f1": 0.625,
+            "auroc": 0.6667,
+            "average_precision": 0.7297,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
             "threshold": 0.5
           },
           "pixel_level": {
-            "pixel_auroc": 0.1464,
-            "pixel_ap": 0.0099,
-            "aupro": 0.0248,
-            "iou": 0.0003,
-            "dice": 0.0005,
+            "pixel_auroc": 0.2824,
+            "pixel_ap": 0.0126,
+            "aupro": 0.1349,
+            "iou": 0.0048,
+            "dice": 0.0096,
             "is_constant_map": false,
-            "spatial_variance": 0.034177
+            "spatial_variance": 0.037844
           },
           "reliability": {
-            "ece": 0.0542,
+            "ece": 0.0578,
             "brier_score": 0.2502,
-            "empirical_false_alarm_rate": 1.0
+            "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 646.01,
-            "p95_latency_ms": 726.81,
+            "p50_latency_ms": 637.69,
+            "p95_latency_ms": 722.3,
             "throughput_fps": 1.52
           }
         }
@@ -539,75 +541,75 @@
       "tile": {
         "VISTA-VLM (Source: Bottle)": {
           "image_level": {
-            "auroc": 0.15,
-            "average_precision": 0.4026,
+            "auroc": 0.875,
+            "average_precision": 0.9217,
             "precision": 0.5455,
             "recall": 1.0,
             "f1": 0.7059,
             "threshold": 0.5
           },
           "pixel_level": {
-            "pixel_auroc": 0.2447,
-            "pixel_ap": 0.0112,
-            "aupro": 0.1192,
-            "iou": 0.0071,
-            "dice": 0.014,
+            "pixel_auroc": 0.4858,
+            "pixel_ap": 0.0268,
+            "aupro": 0.2888,
+            "iou": 0.0336,
+            "dice": 0.065,
             "is_constant_map": false,
-            "spatial_variance": 0.053702
+            "spatial_variance": 0.033571
           },
           "reliability": {
-            "ece": 0.0081,
-            "brier_score": 0.2506,
+            "ece": 0.0394,
+            "brier_score": 0.2475,
             "empirical_false_alarm_rate": 1.0
           },
           "efficiency": {
-            "p50_latency_ms": 644.55,
-            "p95_latency_ms": 696.0,
-            "throughput_fps": 1.54
+            "p50_latency_ms": 689.77,
+            "p95_latency_ms": 787.92,
+            "throughput_fps": 1.43
           }
         }
       },
       "candle": {
         "VISTA-VLM (Source: Bottle)": {
           "image_level": {
-            "auroc": 0.0,
-            "average_precision": 0.6095,
+            "auroc": 0.9333,
+            "average_precision": 0.986,
             "precision": 0.7895,
             "recall": 1.0,
             "f1": 0.8824,
             "threshold": 0.5
           },
           "pixel_level": {
-            "pixel_auroc": 0.2793,
-            "pixel_ap": 0.0084,
-            "aupro": 0.0024,
-            "iou": 0.0002,
-            "dice": 0.0003,
+            "pixel_auroc": 0.2016,
+            "pixel_ap": 0.0106,
+            "aupro": 0.0669,
+            "iou": 0.0074,
+            "dice": 0.0146,
             "is_constant_map": false,
-            "spatial_variance": 0.058192
+            "spatial_variance": 0.038378
           },
           "reliability": {
-            "ece": 0.2562,
-            "brier_score": 0.2324,
+            "ece": 0.2178,
+            "brier_score": 0.2115,
             "empirical_false_alarm_rate": 1.0
           },
           "efficiency": {
-            "p50_latency_ms": 671.28,
-            "p95_latency_ms": 701.8,
-            "throughput_fps": 1.47
+            "p50_latency_ms": 637.57,
+            "p95_latency_ms": 705.39,
+            "throughput_fps": 1.53
           }
         }
       }
     },
     "macro_averages": {
       "VISTA-VLM (Source: Bottle)": {
-        "macro_image_auroc": 0.4817,
-        "std_image_auroc": 0.3697,
-        "macro_image_ap": 0.7129,
-        "macro_pixel_auroc": 0.3513,
-        "std_pixel_auroc": 0.1625,
-        "macro_aupro": 0.1049,
-        "mean_throughput_fps": 1.53
+        "macro_image_auroc": 0.6617,
+        "std_image_auroc": 0.3039,
+        "macro_image_ap": 0.7924,
+        "macro_pixel_auroc": 0.4116,
+        "std_pixel_auroc": 0.1425,
+        "macro_aupro": 0.1745,
+        "mean_throughput_fps": 1.5
       }
     }
   },
@@ -616,300 +618,300 @@
       "bottle": {
         "WinCLIP": {
           "image_level": {
-            "auroc": 0.0833,
-            "average_precision": 0.4449,
-            "precision": 0.5238,
-            "recall": 0.9167,
-            "f1": 0.6667,
-            "threshold": 0.5817
+            "auroc": 0.9167,
+            "average_precision": 0.9621,
+            "precision": 1.0,
+            "recall": 0.75,
+            "f1": 0.8571,
+            "threshold": 0.6268
           },
           "pixel_level": {
-            "pixel_auroc": 0.4576,
-            "pixel_ap": 0.0162,
-            "aupro": 0.1259,
-            "iou": 0.018,
-            "dice": 0.0354,
+            "pixel_auroc": 0.5246,
+            "pixel_ap": 0.0193,
+            "aupro": 0.1856,
+            "iou": 0.0198,
+            "dice": 0.0387,
             "is_constant_map": false,
-            "spatial_variance": 0.019149
+            "spatial_variance": 0.023867
           },
           "reliability": {
-            "ece": 0.0461,
-            "brier_score": 0.2509,
-            "empirical_false_alarm_rate": 1.0
+            "ece": 0.0824,
+            "brier_score": 0.2532,
+            "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 226.1,
-            "p95_latency_ms": 240.45,
-            "throughput_fps": 4.41
+            "p50_latency_ms": 225.8,
+            "p95_latency_ms": 250.7,
+            "throughput_fps": 4.37
           }
         },
         "AnomalyCLIP": {
           "image_level": {
-            "auroc": 0.5,
-            "average_precision": 0.7416,
-            "precision": 0.5238,
-            "recall": 0.9167,
-            "f1": 0.6667,
-            "threshold": 0.5924
+            "auroc": 0.5833,
+            "average_precision": 0.7906,
+            "precision": 1.0,
+            "recall": 0.4167,
+            "f1": 0.5882,
+            "threshold": 0.4602
           },
           "pixel_level": {
-            "pixel_auroc": 0.525,
-            "pixel_ap": 0.0192,
-            "aupro": 0.1602,
-            "iou": 0.0193,
-            "dice": 0.0378,
+            "pixel_auroc": 0.4535,
+            "pixel_ap": 0.0154,
+            "aupro": 0.1365,
+            "iou": 0.018,
+            "dice": 0.0354,
             "is_constant_map": false,
-            "spatial_variance": 0.030598
+            "spatial_variance": 0.030655
           },
           "reliability": {
-            "ece": 0.0502,
-            "brier_score": 0.2508,
-            "empirical_false_alarm_rate": 1.0
+            "ece": 0.0855,
+            "brier_score": 0.2554,
+            "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 217.7,
-            "p95_latency_ms": 239.57,
-            "throughput_fps": 4.56
+            "p50_latency_ms": 211.99,
+            "p95_latency_ms": 223.93,
+            "throughput_fps": 4.68
           }
         }
       },
       "cable": {
         "WinCLIP": {
           "image_level": {
-            "auroc": 0.5833,
-            "average_precision": 0.7928,
+            "auroc": 0.6667,
+            "average_precision": 0.8391,
             "precision": 1.0,
-            "recall": 0.4167,
-            "f1": 0.5882,
-            "threshold": 0.5556
+            "recall": 0.5,
+            "f1": 0.6667,
+            "threshold": 0.6225
           },
           "pixel_level": {
-            "pixel_auroc": 0.4756,
-            "pixel_ap": 0.0169,
-            "aupro": 0.153,
+            "pixel_auroc": 0.4975,
+            "pixel_ap": 0.0182,
+            "aupro": 0.173,
             "iou": 0.018,
-            "dice": 0.0354,
+            "dice": 0.0353,
             "is_constant_map": false,
-            "spatial_variance": 0.012833
+            "spatial_variance": 0.013835
           },
           "reliability": {
-            "ece": 0.0101,
-            "brier_score": 0.248,
-            "empirical_false_alarm_rate": 0.0
+            "ece": 0.0772,
+            "brier_score": 0.2538,
+            "empirical_false_alarm_rate": 1.0
           },
           "efficiency": {
-            "p50_latency_ms": 238.41,
-            "p95_latency_ms": 281.32,
-            "throughput_fps": 4.08
+            "p50_latency_ms": 224.63,
+            "p95_latency_ms": 246.14,
+            "throughput_fps": 4.39
           }
         },
         "AnomalyCLIP": {
           "image_level": {
-            "auroc": 0.1667,
-            "average_precision": 0.5211,
+            "auroc": 0.25,
+            "average_precision": 0.5784,
             "precision": 0.5238,
             "recall": 0.9167,
             "f1": 0.6667,
-            "threshold": 0.6064
+            "threshold": 0.4112
           },
           "pixel_level": {
-            "pixel_auroc": 0.4823,
-            "pixel_ap": 0.0169,
-            "aupro": 0.1444,
-            "iou": 0.018,
-            "dice": 0.0354,
+            "pixel_auroc": 0.5167,
+            "pixel_ap": 0.0658,
+            "aupro": 0.1205,
+            "iou": 0.0519,
+            "dice": 0.0987,
             "is_constant_map": false,
-            "spatial_variance": 0.022052
+            "spatial_variance": 0.019383
           },
           "reliability": {
-            "ece": 0.0639,
-            "brier_score": 0.2524,
+            "ece": 0.1299,
+            "brier_score": 0.264,
             "empirical_false_alarm_rate": 1.0
           },
           "efficiency": {
-            "p50_latency_ms": 227.07,
-            "p95_latency_ms": 259.99,
-            "throughput_fps": 4.3
+            "p50_latency_ms": 221.85,
+            "p95_latency_ms": 240.22,
+            "throughput_fps": 4.52
           }
         }
       },
       "capsule": {
         "WinCLIP": {
           "image_level": {
-            "auroc": 0.1667,
-            "average_precision": 0.5184,
-            "precision": 0.5238,
-            "recall": 0.9167,
-            "f1": 0.6667,
-            "threshold": 0.5477
+            "auroc": 0.75,
+            "average_precision": 0.8828,
+            "precision": 1.0,
+            "recall": 0.5833,
+            "f1": 0.7368,
+            "threshold": 0.6761
           },
           "pixel_level": {
-            "pixel_auroc": 0.4876,
-            "pixel_ap": 0.018,
-            "aupro": 0.132,
-            "iou": 0.018,
-            "dice": 0.0354,
+            "pixel_auroc": 0.5095,
+            "pixel_ap": 0.0184,
+            "aupro": 0.1537,
+            "iou": 0.0191,
+            "dice": 0.0375,
             "is_constant_map": false,
-            "spatial_variance": 0.019194
+            "spatial_variance": 0.022924
           },
           "reliability": {
-            "ece": 0.0045,
-            "brier_score": 0.248,
-            "empirical_false_alarm_rate": 1.0
+            "ece": 0.1308,
+            "brier_score": 0.2644,
+            "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 218.78,
-            "p95_latency_ms": 234.54,
-            "throughput_fps": 4.51
+            "p50_latency_ms": 220.48,
+            "p95_latency_ms": 268.12,
+            "throughput_fps": 4.35
           }
         },
         "AnomalyCLIP": {
           "image_level": {
-            "auroc": 0.3333,
-            "average_precision": 0.6374,
+            "auroc": 0.25,
+            "average_precision": 0.5804,
             "precision": 0.5238,
             "recall": 0.9167,
             "f1": 0.6667,
-            "threshold": 0.5666
+            "threshold": 0.4985
           },
           "pixel_level": {
-            "pixel_auroc": 0.4513,
-            "pixel_ap": 0.0156,
-            "aupro": 0.1418,
-            "iou": 0.0181,
-            "dice": 0.0355,
+            "pixel_auroc": 0.4443,
+            "pixel_ap": 0.0151,
+            "aupro": 0.1014,
+            "iou": 0.018,
+            "dice": 0.0354,
             "is_constant_map": false,
-            "spatial_variance": 0.029862
+            "spatial_variance": 0.032155
           },
           "reliability": {
-            "ece": 0.0243,
-            "brier_score": 0.2489,
+            "ece": 0.0402,
+            "brier_score": 0.2504,
             "empirical_false_alarm_rate": 1.0
           },
           "efficiency": {
-            "p50_latency_ms": 209.04,
-            "p95_latency_ms": 225.75,
-            "throughput_fps": 4.74
+            "p50_latency_ms": 221.18,
+            "p95_latency_ms": 258.23,
+            "throughput_fps": 4.4
           }
         }
       },
       "leather": {
         "WinCLIP": {
           "image_level": {
-            "auroc": 0.6417,
-            "average_precision": 0.7422,
-            "precision": 0.5556,
+            "auroc": 0.6,
+            "average_precision": 0.7774,
+            "precision": 0.5,
             "recall": 0.8333,
-            "f1": 0.6667,
-            "threshold": 0.6042
+            "f1": 0.625,
+            "threshold": 0.5659
           },
           "pixel_level": {
-            "pixel_auroc": 0.4373,
-            "pixel_ap": 0.0157,
-            "aupro": 0.115,
-            "iou": 0.018,
-            "dice": 0.0354,
+            "pixel_auroc": 0.6314,
+            "pixel_ap": 0.0338,
+            "aupro": 0.3565,
+            "iou": 0.0423,
+            "dice": 0.0813,
             "is_constant_map": false,
-            "spatial_variance": 0.020962
+            "spatial_variance": 0.029006
           },
           "reliability": {
-            "ece": 0.0616,
-            "brier_score": 0.251,
-            "empirical_false_alarm_rate": 0.8
+            "ece": 0.1022,
+            "brier_score": 0.2446,
+            "empirical_false_alarm_rate": 1.0
           },
           "efficiency": {
-            "p50_latency_ms": 213.79,
-            "p95_latency_ms": 243.28,
-            "throughput_fps": 4.54
+            "p50_latency_ms": 249.87,
+            "p95_latency_ms": 271.72,
+            "throughput_fps": 3.95
           }
         },
         "AnomalyCLIP": {
           "image_level": {
-            "auroc": 0.6083,
-            "average_precision": 0.7185,
-            "precision": 0.5625,
-            "recall": 0.75,
-            "f1": 0.6429,
-            "threshold": 0.5676
+            "auroc": 0.65,
+            "average_precision": 0.7625,
+            "precision": 0.7778,
+            "recall": 0.5833,
+            "f1": 0.6667,
+            "threshold": 0.59
           },
           "pixel_level": {
-            "pixel_auroc": 0.6022,
-            "pixel_ap": 0.0291,
-            "aupro": 0.2558,
-            "iou": 0.0289,
-            "dice": 0.0562,
+            "pixel_auroc": 0.4244,
+            "pixel_ap": 0.0146,
+            "aupro": 0.1056,
+            "iou": 0.018,
+            "dice": 0.0354,
             "is_constant_map": false,
-            "spatial_variance": 0.029436
+            "spatial_variance": 0.034218
           },
           "reliability": {
-            "ece": 0.0263,
-            "brier_score": 0.2464,
-            "empirical_false_alarm_rate": 0.7
+            "ece": 0.0428,
+            "brier_score": 0.2498,
+            "empirical_false_alarm_rate": 0.2
           },
           "efficiency": {
-            "p50_latency_ms": 217.75,
-            "p95_latency_ms": 238.68,
-            "throughput_fps": 4.57
+            "p50_latency_ms": 241.0,
+            "p95_latency_ms": 280.33,
+            "throughput_fps": 3.99
           }
         }
       },
       "tile": {
         "WinCLIP": {
           "image_level": {
-            "auroc": 0.5333,
-            "average_precision": 0.7273,
-            "precision": 0.5,
-            "recall": 0.8333,
-            "f1": 0.625,
-            "threshold": 0.5399
+            "auroc": 0.7833,
+            "average_precision": 0.86,
+            "precision": 0.7273,
+            "recall": 0.6667,
+            "f1": 0.6957,
+            "threshold": 0.4529
           },
           "pixel_level": {
-            "pixel_auroc": 0.5101,
-            "pixel_ap": 0.0243,
-            "aupro": 0.2584,
-            "iou": 0.0296,
-            "dice": 0.0576,
+            "pixel_auroc": 0.502,
+            "pixel_ap": 0.0238,
+            "aupro": 0.2194,
+            "iou": 0.0267,
+            "dice": 0.0521,
             "is_constant_map": false,
-            "spatial_variance": 0.014743
+            "spatial_variance": 0.016055
           },
           "reliability": {
-            "ece": 0.0012,
-            "brier_score": 0.2467,
-            "empirical_false_alarm_rate": 1.0
+            "ece": 0.0917,
+            "brier_score": 0.2549,
+            "empirical_false_alarm_rate": 0.3
           },
           "efficiency": {
-            "p50_latency_ms": 215.78,
-            "p95_latency_ms": 246.91,
-            "throughput_fps": 4.52
+            "p50_latency_ms": 256.9,
+            "p95_latency_ms": 299.7,
+            "throughput_fps": 3.8
           }
         },
         "AnomalyCLIP": {
           "image_level": {
-            "auroc": 0.7833,
-            "average_precision": 0.8173,
-            "precision": 0.7692,
-            "recall": 0.8333,
-            "f1": 0.8,
-            "threshold": 0.5228
+            "auroc": 0.9417,
+            "average_precision": 0.9398,
+            "precision": 0.9167,
+            "recall": 0.9167,
+            "f1": 0.9167,
+            "threshold": 0.467
           },
           "pixel_level": {
-            "pixel_auroc": 0.4928,
-            "pixel_ap": 0.0188,
-            "aupro": 0.1688,
-            "iou": 0.0208,
-            "dice": 0.0408,
+            "pixel_auroc": 0.4408,
+            "pixel_ap": 0.0164,
+            "aupro": 0.1563,
+            "iou": 0.018,
+            "dice": 0.0353,
             "is_constant_map": false,
-            "spatial_variance": 0.017289
+            "spatial_variance": 0.018392
           },
           "reliability": {
-            "ece": 0.0222,
-            "brier_score": 0.2476,
-            "empirical_false_alarm_rate": 0.3
+            "ece": 0.0775,
+            "brier_score": 0.2524,
+            "empirical_false_alarm_rate": 0.1
           },
           "efficiency": {
-            "p50_latency_ms": 206.99,
-            "p95_latency_ms": 222.19,
-            "throughput_fps": 4.78
+            "p50_latency_ms": 218.95,
+            "p95_latency_ms": 235.64,
+            "throughput_fps": 4.57
           }
         }
       },
@@ -921,77 +923,77 @@
             "precision": 1.0,
             "recall": 0.9333,
             "f1": 0.9655,
-            "threshold": 0.5687
+            "threshold": 0.4432
           },
           "pixel_level": {
-            "pixel_auroc": 0.0759,
-            "pixel_ap": 0.0067,
-            "aupro": 0.0056,
-            "iou": 0.0132,
-            "dice": 0.0261,
+            "pixel_auroc": 0.4303,
+            "pixel_ap": 0.0121,
+            "aupro": 0.1497,
+            "iou": 0.0157,
+            "dice": 0.031,
             "is_constant_map": false,
-            "spatial_variance": 0.012106
+            "spatial_variance": 0.013574
           },
           "reliability": {
-            "ece": 0.2202,
-            "brier_score": 0.2143,
+            "ece": 0.3452,
+            "brier_score": 0.2847,
             "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 214.44,
-            "p95_latency_ms": 233.79,
-            "throughput_fps": 4.6
+            "p50_latency_ms": 215.69,
+            "p95_latency_ms": 221.9,
+            "throughput_fps": 4.66
           }
         },
         "AnomalyCLIP": {
           "image_level": {
-            "auroc": 0.7333,
-            "average_precision": 0.9388,
-            "precision": 0.7778,
+            "auroc": 1.0,
+            "average_precision": 1.0,
+            "precision": 1.0,
             "recall": 0.9333,
-            "f1": 0.8485,
-            "threshold": 0.4639
+            "f1": 0.9655,
+            "threshold": 0.494
           },
           "pixel_level": {
-            "pixel_auroc": 0.9576,
-            "pixel_ap": 0.418,
-            "aupro": 0.8646,
-            "iou": 0.2581,
-            "dice": 0.4103,
+            "pixel_auroc": 0.9012,
+            "pixel_ap": 0.3061,
+            "aupro": 0.7436,
+            "iou": 0.2264,
+            "dice": 0.3693,
             "is_constant_map": false,
-            "spatial_variance": 0.012036
+            "spatial_variance": 0.013797
           },
           "reliability": {
-            "ece": 0.3204,
-            "brier_score": 0.2677,
-            "empirical_false_alarm_rate": 1.0
+            "ece": 0.2929,
+            "brier_score": 0.2507,
+            "empirical_false_alarm_rate": 0.0
           },
           "efficiency": {
-            "p50_latency_ms": 215.44,
-            "p95_latency_ms": 227.12,
-            "throughput_fps": 4.62
+            "p50_latency_ms": 203.17,
+            "p95_latency_ms": 206.51,
+            "throughput_fps": 4.93
           }
         }
       }
     },
     "macro_averages": {
       "WinCLIP": {
-        "macro_image_auroc": 0.5014,
-        "std_image_auroc": 0.3063,
-        "macro_image_ap": 0.7043,
-        "macro_pixel_auroc": 0.4073,
-        "std_pixel_auroc": 0.15,
-        "macro_aupro": 0.1317,
-        "mean_throughput_fps": 4.44
+        "macro_image_auroc": 0.7861,
+        "std_image_auroc": 0.1372,
+        "macro_image_ap": 0.8869,
+        "macro_pixel_auroc": 0.5159,
+        "std_pixel_auroc": 0.0596,
+        "macro_aupro": 0.2063,
+        "mean_throughput_fps": 4.25
       },
       "AnomalyCLIP": {
-        "macro_image_auroc": 0.5208,
-        "std_image_auroc": 0.2171,
-        "macro_image_ap": 0.7291,
-        "macro_pixel_auroc": 0.5852,
-        "std_pixel_auroc": 0.173,
-        "macro_aupro": 0.2893,
-        "mean_throughput_fps": 4.6
+        "macro_image_auroc": 0.6125,
+        "std_image_auroc": 0.2954,
+        "macro_image_ap": 0.7753,
+        "macro_pixel_auroc": 0.5302,
+        "std_pixel_auroc": 0.1685,
+        "macro_aupro": 0.2273,
+        "mean_throughput_fps": 4.51
       }
     }
   },
@@ -1001,49 +1003,49 @@
       "1-shot": {
         "PatchCore": {
           "image_auroc": 1.0,
-          "pixel_auroc": 0.9751,
-          "aupro": 0.8675
+          "pixel_auroc": 0.9754,
+          "aupro": 0.8693
         },
         "PaDiM": {
           "image_auroc": 1.0,
-          "pixel_auroc": 0.9749,
-          "aupro": 0.8542
+          "pixel_auroc": 0.9745,
+          "aupro": 0.8431
         }
       },
       "2-shot": {
         "PatchCore": {
           "image_auroc": 1.0,
-          "pixel_auroc": 0.9752,
-          "aupro": 0.8678
+          "pixel_auroc": 0.9749,
+          "aupro": 0.8592
         },
         "PaDiM": {
           "image_auroc": 1.0,
-          "pixel_auroc": 0.975,
-          "aupro": 0.8636
+          "pixel_auroc": 0.9751,
+          "aupro": 0.86
         }
       },
       "4-shot": {
         "PatchCore": {
           "image_auroc": 1.0,
-          "pixel_auroc": 0.9755,
-          "aupro": 0.8683
+          "pixel_auroc": 0.9752,
+          "aupro": 0.8624
         },
         "PaDiM": {
           "image_auroc": 1.0,
-          "pixel_auroc": 0.9759,
-          "aupro": 0.8673
+          "pixel_auroc": 0.9748,
+          "aupro": 0.8667
         }
       },
       "8-shot": {
         "PatchCore": {
           "image_auroc": 1.0,
-          "pixel_auroc": 0.9757,
-          "aupro": 0.8659
+          "pixel_auroc": 0.9754,
+          "aupro": 0.8645
         },
         "PaDiM": {
           "image_auroc": 1.0,
-          "pixel_auroc": 0.9752,
-          "aupro": 0.8666
+          "pixel_auroc": 0.9745,
+          "aupro": 0.8481
         }
       }
     }

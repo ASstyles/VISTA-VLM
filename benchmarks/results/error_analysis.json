@@ -1,0 +1,71 @@
+{
+  "metadata": {
+    "version": "4.0.0",
+    "timestamp": "2026-11-09 13:57:41",
+    "dataset_provenance": "procedural_synthetic_benchmark_fixture",
+    "calibrated_threshold": 0.39621132612228394
+  },
+  "taxonomies_by_category": {
+    "bottle": {
+      "CORRECT_NORMAL": 10,
+      "CORRECT_ANOMALOUS": 0,
+      "FALSE_ALARM": 0,
+      "FALSE_PASS": 11,
+      "SMALL_DEFECT_MISS": 1,
+      "BOUNDARY_LEAKAGE": 0,
+      "LOCALIZATION_SHIFT": 0,
+      "TOTAL_TEST_SAMPLES": 22
+    },
+    "cable": {
+      "CORRECT_NORMAL": 10,
+      "CORRECT_ANOMALOUS": 0,
+      "FALSE_ALARM": 0,
+      "FALSE_PASS": 12,
+      "SMALL_DEFECT_MISS": 0,
+      "BOUNDARY_LEAKAGE": 0,
+      "LOCALIZATION_SHIFT": 0,
+      "TOTAL_TEST_SAMPLES": 22
+    },
+    "capsule": {
+      "CORRECT_NORMAL": 10,
+      "CORRECT_ANOMALOUS": 0,
+      "FALSE_ALARM": 0,
+      "FALSE_PASS": 11,
+      "SMALL_DEFECT_MISS": 1,
+      "BOUNDARY_LEAKAGE": 0,
+      "LOCALIZATION_SHIFT": 0,
+      "TOTAL_TEST_SAMPLES": 22
+    },
+    "leather": {
+      "CORRECT_NORMAL": 0,
+      "CORRECT_ANOMALOUS": 0,
+      "FALSE_ALARM": 10,
+      "FALSE_PASS": 0,
+      "SMALL_DEFECT_MISS": 7,
+      "BOUNDARY_LEAKAGE": 0,
+      "LOCALIZATION_SHIFT": 5,
+      "TOTAL_TEST_SAMPLES": 22
+    },
+    "tile": {
+      "CORRECT_NORMAL": 0,
+      "CORRECT_ANOMALOUS": 0,
+      "FALSE_ALARM": 10,
+      "FALSE_PASS": 0,
+      "SMALL_DEFECT_MISS": 7,
+      "BOUNDARY_LEAKAGE": 0,
+      "LOCALIZATION_SHIFT": 5,
+      "TOTAL_TEST_SAMPLES": 22
+    },
+    "candle": {
+      "CORRECT_NORMAL": 0,
+      "CORRECT_ANOMALOUS": 0,
+      "FALSE_ALARM": 4,
+      "FALSE_PASS": 0,
+      "SMALL_DEFECT_MISS": 5,
+      "BOUNDARY_LEAKAGE": 10,
+      "LOCALIZATION_SHIFT": 0,
+      "TOTAL_TEST_SAMPLES": 19
+    }
+  },
+  "sample_count": 129
+}

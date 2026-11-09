@@ -36,8 +36,6 @@ class DiceLoss(nn.Module):
         self.smooth = smooth
 
     def forward(self, pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        # pred: sigmoid probabilities [B, 1, H, W]
-        # target: binary ground truth [B, 1, H, W]
         pred_flat = pred.contiguous().view(-1)
         target_flat = target.contiguous().view(-1)
 
@@ -60,8 +58,6 @@ class SobelBoundaryLoss(nn.Module):
         self.register_buffer("sobel_y", sobel_y)
 
     def forward(self, pred_map: torch.Tensor, target_mask: torch.Tensor) -> torch.Tensor:
-        # pred_map: [B, 1, H, W] in [0, 1]
-        # target_mask: [B, 1, H, W] in {0, 1}
         px = F.conv2d(pred_map, self.sobel_x, padding=1)
         py = F.conv2d(pred_map, self.sobel_y, padding=1)
         pred_grad = torch.sqrt(px ** 2 + py ** 2 + 1e-6)
@@ -75,14 +71,14 @@ class SobelBoundaryLoss(nn.Module):
 
 class VISTAAnomalyModel(nn.Module):
     """
-    VISTA Anomaly Localization Model (VISTA-VLM v3.0).
+    VISTA Anomaly Localization Model (VISTA-VLM v4.0).
     Integrates:
-      1. Frozen DINOv2 ViT-S/14 (or ViT-B/14) Foundation Backbone
-      2. Multi-layer intermediate patch & CLS extraction (blocks 4, 8, 12)
-      3. Global-Local FiLM Feature Fusion
-      4. Progressive Convolutional Segmentation Decoder with Lateral Skips & Deep Supervision
-      5. Multi-task Loss: Binary Focal Loss + Soft Dice + Differentiable Sobel Boundary Loss
-      6. Hybrid Pixel-Level & Global Image-Level Anomaly Scoring
+      1. Frozen DINOv2 ViT-S/14 Foundation Backbone with intermediate extraction
+      2. Multi-variant Global-Local Fusion (FiLM, Gated, Cross-Attention, Concat-Proj)
+      3. Progressive Segmentation Decoder with Squeeze-and-Excitation, Lateral Skips & Deep Supervision
+      4. Hybrid empirical nominal memory residual guidance
+      5. Configurable image-level scoring policies (hybrid, top-k, max, 99th percentile)
+      6. Multi-task loss: Binary Focal Loss + Soft Dice + Differentiable Sobel Boundary Loss
     """
     def __init__(
         self,
@@ -95,12 +91,15 @@ class VISTAAnomalyModel(nn.Module):
         use_film: bool = True,
         top_k_ratio: float = 0.01,
         global_head_weight: float = 0.5,
+        scoring_mode: str = "hybrid",
         freeze_backbone: bool = True,
     ):
         super().__init__()
         self.image_size = image_size
         self.top_k_ratio = top_k_ratio
         self.global_head_weight = global_head_weight
+        self.scoring_mode = scoring_mode
+        self.embed_dim = embed_dim
 
         # 1. Visual Backbone
         if backbone_name == "dinov2_vits14":
@@ -125,11 +124,13 @@ class VISTAAnomalyModel(nn.Module):
             use_film_conditioning=use_film
         )
 
-        # 3. Progressive Segmentation Decoder with Multi-Scale Lateral Skips
+        # 3. Progressive Segmentation Decoder with SE Attention & Multi-Scale Skips
         self.decoder = ProgressiveSegmentationDecoder(
             in_channels=proj_dim,
             hidden_dims=[128, 64, 32, 16],
-            target_size=image_size
+            target_size=image_size,
+            guide_in_channels=1,
+            skip_channels=embed_dim
         )
 
         # 4. Global Image-Level Anomaly Head
@@ -141,6 +142,9 @@ class VISTAAnomalyModel(nn.Module):
             nn.Sigmoid()
         )
 
+        # 5. Optional empirical memory bank for hybrid guidance
+        self.memory_bank: Optional[torch.Tensor] = None
+
         # Loss functions
         self.bce_loss = nn.BCEWithLogitsLoss()
         self.focal_loss = BinaryFocalLoss(alpha=0.75, gamma=2.0)
@@ -148,18 +152,70 @@ class VISTAAnomalyModel(nn.Module):
         self.sobel_loss = SobelBoundaryLoss()
         self.img_bce_loss = nn.BCELoss()
 
-    def forward(self, x: torch.Tensor, return_aux: bool = False) -> Dict[str, Any]:
+    def fit_memory_bank(self, normal_loader, device: str = "cpu", max_patches: int = 1500):
+        """
+        Fits category nominal memory bank from normal reference images (for Track 1 / Track 4).
+        """
+        self.encoder.eval()
+        patch_list = []
+        with torch.no_grad():
+            for batch in normal_loader:
+                imgs = batch["image"].to(device)
+                feat_dict = self.encoder(imgs)
+                # Use block 8 and 12 patch tokens: [B, C, gh, gw]
+                p8 = feat_dict["patch_features"][1]
+                p12 = feat_dict["patch_features"][2]
+                p_cat = torch.cat([p8, p12], dim=1) # [B, 2*embed_dim, gh, gw]
+                B, C, gh, gw = p_cat.shape
+                tokens = p_cat.permute(0, 2, 3, 1).reshape(-1, C) # [B*gh*gw, C]
+                # L2 normalize
+                tokens = F.normalize(tokens, p=2, dim=1)
+                patch_list.append(tokens)
+
+        if patch_list:
+            all_patches = torch.cat(patch_list, dim=0)
+            if all_patches.shape[0] > max_patches:
+                perm = torch.randperm(all_patches.shape[0])[:max_patches]
+                all_patches = all_patches[perm]
+            self.memory_bank = all_patches.to(device)
+            logger.info(f"Fitted nominal memory bank with {self.memory_bank.shape[0]} reference patches.")
+
+    def compute_memory_guide(self, patch_feats: List[torch.Tensor]) -> Optional[torch.Tensor]:
+        """Computes nearest-neighbor patch distance map from nominal reference memory."""
+        if self.memory_bank is None or len(patch_feats) < 3:
+            return None
+        p8 = patch_feats[1]
+        p12 = patch_feats[2]
+        p_cat = torch.cat([p8, p12], dim=1) # [B, 2*embed_dim, gh, gw]
+        B, C, gh, gw = p_cat.shape
+        tokens = p_cat.permute(0, 2, 3, 1).reshape(B * gh * gw, C)
+        tokens = F.normalize(tokens, p=2, dim=1)
+
+        # Cosine distance to nearest memory patch
+        sims = tokens @ self.memory_bank.T # [B*gh*gw, M]
+        max_sim, _ = sims.max(dim=1)
+        dist = 1.0 - max_sim # [B*gh*gw]
+        guide = dist.reshape(B, 1, gh, gw)
+        # Normalize guide map per image to [0, 1]
+        g_min = guide.amin(dim=(-2, -1), keepdim=True)
+        g_max = guide.amax(dim=(-2, -1), keepdim=True)
+        guide = (guide - g_min) / (g_max - g_min + 1e-6)
+        return guide
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        guide_map: Optional[torch.Tensor] = None,
+        return_aux: bool = False
+    ) -> Dict[str, Any]:
         """
         Forward pass.
         Args:
             x: Input images [B, 3, H, W]
+            guide_map: Optional empirical memory distance guide [B, 1, H, W] or [B, 1, 37, 37]
             return_aux: Whether to return auxiliary logits for deep supervision
         Returns:
-            pixel_logits: [B, 1, H, W]
-            anomaly_map: [B, 1, H, W] in [0, 1]
-            image_score: [B] in [0, 1]
-            global_features: [B, embed_dim]
-            aux_logits: Optional list of intermediate stage logits
+            Dictionary with pixel_logits, anomaly_map, image_score, global_features
         """
         B, C, H, W = x.shape
 
@@ -170,11 +226,21 @@ class VISTAAnomalyModel(nn.Module):
             cls_feats = feat_dict["cls_features"]     # List of [B, embed_dim]
             global_cls = feat_dict["global_cls"]      # [B, embed_dim]
 
+        # Compute empirical memory guide if memory bank fitted and not provided
+        if guide_map is None and self.memory_bank is not None:
+            guide_map = self.compute_memory_guide(patch_feats)
+
         # 2. Global-Local Fusion
         fused = self.fusion(patch_feats, cls_feats) # [B, proj_dim, 37, 37]
 
-        # 3. Progressive Segmentation Decoder with multi-scale skip connections
-        dec_out = self.decoder(fused, skips=patch_feats, out_size=(H, W), return_aux=return_aux)
+        # 3. Progressive Segmentation Decoder with SE Attention and Skips
+        dec_out = self.decoder(
+            fused,
+            skips=patch_feats,
+            guide_map=guide_map,
+            out_size=(H, W),
+            return_aux=return_aux
+        )
         if return_aux:
             pixel_logits, aux_logits = dec_out
         else:
@@ -184,17 +250,23 @@ class VISTAAnomalyModel(nn.Module):
         anomaly_map = torch.sigmoid(pixel_logits)
 
         # 4. Image-Level Anomaly Score
-        # Top-k pixel pooling
         flat_map = anomaly_map.view(B, -1)
         k = max(1, int(flat_map.shape[1] * self.top_k_ratio))
         top_k_vals, _ = torch.topk(flat_map, k, dim=1)
-        topk_score = top_k_vals.mean(dim=1) # [B]
+        topk_score = top_k_vals.mean(dim=1)
 
-        # Global head score
-        head_score = self.global_head(global_cls).squeeze(-1) # [B]
+        head_score = self.global_head(global_cls).squeeze(-1)
 
-        # Hybrid score
-        image_score = self.global_head_weight * head_score + (1.0 - self.global_head_weight) * topk_score
+        if self.scoring_mode == "top_k":
+            image_score = topk_score
+        elif self.scoring_mode == "max":
+            image_score = flat_map.max(dim=1)[0]
+        elif self.scoring_mode == "percentile_99":
+            idx = int(flat_map.shape[1] * 0.99)
+            image_score = torch.sort(flat_map, dim=1)[0][:, idx]
+        else: # "hybrid"
+            image_score = self.global_head_weight * head_score + (1.0 - self.global_head_weight) * topk_score
+
         image_score = torch.clamp(image_score, 0.0, 1.0)
 
         out_dict = {
@@ -217,11 +289,6 @@ class VISTAAnomalyModel(nn.Module):
         lambda_aux: float = 0.3,
         lambda_image: float = 0.5,
     ) -> Dict[str, torch.Tensor]:
-        """
-        Composite loss formulation:
-        L_total = L_seg + lambda_B * L_boundary + lambda_aux * L_aux + lambda_I * L_img
-        L_seg = L_focal + lambda_D * L_dice
-        """
         pixel_logits = pred["pixel_logits"]
         anomaly_map = pred["anomaly_map"]
         image_score = pred["image_score"]
@@ -239,7 +306,6 @@ class VISTAAnomalyModel(nn.Module):
         if "aux_logits" in pred and pred["aux_logits"]:
             aux_losses = []
             for aux_log in pred["aux_logits"]:
-                # Downsample target mask to match intermediate resolution using nearest
                 aux_target = F.interpolate(target_mask, size=aux_log.shape[-2:], mode="nearest")
                 aux_losses.append(self.focal_loss(aux_log, aux_target))
             loss_aux = sum(aux_losses) / len(aux_losses)
@@ -269,12 +335,13 @@ class VISTAAnomalyModel(nn.Module):
     ):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         checkpoint = {
-            "version": "3.0.0",
+            "version": "4.0.0",
             "model_state_dict": self.state_dict(),
             "config": {
                 "image_size": self.image_size,
                 "top_k_ratio": self.top_k_ratio,
                 "global_head_weight": self.global_head_weight,
+                "scoring_mode": self.scoring_mode,
             },
             "epoch": epoch,
             "optimizer_state_dict": optimizer.state_dict() if optimizer is not None else None,

@@ -154,7 +154,8 @@ def main():
             "epochs": args.epochs,
             "training_time_s": training_time,
             "train_samples": len(train_ds),
-            "architecture": "v3.0.0-fpn-deep-supervision"
+            "architecture": "v4.0.0-multi-scale-fusion-se-attention",
+            "version": "4.0.0"
         }
     )
 
@@ -199,10 +200,28 @@ def main():
     logger.info("Evaluating VISTA-VLM on Test Benchmark Split...")
     eval_results = evaluate_vista_model(model, test_loader, device=device, calibrated_threshold=calibrated_threshold)
     
+    # Dual Risk Analysis & Risk-Coverage Profile (SEC-16)
+    test_y_true = eval_results["raw_scores"]["y_true"]
+    test_y_scores = eval_results["raw_scores"]["y_scores"]
+    fp_risk_analysis = sel_pred.evaluate_false_pass_risk(
+        scores=test_y_scores,
+        labels=test_y_true,
+        calibrated_threshold=calibrated_threshold,
+        uncertainty_band=opt_delta
+    )
+    risk_cov_curve = sel_pred.compute_risk_coverage_curve(
+        scores=test_y_scores,
+        labels=test_y_true,
+        calibrated_threshold=calibrated_threshold
+    )
+    eval_results["selective_prediction"] = fp_risk_analysis
+    eval_results["risk_coverage_curve"] = risk_cov_curve
+
     logger.info(f"Test Results for VISTA-VLM ({args.category}):")
     logger.info(f"  Image AUROC: {eval_results['image_level']['auroc']:.4f} | AP: {eval_results['image_level']['average_precision']:.4f} | F1: {eval_results['image_level']['f1']:.4f}")
     logger.info(f"  Pixel AUROC: {eval_results['pixel_level']['pixel_auroc']:.4f} | Pixel AP: {eval_results['pixel_level']['pixel_ap']:.4f} | AUPRO: {eval_results['pixel_level']['aupro']:.4f}")
     logger.info(f"  Reliability: ECE: {eval_results['reliability']['ece']:.4f} | Empirical FAR: {eval_results['reliability']['empirical_false_alarm_rate']:.4f}")
+    logger.info(f"  Selective Risk: False-pass rate: {fp_risk_analysis['observed_false_pass_rate']:.4f} (CI: {fp_risk_analysis['false_pass_ci_95']}) | Coverage: {fp_risk_analysis['coverage']:.4f}")
     logger.info(f"  P50 Latency: {eval_results['efficiency']['p50_latency_ms']} ms | Throughput: {eval_results['efficiency']['throughput_fps']} FPS")
 
     # Generate and save diagnostic curves

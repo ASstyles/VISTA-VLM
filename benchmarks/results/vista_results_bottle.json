@@ -1,30 +1,30 @@
 {
   "image_level": {
-    "auroc": 0.75,
-    "average_precision": 0.8828,
+    "auroc": 0.0833,
+    "average_precision": 0.4436,
     "precision": 1.0,
-    "recall": 0.75,
-    "f1": 0.8571,
-    "threshold": 0.431
+    "recall": 0.0833,
+    "f1": 0.1538,
+    "threshold": 0.3962
   },
   "pixel_level": {
-    "pixel_auroc": 0.5336,
-    "pixel_ap": 0.0391,
-    "aupro": 0.1984,
-    "iou": 0.0404,
-    "dice": 0.0777,
+    "pixel_auroc": 0.5385,
+    "pixel_ap": 0.0353,
+    "aupro": 0.2123,
+    "iou": 0.0054,
+    "dice": 0.0107,
     "is_constant_map": false,
-    "spatial_variance": 0.063173
+    "spatial_variance": 0.035578
   },
   "reliability": {
-    "ece": 0.1142,
-    "brier_score": 0.2607,
+    "ece": 0.1495,
+    "brier_score": 0.2705,
     "empirical_false_alarm_rate": 0.0
   },
   "efficiency": {
-    "p50_latency_ms": 758.45,
-    "p95_latency_ms": 862.63,
-    "throughput_fps": 1.32
+    "p50_latency_ms": 711.77,
+    "p95_latency_ms": 813.15,
+    "throughput_fps": 1.38
   },
   "raw_scores": {
     "y_true": [
@@ -52,28 +52,398 @@
       1.0
     ],
     "y_scores": [
-      0.43344414234161377,
-      0.4322357475757599,
-      0.4313598573207855,
-      0.4329370856285095,
-      0.4316355586051941,
-      0.4300490617752075,
-      0.4308588206768036,
-      0.4311102032661438,
-      0.4309842586517334,
-      0.4309706389904022,
-      0.4309706389904022,
-      0.4309706389904022,
-      0.4309706389904022,
-      0.4309706389904022,
-      0.4309706389904022,
-      0.4309706389904022,
-      0.4309706389904022,
-      0.4309706389904022,
-      0.4309706389904022,
-      0.4308588206768036,
-      0.431110143661499,
-      0.4309842586517334
+      0.39851588010787964,
+      0.3960845470428467,
+      0.3956882357597351,
+      0.39407098293304443,
+      0.39456814527511597,
+      0.3942565321922302,
+      0.3958147168159485,
+      0.39596325159072876,
+      0.3958985209465027,
+      0.3962112367153168,
+      0.3962112367153168,
+      0.3962112367153168,
+      0.3962112367153168,
+      0.3962112367153168,
+      0.3962112367153168,
+      0.3962112367153168,
+      0.3962112367153168,
+      0.3962112367153168,
+      0.3962112367153168,
+      0.3958147168159485,
+      0.3959633708000183,
+      0.3958984613418579
     ]
-  }
+  },
+  "selective_prediction": {
+    "total_samples": 22,
+    "accepted_samples": 0,
+    "coverage": 0.0,
+    "abstention_rate": 1.0,
+    "defective_accepted": 0,
+    "false_passes": 0,
+    "observed_false_pass_rate": 0.0,
+    "false_pass_ci_95": [
+      0.0,
+      1.0
+    ],
+    "normal_accepted": 0,
+    "false_alarms": 0,
+    "observed_false_alarm_rate": 0.0,
+    "is_sample_size_sufficient_for_1pct": false,
+    "sample_size_warning": "Sample size (N_def=0) is insufficient to statistically prove <=1% false-pass rate at 95% power (N>=300 required)."
+  },
+  "risk_coverage_curve": [
+    {
+      "delta": 0.0,
+      "coverage": 1.0,
+      "selective_risk": 0.5,
+      "false_pass_rate": 0.9167,
+      "abstention_rate": 0.0
+    },
+    {
+      "delta": 0.0082,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.0163,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.0245,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.0327,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.0408,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.049,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.0571,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.0653,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.0735,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.0816,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.0898,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.098,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.1061,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.1143,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.1224,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.1306,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.1388,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.1469,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.1551,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.1633,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.1714,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.1796,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.1878,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.1959,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.2041,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.2122,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.2204,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.2286,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.2367,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.2449,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.2531,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.2612,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.2694,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.2776,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.2857,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.2939,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.302,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.3102,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.3184,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.3265,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.3347,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.3429,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.351,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.3592,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.3673,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.3755,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.3837,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.3918,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    },
+    {
+      "delta": 0.4,
+      "coverage": 0.0,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
+      "abstention_rate": 1.0
+    }
+  ]
 }

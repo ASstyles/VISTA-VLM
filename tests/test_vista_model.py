@@ -13,7 +13,6 @@ def test_dinov2_backbone_shapes():
     spatial_features = feat_dict["patch_features"]
     cls_tokens = feat_dict["cls_features"]
 
-    # Check 3 intermediate blocks
     assert len(spatial_features) == 3
     assert len(cls_tokens) == 3
 
@@ -23,11 +22,12 @@ def test_dinov2_backbone_shapes():
     for cls_tok in cls_tokens:
         assert cls_tok.shape == (2, 384)
 
-def test_global_local_fusion():
+@pytest.mark.parametrize("fusion_type", ["film", "gated", "cross_attention", "concat_proj", "local_only"])
+def test_global_local_fusion_variants(fusion_type):
     fusion = GlobalLocalFusion(
         in_channels_list=[384, 384, 384],
         proj_dim=256,
-        fusion_type="global_local"
+        fusion_type=fusion_type
     )
 
     feat_maps = [
@@ -50,13 +50,26 @@ def test_segmentation_decoder():
     mask = decoder(feat, out_size=(518, 518))
     assert mask.shape == (2, 1, 518, 518)
 
-def test_vista_model_forward():
+def test_segmentation_decoder_with_guide_map():
+    decoder = ProgressiveSegmentationDecoder(
+        in_channels=256,
+        target_size=518,
+        guide_in_channels=1
+    )
+    feat = torch.randn(2, 256, 37, 37)
+    guide = torch.rand(2, 1, 37, 37)
+    mask = decoder(feat, guide_map=guide, out_size=(518, 518))
+    assert mask.shape == (2, 1, 518, 518)
+
+@pytest.mark.parametrize("scoring_mode", ["hybrid", "top_k", "max", "percentile_99"])
+def test_vista_model_forward_scoring_modes(scoring_mode):
     model = VISTAAnomalyModel(
         backbone_name="dinov2_vits14",
         embed_dim=384,
         out_indices=[4, 8, 12],
         proj_dim=256,
-        image_size=518
+        image_size=518,
+        scoring_mode=scoring_mode
     )
 
     x = torch.randn(2, 3, 518, 518)
@@ -67,7 +80,6 @@ def test_vista_model_forward():
     assert outputs["anomaly_map"].shape == (2, 1, 518, 518)
     assert outputs["image_score"].shape == (2,)
 
-    # Values must be bounded in [0, 1] due to sigmoid
     assert (outputs["anomaly_map"] >= 0.0).all() and (outputs["anomaly_map"] <= 1.0).all()
     assert (outputs["image_score"] >= 0.0).all() and (outputs["image_score"] <= 1.0).all()
 

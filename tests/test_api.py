@@ -2,9 +2,11 @@ import pytest
 import io
 import json
 from PIL import Image
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
 from vista_vlm.api.routes import (
     health_check,
+    liveness_check,
+    readiness_check,
     get_model_info,
     get_benchmark_results,
     submit_feedback,
@@ -15,8 +17,16 @@ from vista_vlm.api.schemas import FeedbackRequest
 def test_api_health():
     res = health_check()
     assert res.status == "healthy"
-    assert res.system_version == "1.0.0"
+    assert res.system_version == "4.0.0"
     assert res.backbone == "dinov2_vits14"
+
+def test_api_liveness_readiness():
+    live = liveness_check()
+    assert live["status"] == "alive"
+
+    ready = readiness_check()
+    assert ready["status"] == "ready"
+    assert "calibrated_categories" in ready
 
 def test_api_model_info():
     res = get_model_info()
@@ -32,7 +42,6 @@ def test_api_benchmark_results():
     assert "ablation_study" in data
 
 def test_api_inspect():
-    # Create small test image
     img = Image.new("RGB", (256, 256), color=(200, 200, 200))
     buf = io.BytesIO()
     img.save(buf, format="PNG")
@@ -44,6 +53,13 @@ def test_api_inspect():
     assert res.status is not None
     assert 0.0 <= res.image_anomaly_score <= 1.0
     assert res.reliability.conformal_p_value is not None
+
+def test_api_inspect_invalid_format():
+    buf = io.BytesIO(b"not_an_image_binary_data")
+    upload_file = UploadFile(filename="corrupt.txt", file=buf)
+    with pytest.raises(HTTPException) as excinfo:
+        inspect_image(file=upload_file, category="bottle")
+    assert excinfo.value.status_code == 415
 
 def test_api_feedback():
     payload = FeedbackRequest(

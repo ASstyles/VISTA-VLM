@@ -203,24 +203,25 @@ class VISTAInspectionPipeline:
             is_region_ambiguous=has_ambiguity
         )
 
-        # 7. Synthesize textual interpretation
+        # 7. Synthesize textual interpretation with evidence-grounded verifier
         if is_ood:
             status = InspectionStatus.OOD
-            text_summary = f"Image deviates from learned normal distribution (OOD distance: {ood_dist:.3f} > threshold {ood_thresh:.3f}). Escalation recommended."
         elif escalation_eval["human_review_required"]:
             status = InspectionStatus.ESCALATE_TO_HUMAN
-            text_summary = f"Inspection marked for human review: {escalation_eval['reason']}"
         elif is_anomaly_calibrated:
             status = InspectionStatus.ANOMALY_DETECTED
-            if region_findings_raw:
-                top_defect = region_findings_raw[0]["top_defect_label"]
-                conf = region_findings_raw[0]["top_similarity_score"]
-                text_summary = f"Defect detected in {len(region_findings_raw)} localized region(s). Primary defect signature: '{top_defect}' (similarity confidence: {conf:.2f})."
-            else:
-                text_summary = f"Anomaly detected with score {image_score:.3f} (above conformal threshold {threshold:.3f})."
         else:
             status = InspectionStatus.NORMAL
-            text_summary = f"Inspection passed. Surface is defect-free (anomaly score: {image_score:.3f} <= threshold {threshold:.3f}, conformal p-value: {p_value:.3f})."
+
+        text_summary = self.verifier.generate_grounded_explanation(
+            is_anomaly=is_anomaly_calibrated,
+            image_score=image_score,
+            calibrated_threshold=threshold,
+            findings=region_findings_raw,
+            category=category,
+            is_ood=is_ood,
+            in_uncertainty_band=escalation_eval["in_uncertainty_band"]
+        )
 
         # 8. Encode overlays
         heatmap_b64 = self._render_heatmap_base64(orig_np, anomaly_map_orig)
@@ -277,7 +278,7 @@ class VISTAInspectionPipeline:
 
         return InspectionResponse(
             inspection_id=inspection_id,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now().isoformat(),
             category=category,
             status=status,
             image_anomaly_score=round(image_score, 4),

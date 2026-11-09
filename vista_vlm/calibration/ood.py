@@ -56,14 +56,32 @@ class OODDetector:
         """
         mu = self.prototypes.get(category)
         if mu is None:
-            # If category prototype not fitted, cannot declare OOD
+            # If requested category is not in known prototypes, test against nearest known prototype
+            if self.prototypes:
+                # Find nearest known category prototype
+                best_dist = float("inf")
+                best_thresh = 0.5
+                for cat, p_mu in self.prototypes.items():
+                    thresh = self.thresholds.get(cat, 0.5)
+                    if self.metric == "mahalanobis" and cat in self.cov_inv:
+                        diff = feature - p_mu
+                        d = float(np.sqrt(np.clip(np.dot(diff @ self.cov_inv[cat], diff), 0.0, None)))
+                    else:
+                        p_norm = p_mu / (np.linalg.norm(p_mu) + 1e-8)
+                        f_norm = feature / (np.linalg.norm(feature) + 1e-8)
+                        d = float(1.0 - np.dot(f_norm, p_norm))
+                    if d < best_dist:
+                        best_dist = d
+                        best_thresh = thresh
+                is_ood = bool(best_dist > best_thresh)
+                return is_ood, round(best_dist, 4), round(best_thresh, 4)
             return False, 0.0, 1.0
 
         threshold = self.thresholds.get(category, 0.5)
 
         if self.metric == "mahalanobis" and category in self.cov_inv:
             diff = feature - mu
-            dist = float(np.sqrt(np.dot(diff @ self.cov_inv[category], diff)))
+            dist = float(np.sqrt(np.clip(np.dot(diff @ self.cov_inv[category], diff), 0.0, None)))
         else:
             # Cosine distance
             mu_norm = mu / (np.linalg.norm(mu) + 1e-8)
@@ -81,6 +99,7 @@ class OODDetector:
             "threshold_percentile": self.threshold_percentile,
             "thresholds": self.thresholds,
             "prototypes": {k: v.tolist() for k, v in self.prototypes.items()},
+            "cov_inv": {k: v.tolist() for k, v in self.cov_inv.items()},
         }
         with open(path, "w") as f:
             json.dump(data, f, indent=2)
@@ -94,3 +113,7 @@ class OODDetector:
         self.threshold_percentile = data["threshold_percentile"]
         self.thresholds = data["thresholds"]
         self.prototypes = {k: np.array(v) for k, v in data["prototypes"].items()}
+        if "cov_inv" in data:
+            self.cov_inv = {k: np.array(v) for k, v in data["cov_inv"].items()}
+        else:
+            self.cov_inv = {}

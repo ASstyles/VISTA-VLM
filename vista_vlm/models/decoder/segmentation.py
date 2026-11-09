@@ -3,18 +3,39 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import List, Tuple, Optional, Union
 
-class ConvBlock(nn.Module):
-    def __init__(self, in_channels: int, out_channels: int, dropout: float = 0.0):
+class ChannelAttention(nn.Module):
+    """Squeeze-and-Excitation Channel Attention for small-defect sensitivity."""
+    def __init__(self, channels: int, reduction: int = 8):
         super().__init__()
-        self.conv = nn.Sequential(
+        reduced = max(4, channels // reduction)
+        self.fc = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            nn.Conv2d(channels, reduced, kernel_size=1, bias=False),
+            nn.GELU(),
+            nn.Conv2d(reduced, channels, kernel_size=1, bias=False),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return x * self.fc(x)
+
+
+class ConvBlock(nn.Module):
+    """Residual Convolutional Block with Squeeze-and-Excitation Attention."""
+    def __init__(self, in_channels: int, out_channels: int, dropout: float = 0.0, use_se: bool = True):
+        super().__init__()
+        self.conv1 = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.GroupNorm(num_groups=min(8, out_channels), num_channels=out_channels),
-            nn.GELU(),
-            nn.Dropout2d(dropout) if dropout > 0 else nn.Identity(),
+            nn.GELU()
+        )
+        self.drop = nn.Dropout2d(dropout) if dropout > 0 else nn.Identity()
+        self.conv2 = nn.Sequential(
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.GroupNorm(num_groups=min(8, out_channels), num_channels=out_channels),
             nn.GELU()
         )
+        self.se = ChannelAttention(out_channels) if use_se else nn.Identity()
         self.residual = (
             nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
             if in_channels != out_channels
@@ -22,12 +43,17 @@ class ConvBlock(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.conv(x) + self.residual(x)
+        res = self.residual(x)
+        out = self.conv1(x)
+        out = self.drop(out)
+        out = self.conv2(out)
+        out = self.se(out)
+        return out + res
 
 
 class ProgressiveSegmentationDecoder(nn.Module):
     """
-    Progressive Convolutional Segmentation Decoder with Multi-Scale Skip Connections (Phase 8 & v3.0).
+    Progressive Convolutional Segmentation Decoder with Multi-Scale Skip Connections (v4.0 Architecture).
     Upsamples spatial feature maps from grid resolution (e.g. 37x37)
     progressively back to the full image resolution (e.g. 518x518).
     Supports:
@@ -35,6 +61,8 @@ class ProgressiveSegmentationDecoder(nn.Module):
        to restore high-frequency boundary details and hairline cracks.
     2. Deep supervision auxiliary heads at intermediate resolutions (148x148 and 296x296)
        to prevent vanishing gradients through progressive convolutional stages.
+    3. Optional spatial guide map projection (e.g. from nominal reference memory)
+       to ground learned boundaries in empirical feature distance evidence.
     """
     def __init__(
         self,
@@ -43,6 +71,7 @@ class ProgressiveSegmentationDecoder(nn.Module):
         target_size: int = 518,
         dropout: float = 0.1,
         skip_channels: int = 384,
+        guide_in_channels: int = 1,
     ):
         super().__init__()
         self.target_size = (target_size, target_size)
@@ -50,7 +79,7 @@ class ProgressiveSegmentationDecoder(nn.Module):
         layers = []
         curr_in = in_channels
         for h_dim in hidden_dims:
-            layers.append(ConvBlock(curr_in, h_dim, dropout=dropout))
+            layers.append(ConvBlock(curr_in, h_dim, dropout=dropout, use_se=True))
             curr_in = h_dim
         self.stages = nn.ModuleList(layers)
 
@@ -66,6 +95,12 @@ class ProgressiveSegmentationDecoder(nn.Module):
             nn.GELU()
         )
 
+        # Optional spatial guide map projection (e.g. memory distance guide)
+        self.guide_proj = nn.Sequential(
+            nn.Conv2d(guide_in_channels, in_channels, kernel_size=1, bias=False),
+            nn.GELU()
+        )
+
         # Auxiliary heads for deep supervision
         self.aux_head_148 = nn.Conv2d(hidden_dims[1], 1, kernel_size=1)
         self.aux_head_296 = nn.Conv2d(hidden_dims[2], 1, kernel_size=1)
@@ -76,6 +111,7 @@ class ProgressiveSegmentationDecoder(nn.Module):
         self,
         x: torch.Tensor,
         skips: Optional[List[torch.Tensor]] = None,
+        guide_map: Optional[torch.Tensor] = None,
         out_size: Optional[Tuple[int, int]] = None,
         return_aux: bool = False
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, List[torch.Tensor]]]:
@@ -83,6 +119,7 @@ class ProgressiveSegmentationDecoder(nn.Module):
         Args:
             x: Fused features [B, in_channels, H_p, W_p]
             skips: Optional list of intermediate backbone features [skip_block4, skip_block8]
+            guide_map: Optional empirical memory distance guide [B, 1, H_p, W_p] or [B, 1, H, W]
             out_size: Optional target size override (H, W)
             return_aux: Whether to return intermediate auxiliary logits for deep supervision
         Returns:
@@ -90,6 +127,14 @@ class ProgressiveSegmentationDecoder(nn.Module):
         """
         target = out_size or self.target_size
         aux_logits = []
+
+        # Inject empirical guide map if provided
+        if guide_map is not None:
+            if guide_map.shape[-2:] != x.shape[-2:]:
+                guide_down = F.interpolate(guide_map, size=x.shape[-2:], mode="bilinear", align_corners=False)
+            else:
+                guide_down = guide_map
+            x = x + self.guide_proj(guide_down)
 
         for i, stage in enumerate(self.stages):
             x = stage(x)
