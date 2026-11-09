@@ -1,3 +1,4 @@
+import os
 import pytest
 import torch
 import numpy as np
@@ -5,6 +6,12 @@ from vista_vlm.data.mvtec import MVTecDataset
 from vista_vlm.data.visa import VisADataset
 from vista_vlm.data.synthetic import SyntheticAnomalyGenerator, generate_perlin_noise_mask, generate_geometric_mask
 from vista_vlm.data.transforms import VISTATransform
+
+@pytest.fixture(scope="session", autouse=True)
+def ensure_benchmark_data():
+    if not os.path.exists("data/processed/mvtec/bottle"):
+        from scripts.prepare_benchmark_data import prepare_mvtec_benchmark
+        prepare_mvtec_benchmark()
 
 def test_mvtec_dataset_loading():
     train_ds = MVTecDataset("data/processed/mvtec", category="bottle", split="train", image_size=518)

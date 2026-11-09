@@ -43,6 +43,10 @@ jobs:
       run: |
         python scripts/validate_environment.py
 
+    - name: Prepare benchmark test fixtures
+      run: |
+        python scripts/prepare_benchmark_data.py
+
     - name: Run pytest test suite
       run: |
         python -m pytest tests/ -v
