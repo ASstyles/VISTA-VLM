@@ -2,14 +2,15 @@ name: VISTA-VLM CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, v4-research-production-upgrade ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, v4-research-production-upgrade ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
 
@@ -20,11 +21,18 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+        cache: 'pip'
 
-    - name: Install dependencies
+    - name: Install build tools and dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        python -m pip install --upgrade pip setuptools wheel build
+        python -m pip install -r requirements.txt
+        python -m pip install -e ".[dev]"
+
+    - name: Verify package resolution
+      run: |
+        python -c "import vista_vlm; print('Installed vista_vlm from:', vista_vlm.__file__)"
+        python -m pip show vista-vlm
 
     - name: Validate environment
       run: |
@@ -32,4 +40,19 @@ jobs:
 
     - name: Run pytest test suite
       run: |
-        pytest tests/ -v
+        python -m pytest tests/ -v
+
+    - name: Build distribution packages (wheel and sdist)
+      run: |
+        python -m build
+
+    - name: Test clean wheel installation in isolated environment
+      run: |
+        python -m venv clean_env
+        . clean_env/bin/activate
+        python -m pip install --upgrade pip
+        python -m pip install dist/vista_vlm-*.whl
+        cd /tmp
+        python -c "import vista_vlm; print('Clean wheel import succeeded:', vista_vlm.__file__, vista_vlm.__version__)"
+        python -c "import vista_vlm.api, vista_vlm.calibration, vista_vlm.data, vista_vlm.models, vista_vlm.evaluation, vista_vlm.optimization, vista_vlm.utils; print('All subpackages imported successfully from wheel')"
+

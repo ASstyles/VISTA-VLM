@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vista-vlm"
-version = "1.0.0"
+version = "4.0.0"
 description = "Vision Intelligence through Spatial and Textual Alignment for Industrial Anomaly Detection"
 authors = [
     {name = "VISTA-VLM Research Team"}
@@ -42,11 +42,15 @@ dependencies = [
 dev = [
     "pytest>=7.3.0",
     "pytest-asyncio>=0.21.0",
+    "build>=1.0.0",
+    "wheel>=0.40.0",
     "ruff>=0.1.0"
 ]
 
 [tool.setuptools.packages.find]
+where = ["."]
 include = ["vista_vlm*"]
+namespaces = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
