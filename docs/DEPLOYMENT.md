@@ -111,3 +111,4 @@ spec:
 1. **Model Warmup**: Foundation models (DINOv2 and CLIP) perform initial graph allocations during the first inference cycle. The `/health/ready` probe verifies warmup completion before routing live traffic.
 2. **Text Embedding Caching**: Prompt tokenization is pre-computed in-memory, ensuring verifier operations require $<2\text{ms}$ on CPU.
 3. **Hardware Acceleration**: For GPU deployments, set `device = "cuda"` in configuration. This boosts throughput to $>45\text{ FPS}$ on an NVIDIA RTX 4090 or A100.
+

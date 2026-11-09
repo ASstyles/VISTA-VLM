@@ -50,3 +50,4 @@ Therefore, any dataset with $N_{\text{def}} < 300$ defective samples cannot stat
 3. **Severe Optical Variations**:
    - *Limitation*: Sudden changes in aperture, focal plane, or illumination can alter foundation feature representations.
    - *Mitigation*: Re-run split conformal calibration (`scripts/train_and_calibrate.py`) whenever camera optics or line lighting are altered.
+

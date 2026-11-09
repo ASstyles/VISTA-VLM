@@ -61,3 +61,4 @@ python vista_vlm/experiments/run_ablation.py
 # Run failure taxonomy and error analysis
 python scripts/run_error_analysis.py
 ```
+

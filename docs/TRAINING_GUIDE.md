@@ -40,3 +40,4 @@ python scripts/train_and_calibrate.py --category bottle --epochs 5 --batch_size 
 5. **Split Conformal Calibration**: Computes non-conformity quantile $\tau_c$ on held-out normal validation set (`val_calibration/good`) and saves to `checkpoints/calibration_mvtec.json`.
 6. **OOD Covariance Fitting**: Fits Ledoit-Wolf shrinkage covariance matrix $\mathbf{\Sigma}^{-1}$ and prototype $\boldsymbol{\mu}$, saving full parameters to `checkpoints/ood_mvtec.json`.
 7. **Selective Risk Verification**: Computes uncertainty band $\delta$, empirical false-pass rate, and Wilson 95% confidence intervals on benchmark test split.
+

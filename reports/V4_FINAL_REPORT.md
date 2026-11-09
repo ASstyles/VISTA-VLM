@@ -217,3 +217,4 @@ The React 19 + TypeScript studio features:
 - **Frontend Build**: Passed (`dist/index.html` built in 4.54s).
 - **Regression Checks**: Backward compatibility preserved for legacy schema consumers.
 - **Git State**: Clean branch `v4-research-production-upgrade`.
+
