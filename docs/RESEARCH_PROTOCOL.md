@@ -50,3 +50,4 @@ Before running any benchmark:
    - Zero image hash duplicates between train, val, and test splits.
    - 1:1 pixel spatial dimension match between raw images and ground-truth masks.
    - Exact category folder schema conformance.
+

@@ -96,3 +96,4 @@ We simulated a 1-hour continuous maximum-rate inspection run (3,600 consecutive 
 - **Mean Latency (Hour 1)**: $649.2\text{ ms} \pm 14.8\text{ ms}$.
 - **Peak CPU Core Temperature**: $68.4^\circ\text{C}$ (well below the $95^\circ\text{C}$ thermal throttling threshold).
 - **Process Memory Leak Audit**: RSS memory remained stable at $1,280\text{ MB} \pm 12\text{ MB}$ across all 3,600 iterations, confirming zero memory leaks in PyTorch tensor management.
+

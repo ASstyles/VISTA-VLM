@@ -41,3 +41,4 @@ VISTA-VLM V5.0 predictions cease to be statistically reliable outside the follow
    At $518 \times 518$ input resolution, each DINOv2 patch spans $14 \times 14$ pixels ($\approx 2.7\text{ mm}$ for typical setups). While the progressive SE decoder recovers $>83\%$ of sub-patch defects, defects smaller than 4 contiguous pixels ($< 0.001\%$ of image area) may fall below detection thresholds.
 3. **Hardware Latency on Standard CPU**:
    FP32 CPU latency on modern x86 hardware is $\approx 649\text{ ms}$ ($\approx 1.5\text{ FPS}$). Deployments requiring cycle times $< 250\text{ ms}$ must utilize GPU acceleration (TensorRT) or OpenVINO INT8 quantization.
+

@@ -53,3 +53,4 @@ Between $k=1$ and $k=16$, VISTA-VLM's pixel AUROC remains virtually constant ($0
 For new factory product introductions:
 1. **Day 1 (Immediate Start)**: Present 1 to 4 known-good golden units. Fit the coreset memory bank in $< 5\text{ seconds}$ on CPU. Deploy in **Advisory Review Mode**.
 2. **Week 1 (Variance Capture)**: Accumulate 50 normal inspection images during initial pilot operation. Refit the coreset memory bank and compute split conformal calibration thresholds.
+

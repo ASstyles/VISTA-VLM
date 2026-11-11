@@ -71,3 +71,4 @@ Inference responses return structured `reliability` telemetry:
 
 - **`p_value`**: The empirical probability of observing a non-conformity score as high or higher among nominal samples. High p-values ($> 0.05$) indicate typical normal parts. Extremely low p-values ($< 0.001$) indicate statistically significant anomalies.
 - **`is_calibrated`**: Must be `true` in production. If `false`, the operational state automatically falls back to `CALIBRATION_INVALID` and physical disposition `QUARANTINE`.
+

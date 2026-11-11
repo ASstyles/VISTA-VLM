@@ -97,3 +97,4 @@ graph TD
    When the selective prediction engine outputs disposition `HUMAN_REVIEW`, the physical diverter must route the part to a manual inspection station. Overriding this signal to auto-pass is a violation of the safety case.
 2. **Re-Calibration on Line Modification**:
    Any mechanical change to conveyor speed, camera mounting height, or LED lighting requires re-fitting the nominal memory bank and re-running the split conformal calibration suite.
+

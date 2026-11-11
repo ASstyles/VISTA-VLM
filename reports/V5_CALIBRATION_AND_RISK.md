@@ -104,3 +104,4 @@ The Mahalanobis OOD detector was stress-tested across 5 synthetic industrial dis
 | **Lighting Degrade** | Ambient strobe failure ($<10\text{ lux}$) | $22.6 \times \sigma$ | **FLAGGED OOD** | `IMAGE_QUALITY_FAILURE` |
 
 All 5 severe domain-shift scenarios triggered immediate fail-safe gating, preventing false passes or corrupt inferences.
+

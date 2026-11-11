@@ -101,3 +101,4 @@ We evaluated four strategies for deriving the image-level anomaly score from the
 | **Hybrid** | $s = 0.5 \cdot \text{max} + 0.5 \cdot \text{mean}(\text{top } 1\%)$ | $0.6667$ | $0.8391$ | $0.7059$ | 697.99 |
 
 **Conclusion**: The **99th Percentile** scoring policy provides maximum robustness against single-pixel sensor noise spikes while achieving **1.0000 Image AUROC** on isolated defect benchmarks.
+

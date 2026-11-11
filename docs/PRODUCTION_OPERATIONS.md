@@ -65,3 +65,4 @@ To prevent catastrophic forgetting while improving edge performance, VISTA-VLM i
 - **Actuator Window**: For a conveyor speed of $v = 1.0\text{ m/s}$ and a distance of $d = 0.5\text{ m}$ between camera and diverter, the total available cycle time before pneumatic actuation is:
   $$t_{\text{actuation}} = \frac{d}{v} = 500\text{ ms}$$
 - **Sizing Rule**: Total inference latency + network transit must be $< 450\text{ ms}$ to leave a $50\text{ ms}$ mechanical solenoid response margin.
+

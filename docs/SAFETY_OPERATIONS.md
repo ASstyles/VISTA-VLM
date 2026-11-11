@@ -60,3 +60,4 @@ The factory touchscreen dashboard and stack light tower must display determinist
 | **`IMAGE_QUALITY_FAILURE`**| Flashing **YELLOW** | "IMAGE FAULT: FOCUS / LUX" | Intermittent beep | Pause line; inspect camera lens |
 | **`CALIBRATION_INVALID`** | Flashing **RED** | "CALIBRATION ERROR" | Alarm klaxon | Line halt; reload signed model |
 | **`COMMUNICATION_FAILURE`**| Steady **RED** + Buzzer | "CAMERA / NETWORK TIMEOUT"| Continuous alarm | Immediate line hold; check GigE |
+

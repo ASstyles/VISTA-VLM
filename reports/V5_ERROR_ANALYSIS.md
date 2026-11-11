@@ -79,3 +79,4 @@ Every sample was evaluated against ground-truth labels and pixel-level masks, cl
 | **False Alarm (Overkill)** | **HIGH (Economic Cost)** | $< 1.0\%$ | Quantile scoring + category memory fitting | Calibration on 50 normal units |
 | **Small-Defect Miss** | **HIGH (Quality Drift)** | $< 2.0\%$ | Multi-scale Block 4 fusion + SE blocks | Resolution target pattern audit |
 | **Boundary Leakage** | **LOW (Visual Polish)** | $< 5.0\%$ | Sobel boundary loss ($\lambda_B = 0.5$) | AUPRO trapezoidal integration |
+

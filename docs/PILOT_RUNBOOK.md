@@ -66,3 +66,4 @@ Deploying automated AI inspection directly into an active manufacturing line req
 - [ ] **Actuation**: Pneumatic blow-off solenoid wired to fail-closed reject chute (100 PSI supply).
 - [ ] **PLC Interlock**: Hardware heartbeat relay connected to 24V line E-STOP loop.
 - [ ] **Computing**: Industrial PC (Intel Core i7, 32GB RAM, Ubuntu 22.04 LTS / Debian 12).
+

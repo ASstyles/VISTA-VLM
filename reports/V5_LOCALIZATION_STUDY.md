@@ -118,3 +118,4 @@ We evaluated localization quality using the exact quantile trapezoidal AUPRO alg
 1. **Memory Bank Serialization**: Every deployed checkpoint must bundle the calibrated nominal memory bank (`memory_bank` tensor) alongside model weights. Unbundled weights must be rejected by the inference engine (`ModelIntegrityError`).
 2. **Operating Threshold Policy**: Calibrated pixel thresholds must be established per category during validation. For `bottle`, a pixel threshold of $\tau_{\text{pixel}} = 0.50$ yields an optimal balance between false alarms and tiny defect sensitivity.
 3. **Hardware Acceleration**: On edge devices with TensorRT / ONNX Runtime, memory bank k-NN distance should be computed via matrix multiplication against normalized patch embeddings.
+

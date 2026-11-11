@@ -50,3 +50,4 @@ For pharmaceutical packaging (e.g., vial inspection, blister pack verification):
 - System records inspection logs to append-only storage with SHA-256 signatures.
 - Human review decisions must record authenticated user credentials (`reviewer_id`).
 - Checkpoint loading verifies signed model digests, preventing unauthorized model tampering.
+

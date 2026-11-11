@@ -100,3 +100,4 @@ The system must maintain an explicit, deterministic operational state machine fo
   ```
 - **TLR-03: Retention Guarantee**:
   Audit logs must be cryptographically hashed daily and retained for a minimum of **7 years** to support regulatory audits, customer recall investigations, and liability defense.
+

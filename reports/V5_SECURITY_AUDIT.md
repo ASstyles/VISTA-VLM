@@ -104,3 +104,4 @@ CMD ["uvicorn", "vista_vlm.api.routes:app", "--host", "0.0.0.0", "--port", "8000
 - [x] No plaintext credentials or secrets committed to repository.
 - [x] CORS origins restricted to authorized dashboard endpoints.
 - [x] Rate limiting configured on `/inspect` endpoints.
+

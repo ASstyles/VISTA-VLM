@@ -68,3 +68,4 @@ The table below records empirical measurements from [`benchmarks/results/multi_t
 
 1. **Category Clustering**: Group industrial parts into structural clusters (`Rigid Objects`, `Elongated Wires`, `Periodic Textures`, `Stochastic Textures`). A model trained on a representative member of a cluster can transfer within that cluster with $>0.90$ Pixel AUROC.
 2. **Mandatory 1-Shot Anchor**: True zero-shot transfer should only be used for preliminary triage. Adding even a single normal target image ($k=1$ shot) provides an empirical reference that eliminates $>90\%$ of cross-domain false alarms.
+

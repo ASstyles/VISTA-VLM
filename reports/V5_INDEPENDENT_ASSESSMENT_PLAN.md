@@ -77,3 +77,4 @@ The auditor shall be provided access to the following immutable artifacts:
 - **Critical Non-Conformance (CNC)**: Any condition permitting an uncalibrated pass, an unhandled DoS crash, or direct coupling to a safety trip circuit. SLA: Immediate line halt; zero release.
 - **Major Non-Conformance (MNC)**: Missing audit logs, empirical false alarm rate exceeding $10\%$, or missing SHA-256 manifest records. SLA: Remediation within 5 business days.
 - **Minor Observation (OBS)**: Documentation formatting ambiguity or minor UI telemetry display delay. SLA: Remediation in subsequent release cycle.
+

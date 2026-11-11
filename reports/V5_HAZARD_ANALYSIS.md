@@ -59,3 +59,4 @@ Scoring Scale:
 
 1. **Default Safe State**: In all failure conditions (timeout, corrupt frame, uncalibrated model, network disconnect), the system disposition **must default to `HOLD` or `REJECT`**, never `ACCEPT`.
 2. **Watchdog Interlock**: An external physical PLC must poll the `/health` endpoint every $1,000\text{ ms}$. If the heartbeat is lost for two consecutive cycles, the PLC must stop line feeding or divert parts to quarantine.
+

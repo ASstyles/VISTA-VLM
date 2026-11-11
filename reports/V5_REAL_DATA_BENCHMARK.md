@@ -157,3 +157,4 @@ All benchmark numbers in this document are directly reproducible from the crypto
 - **Evaluation Engine**: [`scripts/run_multi_track_benchmark.py`](file:///c:/Users/avira/Desktop/VISTA-VLM/scripts/run_multi_track_benchmark.py)
 
 **Audit Sign-off**: Independent Technical Auditor certified that no synthetic data was masqueraded as real data, and all reported metrics reflect actual CPU executions.
+

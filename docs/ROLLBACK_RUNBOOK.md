@@ -79,3 +79,4 @@ In the event of total Industrial PC or SSD failure:
    ```
 3. **Hardware Commissioning Verification**:
    Execute witness test 2 (uncalibrated check) and test 4 (watchdog interlock) before returning the cell to automated mode.
+

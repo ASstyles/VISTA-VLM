@@ -64,3 +64,4 @@ docker run -d \
 - **Non-Root Execution**: Runs under UID `10001` (`appuser`).
 - **Read-Only Root Filesystem**: Write access is forbidden across the container root, preventing malicious script injection.
 - **Drop All Capabilities**: Linux capabilities dropped; privilege escalation disabled.
+

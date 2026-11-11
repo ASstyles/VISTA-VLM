@@ -85,3 +85,4 @@ To guarantee compliance with quality standards, inspection cells deploying VISTA
 | **Lens MTF / Focus** | Blur $\sigma \le 0.8\text{ px}$ | High-frequency Laplacian energy check | Trigger autofocus / flag operator lens cleaning |
 | **Conveyor Positional Jitter** | Translation $\le \pm 10\text{ px}$, Rotation $\le \pm 3^\circ$ | Mechanical part centering guide | Reject sample as mechanical misfeed (`HOLD`) |
 | **Image Compression** | Lossless (PNG/TIFF) or JPEG $\ge 85$ | Ingress MIME / header audit | Reject compressed streams $< 85$ quality |
+
