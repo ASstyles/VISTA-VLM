@@ -1,4 +1,3 @@
-import pytest
 import numpy as np
 import tempfile
 import os
@@ -8,7 +7,7 @@ from vista_vlm.calibration.selective import SelectivePredictor
 
 def test_split_conformal_calibrator():
     calibrator = ConformalCalibrator(target_false_alarm_rate=0.05)
-    
+
     # 100 normal calibration scores
     normal_scores = np.random.uniform(0.1, 0.4, size=100).tolist()
     threshold = calibrator.fit(normal_scores, category="test_cat")

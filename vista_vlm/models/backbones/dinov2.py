@@ -1,8 +1,6 @@
-import math
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from typing import List, Tuple, Dict, Optional, Union
+from typing import List, Dict, Union
 from vista_vlm.utils.registry import MODEL_REGISTRY
 
 class PatchEmbed(nn.Module):

@@ -20,8 +20,8 @@ class VISTATransform:
         self.std = IMAGENET_STD
 
     def __call__(
-        self, 
-        image: Union[Image.Image, np.ndarray, torch.Tensor], 
+        self,
+        image: Union[Image.Image, np.ndarray, torch.Tensor],
         mask: Optional[Union[Image.Image, np.ndarray, torch.Tensor]] = None
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         # Convert image to PIL if numpy
@@ -60,7 +60,7 @@ class VISTATransform:
                 if m_t.max() <= 1.0 and m_t.max() > 0:
                     m_t = m_t * 255.0
                 mask = Image.fromarray(m_t.cpu().numpy().astype(np.uint8))
-            
+
             # Nearest neighbor for segmentation mask to preserve sharp defect boundaries
             mask_resized = TF.resize(mask, self.image_size, interpolation=TF.InterpolationMode.NEAREST)
             mask_tensor = TF.to_tensor(mask_resized)

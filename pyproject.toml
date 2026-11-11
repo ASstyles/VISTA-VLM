@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vista-vlm"
-version = "4.0.0"
+version = "6.0.0"
 description = "Vision Intelligence through Spatial and Textual Alignment for Industrial Anomaly Detection"
 authors = [
     {name = "VISTA-VLM Research Team"}
@@ -59,5 +59,12 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-asyncio_mode = "auto"
-asyncio_default_fixture_loop_scope = "function"
+addopts = "-p no:asyncio -p no:anyio"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501", "E741", "F403", "F405"]

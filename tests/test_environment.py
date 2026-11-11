@@ -1,8 +1,5 @@
-import pytest
-import os
 import torch
 from vista_vlm.config.schema import VISTAConfig
-from vista_vlm.utils.logger import setup_logger
 from vista_vlm.utils.registry import Registry
 
 def test_config_defaults():
@@ -24,7 +21,7 @@ def test_config_load_yaml(tmp_path):
     """
     cfg_file = tmp_path / "test_config.yaml"
     cfg_file.write_text(yaml_content)
-    
+
     cfg = VISTAConfig.load_from_yaml(str(cfg_file))
     assert cfg.data.category == "cable"
     assert cfg.data.image_size == 518
@@ -35,7 +32,7 @@ def test_registry():
     @reg.register("item1")
     class Item1:
         pass
-    
+
     assert reg.get("item1") == Item1
     assert "item1" in reg.list_keys()
 

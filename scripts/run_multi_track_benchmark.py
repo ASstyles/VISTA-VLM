@@ -28,7 +28,6 @@ import time
 import json
 import argparse
 import numpy as np
-import torch
 from torch.utils.data import DataLoader, Subset
 from typing import Dict, Any, List
 
@@ -124,7 +123,7 @@ def main():
 
     benchmark_data = {
         "metadata": {
-            "version": "5.0.0",
+            "version": "6.0.0",
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "device": device,
             "dataset_provenance": sample_provenance,
@@ -179,17 +178,17 @@ def main():
         padim.fit(t_load, device=device)
         cat_res["PaDiM"] = clean_result_dict(evaluate_baseline_model(padim, te_load, "padim", device=device))
 
-        # 3. VISTA-VLM v5 (In-Domain with memory residual fusion)
-        logger.info(f"[Track 1][{cname}] Fitting & Evaluating VISTA-VLM v5.0 (In-Domain)...")
+        # 3. VISTA-VLM v6 (In-Domain with calibrated memory residual fusion)
+        logger.info(f"[Track 1][{cname}] Fitting & Evaluating VISTA-VLM v6.0 (In-Domain)...")
         vista_cat = VISTAAnomalyModel(image_size=518, memory_fusion_weight=0.65).to(device)
-        vista_cat.fit_memory_bank(t_load, device=device, max_patches=1500)
-        cat_res["VISTA-VLM v5.0"] = clean_result_dict(evaluate_vista_model(vista_cat, te_load, device=device))
+        vista_cat.fit_memory_bank(t_load, device=device, max_patches=1500, category=cname)
+        cat_res["VISTA-VLM v6.0"] = clean_result_dict(evaluate_vista_model(vista_cat, te_load, device=device))
 
         benchmark_data["track_1_in_domain"]["per_category"][cname] = cat_res
 
     benchmark_data["track_1_in_domain"]["macro_averages"] = compute_macro_averages(
         benchmark_data["track_1_in_domain"]["per_category"],
-        ["PatchCore", "PaDiM", "VISTA-VLM v5.0"],
+        ["PatchCore", "PaDiM", "VISTA-VLM v6.0"],
         all_cat_names
     )
 
@@ -269,9 +268,9 @@ def main():
         padim_k.fit(few_loader, device=device)
         padim_res = clean_result_dict(evaluate_baseline_model(padim_k, bottle_test_l, "padim", device=device))
 
-        # 3. VISTA-VLM v5 k-shot
+        # 3. VISTA-VLM v6 k-shot
         vista_k = VISTAAnomalyModel(image_size=518, memory_fusion_weight=0.65).to(device)
-        vista_k.fit_memory_bank(few_loader, device=device, max_patches=1500)
+        vista_k.fit_memory_bank(few_loader, device=device, max_patches=1500, category="bottle")
         vista_k_res = clean_result_dict(evaluate_vista_model(vista_k, bottle_test_l, device=device))
 
         benchmark_data["track_4_few_shot"]["results"][f"{k}-shot"] = {
@@ -285,7 +284,7 @@ def main():
                 "pixel_auroc": padim_res["pixel_level"]["pixel_auroc"],
                 "aupro": padim_res["pixel_level"]["aupro"]
             },
-            "VISTA-VLM v5.0": {
+            "VISTA-VLM v6.0": {
                 "image_auroc": vista_k_res["image_level"]["auroc"],
                 "pixel_auroc": vista_k_res["pixel_level"]["pixel_auroc"],
                 "aupro": vista_k_res["pixel_level"]["aupro"]

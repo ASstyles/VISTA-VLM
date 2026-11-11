@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from vista_vlm.api.routes import router, get_pipeline
+from vista_vlm.api.routes import router
 from vista_vlm.utils.logger import setup_logger
 
 logger = setup_logger("vista_vlm.api_server")

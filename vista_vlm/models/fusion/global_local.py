@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from typing import List, Dict, Optional
+from typing import List
 
 class CrossAttentionFusion(nn.Module):
     """Lightweight Cross-Attention: Global CLS Query modulates Local Spatial Tokens."""

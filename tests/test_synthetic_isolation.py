@@ -28,13 +28,11 @@ from scripts.prepare_benchmark_data import (
     validate_synthetic_output_dir,
     create_synthetic_industrial_object,
     create_synthetic_defect,
-    prepare_mvtec_fixtures,
-    build_and_save_manifests
+    prepare_mvtec_fixtures
 )
 from vista_vlm.data.manifest_manager import (
     DatasetIntegrityChecker,
-    resolve_dataset_root,
-    compute_sha256
+    resolve_dataset_root
 )
 
 
@@ -56,8 +54,6 @@ def test_tuple_import_and_compilation():
 
 def test_generator_default_output_directories():
     """Requirement 2: Verify default output paths are strictly under data/synthetic_fixtures."""
-    import argparse
-    parser = argparse.ArgumentParser()
     # Check default arguments configured in prepare_benchmark_data
     # Default output-root must be data/synthetic_fixtures
     # Default mvtec dir must resolve under data/synthetic_fixtures/mvtec

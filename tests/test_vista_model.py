@@ -3,7 +3,7 @@ import torch
 from vista_vlm.models.backbones.dinov2 import dinov2_vits14
 from vista_vlm.models.fusion.global_local import GlobalLocalFusion
 from vista_vlm.models.decoder.segmentation import ProgressiveSegmentationDecoder
-from vista_vlm.models.vista_model import VISTAAnomalyModel, DiceLoss
+from vista_vlm.models.vista_model import VISTAAnomalyModel, DiceLoss, TverskyLoss, ModelState
 
 def test_dinov2_backbone_shapes():
     model = dinov2_vits14(out_indices=[4, 8, 12])
@@ -61,7 +61,7 @@ def test_segmentation_decoder_with_guide_map():
     mask = decoder(feat, guide_map=guide, out_size=(518, 518))
     assert mask.shape == (2, 1, 518, 518)
 
-@pytest.mark.parametrize("scoring_mode", ["hybrid", "top_k", "max", "percentile_99"])
+@pytest.mark.parametrize("scoring_mode", ["hybrid", "top_k", "max", "percentile_99", "memory_max", "memory_topk"])
 def test_vista_model_forward_scoring_modes(scoring_mode):
     model = VISTAAnomalyModel(
         backbone_name="dinov2_vits14",
@@ -89,3 +89,16 @@ def test_dice_loss():
     target = torch.tensor([[[[1.0, 1.0], [0.0, 0.0]]]])
     loss = dice(pred, target)
     assert loss.item() < 0.2
+
+def test_tversky_loss():
+    tversky = TverskyLoss(alpha=0.7, beta=0.3)
+    pred = torch.tensor([[[[0.9, 0.9], [0.1, 0.1]]]])
+    target = torch.tensor([[[[1.0, 1.0], [0.0, 0.0]]]])
+    loss = tversky(pred, target)
+    assert loss.item() < 0.2
+    assert 0.0 <= loss.item() <= 1.0
+
+def test_model_state_lifecycle():
+    model = VISTAAnomalyModel()
+    assert model.state == ModelState.READY
+    assert model.is_ready is True

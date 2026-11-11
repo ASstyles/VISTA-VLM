@@ -19,9 +19,7 @@ import sys
 import time
 import json
 import torch
-import numpy as np
 from torch.utils.data import DataLoader
-from typing import Dict, Any, List
 
 # Ensure repository root is on sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
@@ -224,6 +222,7 @@ def run_ablation_study(
     for k in [1, 2, 4, 8]:
         logger.info(f"Evaluating Few-Normal-Shot: k={k}...")
         few_ds = train_ds.sample_few_shot(k=k, seed=42)
+        few_loader = DataLoader(few_ds, batch_size=min(4, k), shuffle=False)
         model_k = VISTAAnomalyModel(
             backbone_name="dinov2_vits14",
             embed_dim=384,
@@ -234,6 +233,7 @@ def run_ablation_study(
             use_film=True,
             freeze_backbone=True
         ).to(device)
+        model_k.fit_memory_bank(few_loader, device=device, max_patches=1500, category=category)
         eval_few = evaluate_vista_model(model_k, test_loader, device=device, calibrated_threshold=0.5)
         few_shot_results[f"{k}-shot"] = {
             "image_auroc": round(float(eval_few["image_level"]["auroc"]), 4),

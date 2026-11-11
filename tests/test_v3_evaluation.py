@@ -3,8 +3,6 @@ import torch
 import numpy as np
 from vista_vlm.evaluation.metrics import (
     compute_aupro_score,
-    compute_pixel_metrics,
-    compute_image_metrics,
     check_spatial_map_validity,
 )
 from vista_vlm.models.decoder.segmentation import ProgressiveSegmentationDecoder
@@ -12,7 +10,6 @@ from vista_vlm.models.vista_model import SobelBoundaryLoss
 from vista_vlm.data.synthetic import (
     get_foreground_mask,
     generate_multiscale_synthetic_anomaly,
-    generate_localized_perlin_mask,
 )
 from vista_vlm.calibration.conformal import ConformalCalibrator
 

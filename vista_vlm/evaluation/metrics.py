@@ -6,11 +6,10 @@ from sklearn.metrics import (
     f1_score,
     precision_score,
     recall_score,
-    brier_score_loss,
-    confusion_matrix
+    brier_score_loss
 )
 from scipy.ndimage import label
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Dict, Any, List, Optional
 
 def compute_image_metrics(
     y_true: np.ndarray,
@@ -129,7 +128,7 @@ def check_spatial_map_validity(maps: np.ndarray, min_variance: float = 1e-7) -> 
     maps_arr = np.asarray(maps)
     if maps_arr.ndim < 2:
         return {"is_valid": False, "reason": "Map dimensions must be at least 2D [H, W]"}
-    
+
     # Check per-image spatial variance
     if maps_arr.ndim == 2:
         spatial_stds = [float(np.std(maps_arr))]
@@ -268,10 +267,8 @@ def compute_reliability_metrics(
     max_s = float(np.max(y_raw_scores))
     if max_s > min_s and (min_s < 0.0 or max_s > 1.0):
         y_probs = (y_raw_scores - min_s) / (max_s - min_s)
-        cal_thresh = (calibrated_threshold - min_s) / (max_s - min_s)
     else:
         y_probs = np.clip(y_raw_scores, 0.0, 1.0)
-        cal_thresh = calibrated_threshold
 
     # Brier Score: MSE between predicted probability and binary truth
     brier = float(brier_score_loss(y_true, y_probs))
@@ -279,7 +276,6 @@ def compute_reliability_metrics(
     # Expected Calibration Error (ECE)
     bin_boundaries = np.linspace(0, 1, num_bins + 1)
     ece = 0.0
-    total_samples = len(y_true)
 
     for i in range(num_bins):
         bin_lower = bin_boundaries[i]

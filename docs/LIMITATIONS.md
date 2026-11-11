@@ -1,7 +1,7 @@
-# VISTA-VLM V5.0 Known Technical Limitations and Operating Constraints
+# VISTA-VLM V6.0 Known Technical Limitations and Operating Constraints
 
-**Document ID:** `V5-DOC-LIM-001`  
-**Version:** 5.0.0  
+**Document ID:** `V6-DOC-LIM-001`  
+**Version:** 6.0.0  
 **Status:** APPROVED  
 **Target:** Deployers, Automation Architects, and Quality Engineers  
 
@@ -9,12 +9,12 @@
 
 ## 1. Safety and Regulatory Boundaries
 
-1. **Not a Safety-Critical Machine Interlock**:
-   VISTA-VLM V5.0 is classified as an **Advisory Quality Inspection Support Tool (SIL 0)**. It is **prohibited** from being deployed as a primary safety component for human hazard protection, press interlocking, or robotic cell safety perimeter enforcement.
+1. **Non-Safety-Related Advisory Inspection Software**:
+   VISTA-VLM V6.0 is classified strictly as **non-safety-related advisory inspection software**. No Safety Integrity Level (SIL under IEC 61508) or Performance Level (PL under ISO 13849-1) certification is claimed or implied. It is **prohibited** from being deployed as a primary safety component for human hazard protection, press interlocking, or robotic cell safety perimeter enforcement.
 2. **Mandatory Human Escalation**:
-   The system must not be configured to auto-pass ambiguous samples (`disposition: HUMAN_REVIEW`). Overriding the selective prediction uncertainty band violates the certified safety case.
+   The system must not be configured to auto-pass ambiguous samples (`disposition: HUMAN_REVIEW`). Overriding the selective prediction uncertainty band violates operational design requirements.
 3. **Statistical Proof of Escape Rates**:
-   A zero-defect test on $< 300$ samples does not mathematically certify $< 1\%$ defect escape rate. Under the Rule of 300, at least **300 physically distinct, verified defective units** must be evaluated without escapes before making high-reliability claims.
+   A zero-defect test on $< 300$ samples does not mathematically certify $< 1\%$ defect escape rate. Under the Rule of 300, at least **300 physically distinct, verified defective units** must be evaluated without escapes before making high-reliability claims with Clopper-Pearson exact one-sided bounds.
 
 ---
 

@@ -1,7 +1,6 @@
 import torch
 import os
-import json
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from vista_vlm.models.vista_model import VISTAAnomalyModel
 from vista_vlm.utils.logger import setup_logger
 

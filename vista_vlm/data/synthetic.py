@@ -1,9 +1,7 @@
 import numpy as np
 import cv2
-import torch
 import random
-from typing import Tuple, Optional, Union
-from PIL import Image
+from typing import Tuple, Optional
 
 def get_foreground_mask(image: np.ndarray) -> np.ndarray:
     """
@@ -194,7 +192,7 @@ def generate_geometric_mask(
             cx = int(np.clip(cx, 10, width - 10))
             cy = int(np.clip(cy, 10, height - 10))
             points.append((cx, cy))
-        
+
         pts = np.array(points, dtype=np.int32).reshape((-1, 1, 2))
         thickness = random.randint(1, 3)
         cv2.polylines(mask, [pts], isClosed=False, color=1.0, thickness=thickness)
@@ -251,8 +249,8 @@ class SyntheticAnomalyGenerator:
             random.seed(seed)
 
     def __call__(
-        self, 
-        image: np.ndarray, 
+        self,
+        image: np.ndarray,
         source_image: Optional[np.ndarray] = None
     ) -> Tuple[np.ndarray, np.ndarray, bool]:
         """

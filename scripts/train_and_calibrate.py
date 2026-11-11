@@ -21,7 +21,6 @@ import torch
 import numpy as np
 from torch.utils.data import DataLoader
 
-from vista_vlm.config.schema import VISTAConfig
 from vista_vlm.data.mvtec import MVTecDataset
 from vista_vlm.data.synthetic import SyntheticAnomalyGenerator
 from vista_vlm.data.transforms import denormalize_image, VISTATransform
@@ -89,14 +88,14 @@ def train_one_epoch(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="VISTA-VLM Training & Calibration")
+    parser = argparse.ArgumentParser(description="VISTA-VLM Training & Calibration (V6.0)")
     parser.add_argument("--category", default="bottle", help="Dataset category to train")
     parser.add_argument("--epochs", type=int, default=5, help="Number of training epochs")
     parser.add_argument("--batch_size", type=int, default=4, help="Batch size")
     parser.add_argument("--lr", type=float, default=1e-4, help="Learning rate")
-    parser.add_argument("--data_root", default="data/processed/mvtec", help="Root directory for dataset")
+    parser.add_argument("--data_root", default="data/synthetic_fixtures/mvtec", help="Root directory for dataset")
     parser.add_argument("--output_dir", default="checkpoints", help="Output directory for checkpoints")
-    parser.add_argument("--target_far", type=float, default=0.05, help="Target false alarm rate alpha")
+    parser.add_argument("--alpha", "--target_far", dest="target_far", type=float, default=0.05, help="Target false alarm rate alpha (default: 0.05)")
     args = parser.parse_args()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -146,7 +145,7 @@ def main():
     logger.info(f"Fitting nominal reference memory bank for category '{args.category}'...")
     model.fit_memory_bank(train_loader, device=device, max_patches=1500)
 
-    # Save Model Checkpoint
+    # Save Model Checkpoint (V6.0)
     os.makedirs(args.output_dir, exist_ok=True)
     ckpt_path = os.path.join(args.output_dir, f"vista_mvtec_{args.category}.pth")
     model.save_checkpoint(
@@ -158,8 +157,8 @@ def main():
             "epochs": args.epochs,
             "training_time_s": training_time,
             "train_samples": len(train_ds),
-            "architecture": "v5.0.0-multi-scale-memory-residual-fusion",
-            "version": "5.0.0"
+            "architecture": "v6.0.0-calibrated-multiscale-memory-residual-fusion",
+            "version": "6.0.0"
         }
     )
 
@@ -181,7 +180,7 @@ def main():
     cal_features_np = np.concatenate(cal_features, axis=0)
 
     # Fit Conformal Calibrator
-    calib_file = os.path.join(args.output_dir, f"calibration_mvtec.json")
+    calib_file = os.path.join(args.output_dir, "calibration_mvtec.json")
     calibrator = ConformalCalibrator(target_false_alarm_rate=args.target_far)
     if os.path.exists(calib_file):
         try:
@@ -193,7 +192,7 @@ def main():
     logger.info(f"Split Conformal Calibration: Category '{args.category}' threshold set to {calibrated_threshold:.4f} (alpha={args.target_far})")
 
     # Fit OOD Detector with regularized shrinkage covariance
-    ood_file = os.path.join(args.output_dir, f"ood_mvtec.json")
+    ood_file = os.path.join(args.output_dir, "ood_mvtec.json")
     ood_detector = OODDetector(metric="mahalanobis", threshold_percentile=98.0)
     if os.path.exists(ood_file):
         try:
@@ -204,16 +203,40 @@ def main():
     ood_detector.save(ood_file)
     logger.info(f"OOD Detector fitted on {len(cal_features_np)} normal vectors. Saved to {ood_file}")
 
-    # Calibrate Selective Predictor Uncertainty Band
+    # Calibrate Selective Predictor Uncertainty Band on Labelled Validation Split (Phase 5C)
     sel_pred = SelectivePredictor()
-    val_labels = [0] * len(cal_scores)
-    opt_delta = sel_pred.calibrate_uncertainty_band(cal_scores, val_labels, calibrated_threshold=calibrated_threshold, target_risk=0.01)
-    logger.info(f"Selective Predictor: Calibrated uncertainty band delta={opt_delta:.4f} ensuring <=1% selective risk")
+    # Labelled tuning dataset with BOTH normal (0) and defective (1) instances
+    tuning_scores = list(cal_scores)
+    tuning_labels = [0] * len(cal_scores)
+
+    # Generate labelled defect tuning samples from synthetic anomaly generator on validation images
+    with torch.no_grad():
+        for batch in val_cal_loader:
+            imgs_norm = batch["image"]
+            for b in range(imgs_norm.shape[0]):
+                img_u8 = denormalize_image(imgs_norm[b])
+                pert, mask, is_anom = synthetic_gen(img_u8)
+                if is_anom:
+                    t_img, _ = transform(pert, mask)
+                    out = model(t_img.unsqueeze(0).to(device))
+                    tuning_scores.append(float(out["image_score"].item()))
+                    tuning_labels.append(1)
+
+    opt_delta = sel_pred.calibrate_uncertainty_band(
+        tuning_scores,
+        tuning_labels,
+        calibrated_threshold=calibrated_threshold,
+        target_risk=0.01
+    )
+    logger.info(
+        f"Selective Predictor: Calibrated uncertainty band delta={opt_delta:.4f} "
+        f"on {len(tuning_scores)} labelled tuning samples ({sum(tuning_labels)} anomalies) ensuring <=1% selective risk."
+    )
 
     # 6. Evaluation on Test Benchmark Split
     logger.info("Evaluating VISTA-VLM on Test Benchmark Split...")
     eval_results = evaluate_vista_model(model, test_loader, device=device, calibrated_threshold=calibrated_threshold)
-    
+
     # Dual Risk Analysis & Risk-Coverage Profile (SEC-16)
     test_y_true = eval_results["raw_scores"]["y_true"]
     test_y_scores = eval_results["raw_scores"]["y_scores"]
@@ -258,7 +281,7 @@ def main():
     eval_json_path = os.path.join("benchmarks", "results", f"vista_results_{args.category}.json")
     with open(eval_json_path, "w") as f:
         json.dump(eval_results, f, indent=2)
-    logger.info(f"Evaluation report and plots saved to benchmarks/results/")
+    logger.info("Evaluation report and plots saved to benchmarks/results/")
 
 if __name__ == "__main__":
     main()

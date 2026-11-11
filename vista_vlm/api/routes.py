@@ -1,12 +1,10 @@
 import os
-import sys
 import time
 import json
 import uuid
 import io
-from typing import List, Optional, Dict, Any
 from PIL import Image
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Query, status
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from vista_vlm.api.schemas import (
@@ -55,12 +53,16 @@ def health_check():
     """General health check."""
     pipeline = get_pipeline()
     calibrated_cats = list(pipeline.calibrator.category_thresholds.keys())
+    model_st = getattr(pipeline.model, "state", "READY")
+    if hasattr(model_st, "value"):
+        model_st = model_st.value
     return HealthResponse(
         status="healthy",
-        system_version="5.0.0",
+        system_version="6.0.0",
         device=str(pipeline.device),
         backbone=pipeline.config.model.backbone,
         models_loaded=True,
+        model_state=str(model_st),
         calibrated_categories=calibrated_cats if calibrated_cats else ["bottle (default)"]
     )
 
@@ -68,7 +70,7 @@ def health_check():
 @router.get("/health/live")
 def liveness_check():
     """Kubernetes liveness probe: returns 200 immediately if process is alive."""
-    return {"status": "alive", "timestamp": time.time()}
+    return {"status": "alive", "timestamp": time.time(), "version": "6.0.0"}
 
 
 @router.get("/health/ready")
@@ -76,15 +78,28 @@ def readiness_check():
     """Kubernetes readiness probe: verifies pipeline, model, calibrator, and OOD modules are ready to serve."""
     try:
         pipeline = get_pipeline()
-        is_ready = bool(pipeline.model is not None and pipeline.calibrator is not None)
+        is_ready = bool(
+            pipeline.model is not None
+            and getattr(pipeline.model, "is_ready", True)
+            and pipeline.calibrator is not None
+        )
         if not is_ready:
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Model pipeline is initializing")
+
+        model_st = getattr(pipeline.model, "state", "READY")
+        if hasattr(model_st, "value"):
+            model_st = model_st.value
+
         return {
             "status": "ready",
+            "version": "6.0.0",
+            "model_state": str(model_st),
             "device": str(pipeline.device),
             "calibrated_categories": list(pipeline.calibrator.category_thresholds.keys()),
             "timestamp": time.time()
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=f"Service not ready: {str(e)}")
 
@@ -94,7 +109,8 @@ def get_model_info():
     pipeline = get_pipeline()
     footprint = get_model_footprint(pipeline.model)
     return ModelInfoResponse(
-        architecture="VISTA-VLM v5.0 (Vision Intelligence through Spatial and Textual Alignment)",
+        version="6.0.0",
+        architecture="VISTA-VLM v6.0 (Vision Intelligence through Spatial and Textual Alignment)",
         backbone=pipeline.config.model.backbone,
         embed_dim=pipeline.config.model.embed_dim,
         patch_size=pipeline.config.data.patch_size,
@@ -191,27 +207,55 @@ def validate_and_decode_image(contents: bytes) -> Image.Image:
 
 
 def validate_safe_path(path: str, allowed_root: str = "data") -> str:
-    """Validates that a filesystem path is strictly confined within an authorized sandboxed root."""
-    abs_allowed = os.path.abspath(allowed_root)
-    abs_path = os.path.abspath(path)
+    """
+    Validates that a filesystem path is strictly confined within an authorized sandboxed root.
+    Enforces canonical path resolution, realpath containment, symlink dereferencing checks,
+    file-type validation, and file-size constraints.
+    """
+    real_allowed = os.path.realpath(allowed_root)
+    real_path = os.path.realpath(path)
+
     try:
-        common = os.path.commonpath([abs_path, abs_allowed])
+        common_real = os.path.commonpath([real_path, real_allowed])
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cross-drive or absolute root filesystem path access is strictly forbidden."
         )
-    if common != abs_allowed:
+
+    if common_real != real_allowed:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Path traversal detected: Access to arbitrary server paths outside data/ is forbidden."
+            detail=f"Path traversal or symlink escape detected: Access outside {allowed_root}/ is forbidden."
         )
-    if not os.path.exists(abs_path):
+
+    if not os.path.exists(real_path):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Specified asset not found in sandboxed repository: {os.path.basename(path)}"
         )
-    return abs_path
+
+    if not os.path.isfile(real_path):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Specified path is a directory, not a valid image file."
+        )
+
+    valid_exts = (".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp")
+    if not real_path.lower().endswith(valid_exts):
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Unsupported image file extension. Allowed: PNG, JPEG, BMP, TIFF, WEBP."
+        )
+
+    sz = os.path.getsize(real_path)
+    if sz > MAX_IMAGE_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"Referenced image file exceeds maximum cap of {MAX_IMAGE_BYTES // (1024 * 1024)}MB."
+        )
+
+    return real_path
 
 
 @router.post("/inspect", response_model=InspectionResponse)

@@ -18,7 +18,7 @@ import time
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 

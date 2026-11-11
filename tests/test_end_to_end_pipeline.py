@@ -1,6 +1,4 @@
-import pytest
 import os
-import numpy as np
 from PIL import Image
 from vista_vlm.config.schema import VISTAConfig
 from vista_vlm.models.pipeline import VISTAInspectionPipeline

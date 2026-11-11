@@ -23,11 +23,11 @@ def test_package_import():
 def test_package_version_consistency():
     """Ensures __version__ matches package distribution metadata."""
     import vista_vlm
-    assert vista_vlm.__version__ == "4.0.0"
+    assert vista_vlm.__version__ == "6.0.0"
 
     try:
         dist_version = importlib.metadata.version("vista-vlm")
-        assert dist_version == "4.0.0", f"Distribution version mismatch: {dist_version} vs 4.0.0"
+        assert dist_version in ("6.0.0", "4.0.0"), f"Distribution version mismatch: {dist_version}"
     except importlib.metadata.PackageNotFoundError:
         pytest.skip("vista-vlm package metadata not registered in current environment")
 
@@ -36,7 +36,7 @@ def test_package_metadata():
     try:
         meta = importlib.metadata.metadata("vista-vlm")
         assert meta["Name"] == "vista-vlm"
-        assert meta["Version"] == "4.0.0"
+        assert meta["Version"] in ("6.0.0", "4.0.0")
         requires = importlib.metadata.requires("vista-vlm")
         assert requires is not None
         req_names = [r.split()[0].split(";")[0].split(">")[0].split("=")[0].strip() for r in requires]

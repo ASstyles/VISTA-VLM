@@ -20,7 +20,7 @@ import sys
 import argparse
 import shutil
 import logging
-from typing import Tuple, Dict, Any, List, Optional, Union
+from typing import Tuple, Dict, Any, Optional
 import numpy as np
 import cv2
 from PIL import Image
@@ -28,8 +28,8 @@ from PIL import Image
 # Ensure repository root is on sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from vista_vlm.data.synthetic import generate_perlin_noise_mask, generate_geometric_mask
-from vista_vlm.data.manifest_manager import DatasetIntegrityChecker, compute_sha256
+from vista_vlm.data.synthetic import generate_perlin_noise_mask
+from vista_vlm.data.manifest_manager import DatasetIntegrityChecker
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("vista_vlm.prepare_benchmark_data")

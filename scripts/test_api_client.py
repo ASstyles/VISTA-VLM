@@ -14,10 +14,9 @@ from vista_vlm.api.routes import (
     get_benchmark_results,
     submit_feedback,
     inspect_image,
-    inspect_batch,
     get_pipeline
 )
-from vista_vlm.api.schemas import FeedbackRequest, BatchInspectionRequest
+from vista_vlm.api.schemas import FeedbackRequest
 
 def run_tests():
     print("Testing VISTA-VLM API Endpoints synchronously...")
@@ -25,7 +24,7 @@ def run_tests():
 
     # Preload pipeline
     print("1. Loading VISTA Pipeline...")
-    p = get_pipeline()
+    _ = get_pipeline()
     print("   Pipeline successfully loaded.")
 
     # 2. Health Check

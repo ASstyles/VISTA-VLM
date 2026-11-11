@@ -8,7 +8,7 @@ import numpy as np
 import cv2
 from PIL import Image
 import torch
-from typing import Union, Dict, Any, Optional, List
+from typing import Union, Optional, List
 
 from vista_vlm.config.schema import VISTAConfig
 from vista_vlm.models.vista_model import VISTAAnomalyModel
@@ -128,7 +128,7 @@ class VISTAInspectionPipeline:
 
         # Blend 60% original + 40% heatmap
         blended = cv2.addWeighted(original_rgb, 0.6, heatmap_color_rgb, 0.4, 0)
-        
+
         pil_img = Image.fromarray(blended)
         buf = io.BytesIO()
         pil_img.save(buf, format="PNG")

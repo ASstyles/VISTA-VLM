@@ -1,8 +1,29 @@
-import numpy as np
+"""
+Selective Prediction & Industrial Safety Escalation Engine (V6.0).
+==================================================================
+Implements a formal 9-state fail-safe operational decision engine for industrial deployment:
+  NORMAL, ANOMALY_DETECTED, UNCERTAIN, OOD, IMAGE_QUALITY_FAILURE,
+  MODEL_UNAVAILABLE, CALIBRATION_INVALID, COMMUNICATION_FAILURE, HUMAN_REVIEW_REQUIRED.
+
+Ensures that under distribution shift, boundary uncertainty, sensor degradation,
+or uncalibrated states, the system NEVER issues an autonomous ACCEPT decision.
+Evaluates empirical selective risk with exact Clopper-Pearson / Wilson confidence bounds
+and exact one-sided binomial upper confidence limits.
+"""
+
+from __future__ import annotations
+
+import math
 from typing import Dict, Any, Tuple, Optional, Union, List
+from enum import Enum
+import numpy as np
+
+from vista_vlm.utils.logger import setup_logger
+
+logger = setup_logger("vista_vlm.selective")
 
 
-class OperationalState:
+class OperationalState(str, Enum):
     NORMAL = "NORMAL"
     ANOMALY_DETECTED = "ANOMALY_DETECTED"
     UNCERTAIN = "UNCERTAIN"
@@ -14,16 +35,65 @@ class OperationalState:
     HUMAN_REVIEW_REQUIRED = "HUMAN_REVIEW_REQUIRED"
 
 
+class PhysicalDisposition(str, Enum):
+    ACCEPT = "ACCEPT"
+    REJECT = "REJECT"
+    HOLD = "HOLD"
+    QUARANTINE = "QUARANTINE"
+    HUMAN_REVIEW = "HUMAN_REVIEW"
+
+
+def wilson_score_interval(successes: int, trials: int, confidence: float = 0.95) -> Tuple[float, float]:
+    """
+    Computes Wilson Score confidence interval for a binomial proportion.
+    More accurate and statistically conservative than Gaussian approximations near 0 and 1.
+    """
+    if trials == 0:
+        return 0.0, 1.0
+
+    z = 1.95996 if abs(confidence - 0.95) < 0.01 else 2.57583  # 95% or 99%
+    p = successes / trials
+    denom = 1.0 + (z ** 2) / trials
+    center = (p + (z ** 2) / (2.0 * trials)) / denom
+    margin = (z / denom) * math.sqrt((p * (1.0 - p)) / trials + (z ** 2) / (4.0 * (trials ** 2)))
+
+    if successes == 0:
+        lower = 0.0
+    else:
+        lower = max(0.0, center - margin)
+        if lower < 1e-12:
+            lower = 0.0
+
+    if successes == trials:
+        upper = 1.0
+    else:
+        upper = min(1.0, center + margin)
+    return float(lower), float(upper)
+
+
+def exact_binomial_upper_bound(successes: int, trials: int, confidence: float = 0.95) -> float:
+    """
+    Computes exact Clopper-Pearson one-sided upper confidence bound for defect escape rate.
+    Uses Beta distribution quantiles.
+    """
+    if trials == 0:
+        return 1.0
+    from scipy.stats import beta
+    if successes == trials:
+        return 1.0
+    upper = float(beta.ppf(confidence, successes + 1, trials - successes))
+    return min(1.0, max(0.0, upper))
+
+
 class SelectivePredictor:
     """
-    Selective Prediction & Industrial Safety Escalation Engine (Phase 7 & Phase 11).
-    Implements a formal 9-state fail-safe decision engine.
-    Ensures that under uncertainty, distribution shift, uncalibrated status, or sensor faults,
-    the platform NEVER issues an autonomous ACCEPT decision.
+    Selective Prediction & Industrial Escalation Engine (V6.0).
+    Manages operational states, calibrates uncertainty bands on labelled tuning data,
+    and computes rigorous risk-coverage statistics.
     """
     def __init__(self, uncertainty_band_width: float = 0.08, enabled: bool = True):
-        self.uncertainty_band = uncertainty_band_width
-        self.enabled = enabled
+        self.uncertainty_band = float(uncertainty_band_width)
+        self.enabled = bool(enabled)
 
     def calibrate_uncertainty_band(
         self,
@@ -34,21 +104,36 @@ class SelectivePredictor:
         min_coverage: float = 0.50
     ) -> float:
         """
-        Calibrates empirical uncertainty band delta on validation samples to guarantee
-        selective risk (error rate on autonomously accepted decisions) <= target_risk.
+        Calibrates empirical uncertainty band delta on a LABELLED tuning dataset
+        (containing both normal and anomaly instances).
+        Ensures empirical selective error rate on autonomous decisions <= target_risk.
         """
-        scores_arr = np.asarray(scores, dtype=float)
+        scores_arr = np.asarray(scores, dtype=np.float64)
         labels_arr = np.asarray(labels, dtype=int)
 
+        if len(scores_arr) != len(labels_arr):
+            raise ValueError(f"Length mismatch: {len(scores_arr)} scores vs {len(labels_arr)} labels")
+
+        # Check if both classes are present in the tuning set
+        unique_labels = set(np.unique(labels_arr))
+        if len(unique_labels) < 2:
+            logger.warning(
+                f"Selective risk calibration tuning dataset contains only labels {unique_labels}. "
+                f"Labelled data with BOTH normal (0) and defective (1) instances is required "
+                f"to empirically tune defect escape risk. Retaining default band delta={self.uncertainty_band}."
+            )
+            return self.uncertainty_band
+
         best_delta = self.uncertainty_band
-        candidate_deltas = np.linspace(0.01, 0.25, 50)
+        candidate_deltas = np.linspace(0.01, 0.30, 60)
 
         for delta in candidate_deltas:
             low_b = max(0.0, calibrated_threshold - delta)
             high_b = min(1.0, calibrated_threshold + delta)
             accepted = (scores_arr < low_b) | (scores_arr > high_b)
 
-            if np.mean(accepted) < min_coverage:
+            cov = float(np.mean(accepted))
+            if cov < min_coverage:
                 continue
 
             pred_accepted = (scores_arr[accepted] > calibrated_threshold).astype(int)
@@ -60,6 +145,10 @@ class SelectivePredictor:
                 break
 
         self.uncertainty_band = round(best_delta, 4)
+        logger.info(
+            f"SelectivePredictor: Calibrated uncertainty band delta={self.uncertainty_band:.4f} "
+            f"(target_risk={target_risk:.2%}, threshold={calibrated_threshold:.4f})"
+        )
         return self.uncertainty_band
 
     def evaluate_false_pass_risk(
@@ -71,16 +160,16 @@ class SelectivePredictor:
     ) -> Dict[str, Any]:
         """
         Rigorously evaluates false-pass (defect escape) and false-alarm (overkill) risks
-        with Wilson score 95% confidence intervals and exact sample size checks.
+        with Wilson score 95% confidence intervals and exact one-sided binomial upper bound.
         """
-        scores_arr = np.asarray(scores, dtype=float)
+        scores_arr = np.asarray(scores, dtype=np.float64)
         labels_arr = np.asarray(labels, dtype=int)
-        band = self.uncertainty_band if uncertainty_band is None else uncertainty_band
+        band = self.uncertainty_band if uncertainty_band is None else float(uncertainty_band)
 
         low_b = max(0.0, calibrated_threshold - band)
         high_b = min(1.0, calibrated_threshold + band)
 
-        # Autonomous decisions only (strictly outside uncertainty band)
+        # Autonomous decisions strictly outside the uncertainty band
         accepted = (scores_arr < low_b) | (scores_arr > high_b)
         n_total = len(scores_arr)
         n_accepted = int(np.sum(accepted))
@@ -103,18 +192,11 @@ class SelectivePredictor:
         false_alarms = int(np.sum((acc_scores > calibrated_threshold) & normal_mask))
         false_alarm_rate = float(false_alarms / max(1, n_normal)) if n_normal > 0 else 0.0
 
-        # Wilson Score 95% Confidence Interval for false-pass rate (z = 1.96)
-        z = 1.96
-        if n_defective > 0:
-            denom = 1.0 + (z ** 2) / n_defective
-            center = (false_pass_rate + (z ** 2) / (2.0 * n_defective)) / denom
-            margin = z * np.sqrt((false_pass_rate * (1.0 - false_pass_rate) + (z ** 2) / (4.0 * n_defective)) / n_defective) / denom
-            ci_lower = max(0.0, float(center - margin))
-            ci_upper = min(1.0, float(center + margin))
-        else:
-            ci_lower, ci_upper = 0.0, 1.0
+        ci_fp_low, ci_fp_high = wilson_score_interval(false_passes, n_defective, confidence=0.95)
+        exact_ub = exact_binomial_upper_bound(false_passes, n_defective, confidence=0.95)
 
-        # Exact Rule of 300 check: N_defective >= 300 required for 1% upper bound at 95% confidence
+        ci_fa_low, ci_fa_high = wilson_score_interval(false_alarms, n_normal, confidence=0.95)
+
         is_sample_size_sufficient = bool(n_defective >= 300)
 
         return {
@@ -125,14 +207,17 @@ class SelectivePredictor:
             "defective_accepted": n_defective,
             "false_passes": false_passes,
             "observed_false_pass_rate": round(false_pass_rate, 4),
-            "false_pass_ci_95": [round(ci_lower, 4), round(ci_upper, 4)],
+            "false_pass_ci_95": [round(ci_fp_low, 4), round(ci_fp_high, 4)],
+            "false_pass_exact_upper_bound_95": round(exact_ub, 4),
             "normal_accepted": n_normal,
             "false_alarms": false_alarms,
             "observed_false_alarm_rate": round(false_alarm_rate, 4),
+            "false_alarm_ci_95": [round(ci_fa_low, 4), round(ci_fa_high, 4)],
             "is_sample_size_sufficient_for_1pct": is_sample_size_sufficient,
-            "sample_size_warning": (
-                None if is_sample_size_sufficient
-                else f"Sample size (N_def={n_defective}) is insufficient to statistically prove <=1% false-pass rate at 95% confidence (N>=300 required)."
+            "sample_size_note": (
+                "Sufficient test defect samples (N>=300) for statistical 1% upper bound."
+                if is_sample_size_sufficient
+                else f"Sample size (N_def={n_defective}) is limited; exact 95% upper bound is {exact_ub:.2%}."
             )
         }
 
@@ -143,7 +228,9 @@ class SelectivePredictor:
         calibrated_threshold: float,
         num_steps: int = 50
     ) -> List[Dict[str, float]]:
-        """Computes complete risk-coverage trade-off curve across candidate uncertainty bands."""
+        """
+        Computes the complete risk-coverage trade-off curve across candidate uncertainty bands.
+        """
         scores_arr = np.asarray(scores, dtype=float)
         labels_arr = np.asarray(labels, dtype=int)
         deltas = np.linspace(0.0, 0.40, num_steps)
@@ -177,94 +264,91 @@ class SelectivePredictor:
     def evaluate_decision(
         self,
         anomaly_score: float,
-        calibrated_threshold: Optional[float] = None,
-        is_ood: bool = False,
+        calibrated_threshold: Optional[float],
+        is_ood: bool,
         is_calibrated: bool = True,
         image_quality_ok: bool = True,
         model_ready: bool = True,
         is_region_ambiguous: bool = False
     ) -> Dict[str, Any]:
         """
-        Evaluates prediction under Phase 11.4 Fail-Safe State Machine.
-        Returns explicit state, autonomous disposition, and human escalation requirement.
+        Evaluates the deterministic 9-state fail-safe operational decision engine.
+        Ensures fail-closed disposition: under any uncalibrated, OOD, or uncertain state,
+        physical disposition is never ACCEPT.
         """
-        # 1. Hardware / Pipeline Fault Checks
         if not model_ready:
             return {
-                "state": OperationalState.MODEL_UNAVAILABLE,
-                "autonomous_action": "ESCALATE_TO_HUMAN",
-                "disposition": "HOLD",
+                "state": OperationalState.MODEL_UNAVAILABLE.value,
+                "disposition": PhysicalDisposition.QUARANTINE.value,
                 "human_review_required": True,
-                "reason": "Inspection model or runtime pipeline unavailable.",
+                "reason": "Model weights, memory bank, or inference dependencies are unavailable.",
                 "in_uncertainty_band": False
             }
 
         if not image_quality_ok:
             return {
-                "state": OperationalState.IMAGE_QUALITY_FAILURE,
-                "autonomous_action": "ESCALATE_TO_HUMAN",
-                "disposition": "QUARANTINE",
+                "state": OperationalState.IMAGE_QUALITY_FAILURE.value,
+                "disposition": PhysicalDisposition.HOLD.value,
                 "human_review_required": True,
-                "reason": "Input image failed acquisition quality / format / dimensions checks.",
+                "reason": "Image failed acquisition quality validation (blur, underexposure, or dimension violation).",
                 "in_uncertainty_band": False
             }
 
         if not is_calibrated or calibrated_threshold is None:
             return {
-                "state": OperationalState.CALIBRATION_INVALID,
-                "autonomous_action": "ESCALATE_TO_HUMAN",
-                "disposition": "HOLD",
+                "state": OperationalState.CALIBRATION_INVALID.value,
+                "disposition": PhysicalDisposition.HUMAN_REVIEW.value,
                 "human_review_required": True,
-                "reason": "UNCALIBRATED: Target category lacks validated conformal calibration artifact.",
+                "reason": "Category has no split conformal calibration profile. Autonomous decisions disabled.",
                 "in_uncertainty_band": False
             }
 
-        # 2. Out-of-Distribution Check
         if is_ood:
             return {
-                "state": OperationalState.OOD,
-                "autonomous_action": "ESCALATE_TO_HUMAN",
-                "disposition": "QUARANTINE",
+                "state": OperationalState.OOD.value,
+                "disposition": PhysicalDisposition.QUARANTINE.value,
                 "human_review_required": True,
-                "reason": "Out-of-Distribution visual signature detected; visual features deviate from nominal calibration baseline.",
+                "reason": "Inspection sample detected as Out-of-Distribution (unseen class or severe domain shift).",
                 "in_uncertainty_band": False
             }
 
-        # 3. Conformal Uncertainty Band Check
+        # Check uncertainty band around calibrated threshold
         low_bound = max(0.0, calibrated_threshold - self.uncertainty_band)
         high_bound = min(1.0, calibrated_threshold + self.uncertainty_band)
-        in_band = (low_bound <= anomaly_score <= high_bound)
+        in_band = bool(self.enabled and (low_bound <= anomaly_score <= high_bound))
 
-        if self.enabled and in_band:
+        if in_band:
             return {
-                "state": OperationalState.UNCERTAIN,
-                "autonomous_action": "ESCALATE_TO_HUMAN",
-                "disposition": "HUMAN_REVIEW",
+                "state": OperationalState.UNCERTAIN.value,
+                "disposition": PhysicalDisposition.HUMAN_REVIEW.value,
                 "human_review_required": True,
-                "reason": f"Anomaly score ({anomaly_score:.3f}) falls within conformal uncertainty band [{low_bound:.3f}, {high_bound:.3f}].",
+                "reason": f"Anomaly score {anomaly_score:.4f} is within uncertainty band [{low_bound:.4f}, {high_bound:.4f}].",
                 "in_uncertainty_band": True
             }
 
-        # 4. Vision-Language Ambiguity Check
-        if self.enabled and is_region_ambiguous and (anomaly_score > calibrated_threshold):
+        if is_region_ambiguous:
             return {
-                "state": OperationalState.HUMAN_REVIEW_REQUIRED,
-                "autonomous_action": "ESCALATE_TO_HUMAN",
-                "disposition": "HUMAN_REVIEW",
+                "state": OperationalState.HUMAN_REVIEW_REQUIRED.value,
+                "disposition": PhysicalDisposition.HUMAN_REVIEW.value,
                 "human_review_required": True,
-                "reason": "Visual defect localized, but semantic defect taxonomy classification is ambiguous.",
+                "reason": "Multimodal Vision-Language candidate classification has high semantic ambiguity.",
                 "in_uncertainty_band": False
             }
 
-        # 5. High-Confidence Autonomous Decision
-        is_anomaly = anomaly_score > calibrated_threshold
-        state = OperationalState.ANOMALY_DETECTED if is_anomaly else OperationalState.NORMAL
-        disposition = "REJECT" if is_anomaly else "ACCEPT"
-        return {
-            "state": state,
-            "autonomous_action": state,
-            "disposition": disposition,
-            "human_review_required": False,
-            "reason": f"High-confidence autonomous decision (score {anomaly_score:.3f} vs calibrated threshold {calibrated_threshold:.3f}).",
-            "in_uncertainty_band": False
-        }
+        # Autonomous Decision
+        if anomaly_score > calibrated_threshold:
+            return {
+                "state": OperationalState.ANOMALY_DETECTED.value,
+                "disposition": PhysicalDisposition.REJECT.value,
+                "human_review_required": False,
+                "reason": f"Anomaly score {anomaly_score:.4f} exceeds calibrated threshold {calibrated_threshold:.4f}.",
+                "in_uncertainty_band": False
+            }
+        else:
+            return {
+                "state": OperationalState.NORMAL.value,
+                "disposition": PhysicalDisposition.ACCEPT.value,
+                "human_review_required": False,
+                "reason": f"Anomaly score {anomaly_score:.4f} is below calibrated threshold {calibrated_threshold:.4f}.",
+                "in_uncertainty_band": False
+            }

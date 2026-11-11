@@ -1,7 +1,7 @@
-# VISTA-VLM V5.0 System Architecture Specification
+# VISTA-VLM V6.0 System Architecture Specification
 
-**Document ID:** `V5-SPEC-ARCH-001`  
-**Version:** 5.0.0  
+**Document ID:** `V6-SPEC-ARCH-001`  
+**Version:** 6.0.0  
 **Status:** APPROVED  
 **Date:** 2026-11-11  
 
@@ -9,11 +9,11 @@
 
 ## 1. Overview & Core Tenets
 
-VISTA-VLM (**Vision Intelligence through Spatial and Textual Alignment**) is designed around five foundational engineering tenets:
-1. **Separation of Detection from Semantic Classification**: Dense defect localization is driven by intermediate patch features from a self-supervised visual foundation model (DINOv2), while semantic candidate identification and operator explanations are governed by a multimodal vision-language model (CLIP).
-2. **Memory-Guided Spatial Residual Architecture**: Neural convolutional upsampling is grounded by a non-parametric nominal memory bank, resolving the localization collapse and achieving state-of-the-art pixel AUROC ($0.9966$) and tiny defect recall ($83.64\%$).
-3. **Multi-Scale Spatial-Semantic Harmony**: Dense spatial representations from early layers (Block 4) and semantic abstractions from deep layers (Block 8, 12) are fused via global FiLM conditioning and progressive convolutional decoding with Squeeze-and-Excitation (SE) channel attention.
-4. **Statistical Reliability & Conformal Calibration**: Predictions are accompanied by split conformal calibration guarantees ($\alpha = 0.05$) and regularized Mahalanobis Out-of-Distribution (OOD) distance testing. Uncalibrated fallbacks are strictly prohibited.
+VISTA-VLM (**Vision Intelligence through Spatial and Textual Alignment**) V6.0 is an industrial-grade anomaly detection and localization platform engineered around five foundational tenets:
+1. **Decoupled Detection & Semantic Attribution**: Dense anomaly detection is driven by multi-scale patch features from a self-supervised visual foundation model (DINOv2), while semantic candidate identification and operator explanations are governed by a vision-language verifier (CLIP).
+2. **Reference-Calibrated Spatial Guidance**: Neural convolutional upsampling is grounded by a non-parametric nominal memory bank scaled via fixed training normal distribution parameters ($\mu, \sigma, p_{95}, \text{scale\_range}$), eliminating destructive per-image min-max distortion.
+3. **Multi-Scale Spatial-Semantic Harmony**: Intermediate representations from early layers (Block 4) and semantic abstractions from deep layers (Block 8, 12) are fused via global FiLM conditioning and progressive convolutional decoding with Squeeze-and-Excitation (SE) channel attention and lateral skips.
+4. **Finite-Sample Conformal Calibration**: Predictions are accompanied by split conformal calibration guarantees with exact finite-sample order statistic rank calculation ($k = \lceil(n+1)(1-\alpha)\rceil$) and regularized Mahalanobis Out-of-Distribution (OOD) distance testing.
 5. **Deterministic 9-State Fail-Safe Operation**: Autonomous decisions are committed strictly when conformal certainty is verified. Ambiguous, uncalibrated, or disturbed inputs transition to deterministic safe states (`HOLD`, `REJECT`, `QUARANTINE`).
 
 ---
@@ -32,23 +32,23 @@ VISTA-VLM (**Vision Intelligence through Spatial and Textual Alignment**) is des
   - `cls_features`: 3 global tokens $[B, 384]$.
   - `global_cls`: Final layer CLS vector $[B, 384]$.
 
-### 2.2 Nominal Coreset Memory Bank & Spatial Residual Fusion
-- **Coreset Reduction**: Greedy $k$-center coreset sampling reduces thousands of nominal patch tokens down to $M=1,500$ nominal prototypes.
-- **Distance Metric**: Euclidean nearest-neighbor distance computed against normalized patch embeddings:
-  $$D(z_i) = \min_{m \in \mathcal{M}} \| z_i - m \|_2$$
+### 2.2 Nominal Coreset Memory Bank & Reference Calibration
+- **Coreset Reduction**: Supports Exact Greedy $k$-Center selection ($c_m = \arg\max_i \min_{c \in C} \|x_i - c\|_2$) and Approximate Greedy $k$-Center using Johnson-Lindenstrauss random orthogonal projection ($D \to 64$).
+- **Reference Distribution Calibration**: Fixed reference statistics are computed on training normal patches to preserve cross-image absolute distance ranking:
+  $$s_{\text{cal\_mem}} = \text{clamp}\left(\frac{D(x) - \text{ref\_min}}{\text{ref\_scale}}, 0.0, 1.0\right)$$
 - **Spatial Residual Fusion**:
-  $$M_{\text{final}} = (1 - w_{\text{mem}}) \cdot M_{\text{neural}} + w_{\text{mem}} \cdot M_{\text{memory}} \quad (w_{\text{mem}} = 0.5)$$
-  Non-parametric memory distance grounds spatial localization, while the progressive SE decoder provides boundary refinement and sub-patch noise suppression.
+  $$M_{\text{final}} = (1 - w_{\text{mem}}) \cdot M_{\text{neural}} + w_{\text{mem}} \cdot M_{\text{memory}} \quad (w_{\text{mem}} = 0.65)$$
 
-### 2.3 Global-Local Feature Fusion (FiLM Modulation)
-- **FiLM Modulation (Default)**: Modulates concatenated local patch features ($3 \times 384 = 1,152$ channels) with affine parameters $[\boldsymbol{\gamma}, \boldsymbol{\beta}]$ computed from global CLS tokens.
-  $$\mathbf{F}_{\text{fused}} = \mathbf{F}_{\text{local}} + \text{Conv}_{3\times3}\left((1 + \boldsymbol{\gamma}) \odot \mathbf{F}_{\text{local}} + \boldsymbol{\beta}\right)$$
+### 2.3 Image-Level Anomaly Discrimination Head
+In V6.0, image-level discrimination combines continuous memory bank distance with high-percentile spatial pooling:
+$$S_{\text{image}} = 0.70 \cdot s_{\text{cal\_mem}} + 0.30 \cdot s_{\text{topk\_spatial}}$$
+where $s_{\text{topk\_spatial}} = \frac{1}{K} \sum_{k=1}^K \text{TopK}(M_{\text{final}}, K)$ with $K = \max(1, 0.005 \times H \times W)$.
 
 ### 2.4 Progressive Segmentation Decoder with SE Attention
 - **Lateral Skips**: Direct projections from intermediate layers to restore high-frequency boundary details:
   - Skip 8: $384 \to 128$ channels at $37 \times 37$
   - Skip 4: $384 \to 64$ channels at $74 \times 74$
-- **Channel Attention**: Squeeze-and-Excitation (SE) blocks on each convolutional block adaptively recalibrating channel weights.
+- **Channel Attention**: Squeeze-and-Excitation (SE) blocks on each convolutional stage adaptively recalibrating channel weights.
 - **Stage Resolutions**:
   - Stage 1: $256 \to 128$ channels, upsample to $74 \times 74$
   - Stage 2: $128 \to 64$ channels, upsample to $148 \times 148$
@@ -57,52 +57,8 @@ VISTA-VLM (**Vision Intelligence through Spatial and Textual Alignment**) is des
 - **Auxiliary Heads**: Intermediate deep supervision heads at $148 \times 148$ and $296 \times 296$ preventing gradient decay.
 
 ### 2.5 Multi-Task Loss Formulation
-$$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{focal}} + \lambda_D \mathcal{L}_{\text{dice}} + \lambda_B \mathcal{L}_{\text{boundary}} + \lambda_{\text{aux}} \mathcal{L}_{\text{aux}} + \lambda_I \mathcal{L}_{\text{image}}$$
-- **Differentiable Sobel Boundary Loss**:
-  $$\mathcal{L}_{\text{boundary}} = \frac{1}{|\Omega|} \sum_{u,v} \left| \|\nabla M_{\text{pred}}(u,v)\|_2 - \|\nabla M_{\text{gt}}(u,v)\|_2 \right|$$
-
-### 2.6 Deterministic 9-State Fail-Safe Engine
-Predictions are evaluated through a 9-state fail-safe state machine:
-- `NORMAL` $\rightarrow$ `ACCEPT`
-- `ANOMALY_DETECTED` $\rightarrow$ `REJECT`
-- `UNCERTAIN` $\rightarrow$ `HUMAN_REVIEW`
-- `OOD` $\rightarrow$ `QUARANTINE`
-- `IMAGE_QUALITY_FAILURE` $\rightarrow$ `HOLD`
-- `MODEL_UNAVAILABLE` $\rightarrow$ `HOLD`
-- `CALIBRATION_INVALID` $\rightarrow$ `QUARANTINE`
-- `COMMUNICATION_FAILURE` $\rightarrow$ `HOLD`
-- `HUMAN_REVIEW_REQUIRED` $\rightarrow$ `HUMAN_REVIEW`
-
----
-
-## 3. Data Flow Architecture
-
-```
-Camera Frame (518x518x3)
-         |
-         v
-[Ingress Validation: Dim, Verify, Lux, MTF Focus]
-         |
-         +---------------------------------------+
-         |                                       |
-         v                                       v
-[DINOv2 ViT-S/14 Foundation]            [CLIP ViT-B/16 Encoder]
-(Blocks 4, 8, 12 Extract)               (Candidate Prompt Cosine)
-         |                                       |
-         +-------------------+                   |
-         |                   |                   |
-         v                   v                   |
-[Coreset Memory Bank]    [FiLM SE Decoder]       |
-  (M_mem 37x37)           (M_neural 518x518)     |
-         |                   |                   |
-         +---------+---------+                   |
-                   v                             |
-        [Residual Spatial Fusion]                |
-           (M_final 518x518)                     |
-                   |                             |
-                   v                             |
-     [Conformal & OOD Reliability Engine] <------+
-                   |
-                   v
-     [9-State Fail-Safe Output Schema]
-```
+$$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{focal}} + \lambda_D \mathcal{L}_{\text{dice}} + \lambda_T \mathcal{L}_{\text{tversky}} + \lambda_B \mathcal{L}_{\text{sobel}} + \lambda_{\text{aux}} \mathcal{L}_{\text{aux}} + \lambda_I \mathcal{L}_{\text{image}}$$
+- **Binary Focal Loss**: $\alpha=0.75, \gamma=2.0$ for extreme foreground/background pixel imbalance.
+- **Soft Dice Loss**: Stabilizes binary contour convergence.
+- **Tversky Asymmetric Loss**: $\alpha=0.7, \beta=0.3$ penalizing false negatives on micro-cracks ($<0.1\%$ image area).
+- **Sobel Boundary Loss**: Differentiable edge gradient matching forcing crisp boundary transitions.

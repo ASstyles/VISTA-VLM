@@ -17,15 +17,14 @@ import json
 import time
 import argparse
 import numpy as np
-import torch
 from torch.utils.data import DataLoader
-from typing import Dict, Any, List
+from typing import Dict
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from vista_vlm.data.mvtec import MVTecDataset
 from vista_vlm.data.visa import VisADataset
-from vista_vlm.models.baselines import PatchCore, PaDiM, EfficientAD, DRAEM, WinCLIP, AnomalyCLIP
+from vista_vlm.models.baselines import PatchCore, PaDiM, WinCLIP, AnomalyCLIP
 from vista_vlm.models.vista_model import VISTAAnomalyModel
 from vista_vlm.evaluation.benchmark_runner import evaluate_baseline_model, evaluate_vista_model
 from vista_vlm.utils.logger import setup_logger
@@ -116,7 +115,7 @@ def main():
         # 5. VISTA-VLM (Ours)
         logger.info(f"[{cat_name}] Running VISTA-VLM...")
         vista = VISTAAnomalyModel(image_size=518).to(device)
-        ckpt_path = f"checkpoints/vista_mvtec_bottle.pth"
+        ckpt_path = "checkpoints/vista_mvtec_bottle.pth"
         if os.path.exists(ckpt_path):
             vista.load_checkpoint(ckpt_path, device=device, strict=False)
         cat_results["VISTA-VLM (Ours)"] = evaluate_vista_model(vista, test_loader, device=device)
