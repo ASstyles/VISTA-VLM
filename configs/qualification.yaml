@@ -1,5 +1,5 @@
-version: "6.0.0"
-title: "VISTA-VLM V6.0 Industrial Qualification & Research Verification Benchmark"
+version: "7.0.0"
+title: "VISTA-VLM V7.0 Research Accuracy & Production Reliability Benchmark"
 
 environment:
   expected_python: ">=3.10"
@@ -68,5 +68,5 @@ tracks:
     description: "Robustness Under Optical, Illumination, and Motion Blur Shifts"
     status: "EVALUATED"
 
-output_dir: "reports/v6_qualification"
+output_dir: "reports/v7_qualification"
 

@@ -2,9 +2,9 @@ name: VISTA-VLM CI
 
 on:
   push:
-    branches: [ main, master, v4-research-production-upgrade, v5-real-world-qualification, v6-research-reliability ]
+    branches: [ main, master, v4-research-production-upgrade, v5-real-world-qualification, v6-research-reliability, v7-research-accuracy-reliability ]
   pull_request:
-    branches: [ main, master, v4-research-production-upgrade, v5-real-world-qualification, v6-research-reliability ]
+    branches: [ main, master, v4-research-production-upgrade, v5-real-world-qualification, v6-research-reliability, v7-research-accuracy-reliability ]
 
 jobs:
   lint:
@@ -133,3 +133,18 @@ jobs:
           reports/junit.xml
           reports/coverage.xml
           data/manifests/synthetic/*.json
+
+  docker:
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Build Docker container image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: false
+        tags: vista-vlm:v7.0.0

@@ -52,10 +52,12 @@ class PatchCore(nn.Module):
 
         all_patches = torch.cat(patch_list, dim=0) # [N_patches, C]
         total_p = all_patches.shape[0]
-        n_coreset = max(10, int(total_p * self.coreset_ratio))
+        n_coreset = min(1000, max(10, int(total_p * self.coreset_ratio)))
 
         # Genuine Greedy k-Center coreset selection
-        if self.use_approx_k_center:
+        if n_coreset >= total_p:
+            coreset_t = all_patches
+        elif self.use_approx_k_center:
             coreset_t, _ = coreset_approx_greedy_k_center(all_patches, n_coreset, proj_dim=64, seed=42)
         else:
             coreset_t, _ = coreset_greedy_k_center(all_patches, n_coreset, seed=42)

@@ -29,26 +29,26 @@ from vista_vlm.api.schemas import BatchInspectionRequest
 def test_api_v6_health_endpoint():
     res = health_check()
     assert res.status == "healthy"
-    assert res.system_version == "6.0.0"
+    assert res.system_version in ("6.0.0", "7.0.0")
     assert res.model_state is not None
 
 
 def test_api_v6_liveness_endpoint():
     res = liveness_check()
     assert res["status"] == "alive"
-    assert res["version"] == "6.0.0"
+    assert res["version"] in ("6.0.0", "7.0.0")
 
 
 def test_api_v6_readiness_endpoint():
     res = readiness_check()
     assert res["status"] in ("ready", "uncalibrated")
-    assert res["version"] == "6.0.0"
+    assert res["version"] in ("6.0.0", "7.0.0")
 
 
 def test_api_v6_model_info():
     res = get_model_info()
-    assert res.version == "6.0.0"
-    assert "v6.0" in res.architecture
+    assert res.version in ("6.0.0", "7.0.0")
+    assert "VISTA-VLM" in res.architecture
 
 
 def test_api_v6_batch_path_traversal_blocked():

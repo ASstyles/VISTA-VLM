@@ -200,9 +200,9 @@ def create_synthetic_defect(
 def prepare_mvtec_fixtures(
     output_root: str = "data/synthetic_fixtures/mvtec",
     real_root: str = "data/real",
-    num_train: int = 25,
-    num_test_good: int = 10,
-    num_test_anom: int = 15,
+    num_train: int = 40,
+    num_test_good: int = 15,
+    num_test_anom: int = 20,
     seed: int = 42
 ) -> str:
     """Prepares structured procedural synthetic fixtures adhering to MVTec AD directory layout."""
@@ -272,8 +272,8 @@ def prepare_mvtec_fixtures(
 def prepare_visa_fixtures(
     output_root: str = "data/synthetic_fixtures/visa",
     real_root: str = "data/real",
-    num_normal: int = 30,
-    num_anom: int = 15,
+    num_normal: int = 45,
+    num_anom: int = 20,
     seed: int = 42
 ) -> str:
     """Prepares structured procedural synthetic fixtures adhering to VisA directory layout."""

@@ -8,12 +8,13 @@ class ImageSample:
     image_path: str
     mask_path: Optional[str]
     category: str
-    split: str  # 'train', 'val_calibration', 'test'
+    split: str  # 'train', 'val_calibration', 'val_tuning', 'test'
     is_anomaly: bool
     defect_type: str  # 'good' for normal, or defect name like 'scratch', 'crack'
     width: int
     height: int
     image_id: str
+    split_protocol: str = "default"  # 'official_split', 'deterministic_4partition', 'procedural'
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

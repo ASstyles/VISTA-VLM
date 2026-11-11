@@ -1,64 +1,1777 @@
 {
   "metadata": {
-    "version": "5.0.0",
-    "timestamp": "2026-11-11 19:00:08",
+    "timestamp": "2026-11-12T00:00:32Z",
+    "vista_version": "7.0.0",
+    "python_version": "3.14.3",
+    "torch_version": "2.12.1+cpu",
     "device": "cpu",
-    "dataset_provenance": "procedural_synthetic_benchmark_fixture",
-    "is_real_data": false,
-    "provenance_disclosure": "Data derived from procedural synthetic benchmark fixtures conforming to official MVTec AD and VisA directory schemas.",
-    "categories": [
-      "bottle",
-      "cable",
-      "capsule",
-      "leather",
-      "tile",
-      "candle"
-    ],
-    "track_definitions": {
-      "track_1_in_domain": "Trained/fitted on target category normal images. PatchCore, PaDiM, VISTA-VLM.",
-      "track_2_cross_category": "Source-only transfer: VISTA-VLM trained on bottle, evaluated zero-shot on unseen target categories.",
-      "track_3_zero_shot_vlm": "Zero target training images. Language-guided prompt ensembles (WinCLIP, AnomalyCLIP).",
-      "track_4_few_shot": "Sample-constrained few-normal-shot adaptation (k in {1, 2, 4, 8, 16})."
+    "config_sha256": "5e53045a143c09467e2b96af726c0063f259862a8ed3c10bfbd3847e0105e8c8",
+    "split_protocol": "strict_4_partition_zero_leakage"
+  },
+  "gates": {
+    "Gate_A_Software_Engineering": {
+      "status": "PASS",
+      "evidence": "Automated pytest unit and integration tests passing, clean wheel/sdist packaging, ruff linting clean, TypeScript frontend build certified."
+    },
+    "Gate_B_Research_Validity": {
+      "status": "BLOCKED",
+      "evidence": "Real external dataset assets (MVTec AD full archive, VisA official AWS tar) were not present in data/real/. Procedural synthetic fixtures isolated."
+    },
+    "Gate_C_Detection_Quality": {
+      "status": "FAIL",
+      "evidence": "Macro Image AUROC: 0.9305 (CI: [0.8324, 1.0000]), Pixel AUROC: 0.9860, AUPRO: 0.8977, IoU: 0.5649, Dice: 0.7174, FAR: 0.00%. Evaluation protocol: strict 4-partition zero-leakage split."
+    },
+    "Gate_D_Industrial_Pilot": {
+      "status": "BLOCKED",
+      "evidence": "Requires deployed on-site physical hardware with camera integration, takt-time verification, and supervised shadow-mode validation at partner facility."
+    },
+    "Gate_E_Functional_Safety": {
+      "status": "RESTRICTED_ADVISORY_ONLY",
+      "evidence": "Non-safety-related advisory inspection software. No SIL (IEC 61508) or PL (ISO 13849-1) certification is claimed or implied. Machine emergency stops must remain independent."
     }
   },
-  "track_1_in_domain": {
-    "per_category": {
-      "bottle": {
+  "tracks": {
+    "track_1_in_domain": {
+      "per_category": {
+        "bottle": {
+          "provenance": "procedural_synthetic_benchmark_fixture",
+          "is_real": false,
+          "PatchCore": {
+            "image_level": {
+              "auroc": 1.0,
+              "average_precision": 1.0,
+              "precision": 1.0,
+              "recall": 0.9375,
+              "f1": 0.9677,
+              "threshold": 7.1544
+            },
+            "pixel_level": {
+              "pixel_auroc": 0.9936,
+              "pixel_ap": 0.8577,
+              "aupro": 0.939,
+              "iou": 0.6244,
+              "dice": 0.7688,
+              "is_constant_map": false,
+              "spatial_variance": 0.5485,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 431,
+                  "detected_count": 87,
+                  "recall": 0.2019,
+                  "mean_overlap": 0.1515
+                },
+                "small (0.1-1%)": {
+                  "region_count": 7,
+                  "detected_count": 6,
+                  "recall": 0.8571,
+                  "mean_overlap": 0.3274
+                },
+                "medium (1-5%)": {
+                  "region_count": 3,
+                  "detected_count": 3,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9896
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.2255,
+              "brier_score": 0.0927,
+              "empirical_false_alarm_rate": 0.0
+            },
+            "efficiency": {
+              "p50_latency_ms": 576.07,
+              "p95_latency_ms": 582.36,
+              "throughput_fps": 1.73
+            }
+          },
+          "PaDiM": {
+            "image_level": {
+              "auroc": 1.0,
+              "average_precision": 1.0,
+              "precision": 1.0,
+              "recall": 0.9375,
+              "f1": 0.9677,
+              "threshold": 28.5951
+            },
+            "pixel_level": {
+              "pixel_auroc": 0.9943,
+              "pixel_ap": 0.8545,
+              "aupro": 0.9348,
+              "iou": 0.6391,
+              "dice": 0.7798,
+              "is_constant_map": false,
+              "spatial_variance": 2.818228,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 431,
+                  "detected_count": 36,
+                  "recall": 0.0835,
+                  "mean_overlap": 0.0581
+                },
+                "small (0.1-1%)": {
+                  "region_count": 7,
+                  "detected_count": 5,
+                  "recall": 0.7143,
+                  "mean_overlap": 0.5538
+                },
+                "medium (1-5%)": {
+                  "region_count": 3,
+                  "detected_count": 3,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9749
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.1601,
+              "brier_score": 0.0578,
+              "empirical_false_alarm_rate": 0.0
+            },
+            "efficiency": {
+              "p50_latency_ms": 573.94,
+              "p95_latency_ms": 579.6,
+              "throughput_fps": 1.74
+            }
+          },
+          "VISTA-VLM V7.0": {
+            "image_level": {
+              "auroc": 0.9323,
+              "average_precision": 0.9553,
+              "precision": 1.0,
+              "recall": 0.6875,
+              "f1": 0.8148,
+              "threshold": 0.7755
+            },
+            "pixel_level": {
+              "pixel_auroc": 0.9911,
+              "pixel_ap": 0.6932,
+              "aupro": 0.9312,
+              "iou": 0.5139,
+              "dice": 0.6789,
+              "is_constant_map": false,
+              "spatial_variance": 0.086701,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 431,
+                  "detected_count": 207,
+                  "recall": 0.4803,
+                  "mean_overlap": 0.4207
+                },
+                "small (0.1-1%)": {
+                  "region_count": 7,
+                  "detected_count": 4,
+                  "recall": 0.5714,
+                  "mean_overlap": 0.2877
+                },
+                "medium (1-5%)": {
+                  "region_count": 3,
+                  "detected_count": 3,
+                  "recall": 1.0,
+                  "mean_overlap": 0.8621
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.249,
+              "brier_score": 0.2789,
+              "empirical_false_alarm_rate": 0.0
+            },
+            "efficiency": {
+              "p50_latency_ms": 674.29,
+              "p95_latency_ms": 693.94,
+              "throughput_fps": 1.48
+            },
+            "raw_scores": {
+              "y_true": [
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0
+              ],
+              "y_scores": [
+                0.7989063262939453,
+                0.8002745509147644,
+                0.8011467456817627,
+                0.8006527423858643,
+                0.798770010471344,
+                0.7962071299552917,
+                0.7919104695320129,
+                0.7929902672767639,
+                0.7782378792762756,
+                0.769525408744812,
+                0.7785806655883789,
+                0.773361086845398,
+                0.7662637233734131,
+                0.7630537748336792,
+                0.7680131793022156,
+                0.7667818069458008,
+                0.7658137083053589,
+                0.7711510062217712,
+                0.7641458511352539,
+                0.7660667300224304,
+                0.7656325101852417,
+                0.7730427384376526,
+                0.7679089903831482,
+                0.7725054621696472,
+                0.7700270414352417,
+                0.7759883403778076,
+                0.7716187238693237,
+                0.7673795819282532
+              ]
+            },
+            "selective_prediction": {
+              "total_samples": 28,
+              "accepted_samples": 10,
+              "coverage": 0.3571,
+              "abstention_rate": 0.6429,
+              "defective_accepted": 8,
+              "false_passes": 0,
+              "observed_false_pass_rate": 0.0,
+              "false_pass_ci_95": [
+                0.0,
+                0.3244
+              ],
+              "false_pass_exact_upper_bound_95": 0.3123,
+              "normal_accepted": 2,
+              "false_alarms": 0,
+              "observed_false_alarm_rate": 0.0,
+              "false_alarm_ci_95": [
+                0.0,
+                0.6576
+              ],
+              "provenance": "procedural_synthetic_benchmark_fixture",
+              "is_synthetic": true,
+              "is_sample_size_sufficient_for_1pct": false,
+              "guarantee_status": "SYNTHETIC_DEVELOPMENTAL_EVIDENCE_ONLY_NO_PRODUCTION_ESCAPE_GUARANTEE",
+              "sample_size_note": "Evaluation evaluated on procedural_synthetic_benchmark_fixture data (N_def=8). Observed risk on synthetic examples CANNOT mathematically guarantee production defect escape rates."
+            },
+            "selective_uncertainty_band": 0.01
+          }
+        },
+        "cable": {
+          "provenance": "procedural_synthetic_benchmark_fixture",
+          "is_real": false,
+          "PatchCore": {
+            "image_level": {
+              "auroc": 0.8021,
+              "average_precision": 0.8957,
+              "precision": 0.9167,
+              "recall": 0.6875,
+              "f1": 0.7857,
+              "threshold": 4.4381
+            },
+            "pixel_level": {
+              "pixel_auroc": 0.9628,
+              "pixel_ap": 0.6388,
+              "aupro": 0.6677,
+              "iou": 0.5456,
+              "dice": 0.706,
+              "is_constant_map": false,
+              "spatial_variance": 0.375318,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 708,
+                  "detected_count": 0,
+                  "recall": 0.0,
+                  "mean_overlap": 0.0
+                },
+                "small (0.1-1%)": {
+                  "region_count": 6,
+                  "detected_count": 0,
+                  "recall": 0.0,
+                  "mean_overlap": 0.0
+                },
+                "medium (1-5%)": {
+                  "region_count": 4,
+                  "detected_count": 4,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9904
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.3066,
+              "brier_score": 0.2773,
+              "empirical_false_alarm_rate": 0.0833
+            },
+            "efficiency": {
+              "p50_latency_ms": 594.13,
+              "p95_latency_ms": 615.78,
+              "throughput_fps": 1.68
+            }
+          },
+          "PaDiM": {
+            "image_level": {
+              "auroc": 0.8802,
+              "average_precision": 0.9259,
+              "precision": 0.7778,
+              "recall": 0.875,
+              "f1": 0.8235,
+              "threshold": 13.3608
+            },
+            "pixel_level": {
+              "pixel_auroc": 0.9463,
+              "pixel_ap": 0.6076,
+              "aupro": 0.5609,
+              "iou": 0.5342,
+              "dice": 0.6964,
+              "is_constant_map": false,
+              "spatial_variance": 2.545936,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 708,
+                  "detected_count": 2,
+                  "recall": 0.0028,
+                  "mean_overlap": 0.0005
+                },
+                "small (0.1-1%)": {
+                  "region_count": 6,
+                  "detected_count": 1,
+                  "recall": 0.1667,
+                  "mean_overlap": 0.0553
+                },
+                "medium (1-5%)": {
+                  "region_count": 4,
+                  "detected_count": 4,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9761
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.3033,
+              "brier_score": 0.2699,
+              "empirical_false_alarm_rate": 0.3333
+            },
+            "efficiency": {
+              "p50_latency_ms": 599.8,
+              "p95_latency_ms": 662.21,
+              "throughput_fps": 1.63
+            }
+          },
+          "VISTA-VLM V7.0": {
+            "image_level": {
+              "auroc": 0.7656,
+              "average_precision": 0.8477,
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6667,
+              "threshold": 0.7798
+            },
+            "pixel_level": {
+              "pixel_auroc": 0.9378,
+              "pixel_ap": 0.513,
+              "aupro": 0.5576,
+              "iou": 0.4722,
+              "dice": 0.6415,
+              "is_constant_map": false,
+              "spatial_variance": 0.063375,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 708,
+                  "detected_count": 49,
+                  "recall": 0.0692,
+                  "mean_overlap": 0.0597
+                },
+                "small (0.1-1%)": {
+                  "region_count": 6,
+                  "detected_count": 2,
+                  "recall": 0.3333,
+                  "mean_overlap": 0.1045
+                },
+                "medium (1-5%)": {
+                  "region_count": 4,
+                  "detected_count": 4,
+                  "recall": 1.0,
+                  "mean_overlap": 0.8866
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.2745,
+              "brier_score": 0.2789,
+              "empirical_false_alarm_rate": 0.0
+            },
+            "efficiency": {
+              "p50_latency_ms": 668.29,
+              "p95_latency_ms": 776.03,
+              "throughput_fps": 1.46
+            },
+            "raw_scores": {
+              "y_true": [
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0
+              ],
+              "y_scores": [
+                0.8045362234115601,
+                0.8049275279045105,
+                0.8058691620826721,
+                0.8056346774101257,
+                0.76577228307724,
+                0.7750235199928284,
+                0.7648884654045105,
+                0.8050141930580139,
+                0.7896501421928406,
+                0.7642489075660706,
+                0.772656261920929,
+                0.7645477652549744,
+                0.7780678272247314,
+                0.7475951910018921,
+                0.7703458666801453,
+                0.7686541676521301,
+                0.7644802927970886,
+                0.7735736966133118,
+                0.7633135318756104,
+                0.7759494185447693,
+                0.765335738658905,
+                0.7545598149299622,
+                0.7633359432220459,
+                0.7758270502090454,
+                0.787704586982727,
+                0.7852111458778381,
+                0.7682881951332092,
+                0.7734872102737427
+              ]
+            },
+            "selective_prediction": {
+              "total_samples": 28,
+              "accepted_samples": 0,
+              "coverage": 0.0,
+              "abstention_rate": 1.0,
+              "defective_accepted": 0,
+              "false_passes": 0,
+              "observed_false_pass_rate": 0.0,
+              "false_pass_ci_95": [
+                0.0,
+                1.0
+              ],
+              "false_pass_exact_upper_bound_95": 1.0,
+              "normal_accepted": 0,
+              "false_alarms": 0,
+              "observed_false_alarm_rate": 0.0,
+              "false_alarm_ci_95": [
+                0.0,
+                1.0
+              ],
+              "provenance": "procedural_synthetic_benchmark_fixture",
+              "is_synthetic": true,
+              "is_sample_size_sufficient_for_1pct": false,
+              "guarantee_status": "SYNTHETIC_DEVELOPMENTAL_EVIDENCE_ONLY_NO_PRODUCTION_ESCAPE_GUARANTEE",
+              "sample_size_note": "Evaluation evaluated on procedural_synthetic_benchmark_fixture data (N_def=0). Observed risk on synthetic examples CANNOT mathematically guarantee production defect escape rates."
+            },
+            "selective_uncertainty_band": 0.08
+          }
+        },
+        "capsule": {
+          "provenance": "procedural_synthetic_benchmark_fixture",
+          "is_real": false,
+          "PatchCore": {
+            "image_level": {
+              "auroc": 1.0,
+              "average_precision": 1.0,
+              "precision": 1.0,
+              "recall": 0.9375,
+              "f1": 0.9677,
+              "threshold": 7.4312
+            },
+            "pixel_level": {
+              "pixel_auroc": 0.9955,
+              "pixel_ap": 0.8658,
+              "aupro": 0.9419,
+              "iou": 0.6354,
+              "dice": 0.7771,
+              "is_constant_map": false,
+              "spatial_variance": 0.551701,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 444,
+                  "detected_count": 92,
+                  "recall": 0.2072,
+                  "mean_overlap": 0.1691
+                },
+                "small (0.1-1%)": {
+                  "region_count": 10,
+                  "detected_count": 5,
+                  "recall": 0.5,
+                  "mean_overlap": 0.3117
+                },
+                "medium (1-5%)": {
+                  "region_count": 3,
+                  "detected_count": 3,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9893
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.2116,
+              "brier_score": 0.0857,
+              "empirical_false_alarm_rate": 0.0
+            },
+            "efficiency": {
+              "p50_latency_ms": 572.29,
+              "p95_latency_ms": 583.0,
+              "throughput_fps": 1.75
+            }
+          },
+          "PaDiM": {
+            "image_level": {
+              "auroc": 1.0,
+              "average_precision": 1.0,
+              "precision": 1.0,
+              "recall": 0.9375,
+              "f1": 0.9677,
+              "threshold": 31.4432
+            },
+            "pixel_level": {
+              "pixel_auroc": 0.9946,
+              "pixel_ap": 0.8668,
+              "aupro": 0.9256,
+              "iou": 0.6571,
+              "dice": 0.7931,
+              "is_constant_map": false,
+              "spatial_variance": 3.005095,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 444,
+                  "detected_count": 54,
+                  "recall": 0.1216,
+                  "mean_overlap": 0.1006
+                },
+                "small (0.1-1%)": {
+                  "region_count": 10,
+                  "detected_count": 10,
+                  "recall": 1.0,
+                  "mean_overlap": 0.7414
+                },
+                "medium (1-5%)": {
+                  "region_count": 3,
+                  "detected_count": 3,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9826
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.1737,
+              "brier_score": 0.0552,
+              "empirical_false_alarm_rate": 0.0
+            },
+            "efficiency": {
+              "p50_latency_ms": 558.06,
+              "p95_latency_ms": 562.15,
+              "throughput_fps": 1.79
+            }
+          },
+          "VISTA-VLM V7.0": {
+            "image_level": {
+              "auroc": 0.8854,
+              "average_precision": 0.9252,
+              "precision": 1.0,
+              "recall": 0.5625,
+              "f1": 0.72,
+              "threshold": 0.7904
+            },
+            "pixel_level": {
+              "pixel_auroc": 0.9904,
+              "pixel_ap": 0.4915,
+              "aupro": 0.9144,
+              "iou": 0.4946,
+              "dice": 0.6618,
+              "is_constant_map": false,
+              "spatial_variance": 0.084925,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 444,
+                  "detected_count": 286,
+                  "recall": 0.6441,
+                  "mean_overlap": 0.5839
+                },
+                "small (0.1-1%)": {
+                  "region_count": 10,
+                  "detected_count": 6,
+                  "recall": 0.6,
+                  "mean_overlap": 0.3426
+                },
+                "medium (1-5%)": {
+                  "region_count": 3,
+                  "detected_count": 3,
+                  "recall": 1.0,
+                  "mean_overlap": 0.8197
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.3304,
+              "brier_score": 0.2864,
+              "empirical_false_alarm_rate": 0.0
+            },
+            "efficiency": {
+              "p50_latency_ms": 643.32,
+              "p95_latency_ms": 786.19,
+              "throughput_fps": 1.47
+            },
+            "raw_scores": {
+              "y_true": [
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0
+              ],
+              "y_scores": [
+                0.805709183216095,
+                0.8045663833618164,
+                0.8056397438049316,
+                0.8052026629447937,
+                0.807278037071228,
+                0.8068935871124268,
+                0.8059543371200562,
+                0.8076915144920349,
+                0.7863568067550659,
+                0.7857779264450073,
+                0.7902790904045105,
+                0.7889513969421387,
+                0.7805951237678528,
+                0.7816582918167114,
+                0.7793090343475342,
+                0.7749016284942627,
+                0.7858226895332336,
+                0.7855216860771179,
+                0.7898534536361694,
+                0.7829907536506653,
+                0.7842881083488464,
+                0.7773457169532776,
+                0.7848660945892334,
+                0.789598822593689,
+                0.7975332736968994,
+                0.7833895087242126,
+                0.7821387648582458,
+                0.7892667055130005
+              ]
+            },
+            "selective_prediction": {
+              "total_samples": 28,
+              "accepted_samples": 11,
+              "coverage": 0.3929,
+              "abstention_rate": 0.6071,
+              "defective_accepted": 8,
+              "false_passes": 0,
+              "observed_false_pass_rate": 0.0,
+              "false_pass_ci_95": [
+                0.0,
+                0.3244
+              ],
+              "false_pass_exact_upper_bound_95": 0.3123,
+              "normal_accepted": 3,
+              "false_alarms": 0,
+              "observed_false_alarm_rate": 0.0,
+              "false_alarm_ci_95": [
+                0.0,
+                0.5615
+              ],
+              "provenance": "procedural_synthetic_benchmark_fixture",
+              "is_synthetic": true,
+              "is_sample_size_sufficient_for_1pct": false,
+              "guarantee_status": "SYNTHETIC_DEVELOPMENTAL_EVIDENCE_ONLY_NO_PRODUCTION_ESCAPE_GUARANTEE",
+              "sample_size_note": "Evaluation evaluated on procedural_synthetic_benchmark_fixture data (N_def=8). Observed risk on synthetic examples CANNOT mathematically guarantee production defect escape rates."
+            },
+            "selective_uncertainty_band": 0.01
+          }
+        },
+        "leather": {
+          "provenance": "procedural_synthetic_benchmark_fixture",
+          "is_real": false,
+          "PatchCore": {
+            "image_level": {
+              "auroc": 1.0,
+              "average_precision": 1.0,
+              "precision": 1.0,
+              "recall": 0.9375,
+              "f1": 0.9677,
+              "threshold": 6.8804
+            },
+            "pixel_level": {
+              "pixel_auroc": 0.9994,
+              "pixel_ap": 0.8803,
+              "aupro": 0.9919,
+              "iou": 0.6448,
+              "dice": 0.784,
+              "is_constant_map": false,
+              "spatial_variance": 0.268861,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 461,
+                  "detected_count": 125,
+                  "recall": 0.2711,
+                  "mean_overlap": 0.2085
+                },
+                "small (0.1-1%)": {
+                  "region_count": 9,
+                  "detected_count": 9,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9102
+                },
+                "medium (1-5%)": {
+                  "region_count": 4,
+                  "detected_count": 4,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9834
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.1406,
+              "brier_score": 0.0429,
+              "empirical_false_alarm_rate": 0.0
+            },
+            "efficiency": {
+              "p50_latency_ms": 562.35,
+              "p95_latency_ms": 572.75,
+              "throughput_fps": 1.78
+            }
+          },
+          "PaDiM": {
+            "image_level": {
+              "auroc": 1.0,
+              "average_precision": 1.0,
+              "precision": 1.0,
+              "recall": 0.9375,
+              "f1": 0.9677,
+              "threshold": 18.1299
+            },
+            "pixel_level": {
+              "pixel_auroc": 0.9994,
+              "pixel_ap": 0.8815,
+              "aupro": 0.9921,
+              "iou": 0.6546,
+              "dice": 0.7912,
+              "is_constant_map": false,
+              "spatial_variance": 0.987576,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 461,
+                  "detected_count": 91,
+                  "recall": 0.1974,
+                  "mean_overlap": 0.1408
+                },
+                "small (0.1-1%)": {
+                  "region_count": 9,
+                  "detected_count": 9,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9175
+                },
+                "medium (1-5%)": {
+                  "region_count": 4,
+                  "detected_count": 4,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9792
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.1526,
+              "brier_score": 0.0477,
+              "empirical_false_alarm_rate": 0.0
+            },
+            "efficiency": {
+              "p50_latency_ms": 555.41,
+              "p95_latency_ms": 579.56,
+              "throughput_fps": 1.79
+            }
+          },
+          "VISTA-VLM V7.0": {
+            "image_level": {
+              "auroc": 1.0,
+              "average_precision": 1.0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "threshold": 0.6538
+            },
+            "pixel_level": {
+              "pixel_auroc": 0.9992,
+              "pixel_ap": 0.8391,
+              "aupro": 0.9947,
+              "iou": 0.5872,
+              "dice": 0.7399,
+              "is_constant_map": false,
+              "spatial_variance": 0.034949,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 461,
+                  "detected_count": 378,
+                  "recall": 0.82,
+                  "mean_overlap": 0.7575
+                },
+                "small (0.1-1%)": {
+                  "region_count": 9,
+                  "detected_count": 9,
+                  "recall": 1.0,
+                  "mean_overlap": 0.6532
+                },
+                "medium (1-5%)": {
+                  "region_count": 4,
+                  "detected_count": 4,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9592
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.3863,
+              "brier_score": 0.195,
+              "empirical_false_alarm_rate": 0.0
+            },
+            "efficiency": {
+              "p50_latency_ms": 631.36,
+              "p95_latency_ms": 637.74,
+              "throughput_fps": 1.58
+            },
+            "raw_scores": {
+              "y_true": [
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0
+              ],
+              "y_scores": [
+                0.8237736225128174,
+                0.8210271000862122,
+                0.8221986293792725,
+                0.8192050457000732,
+                0.8134666085243225,
+                0.8139222860336304,
+                0.8129007816314697,
+                0.8131952881813049,
+                0.7802184820175171,
+                0.7891656160354614,
+                0.7522134184837341,
+                0.7769157886505127,
+                0.6245356798171997,
+                0.6254364252090454,
+                0.6334625482559204,
+                0.647131085395813,
+                0.6445205211639404,
+                0.6264856457710266,
+                0.6304610371589661,
+                0.6310353875160217,
+                0.6336691379547119,
+                0.6351206302642822,
+                0.6265480518341064,
+                0.631679892539978,
+                0.7807304263114929,
+                0.7925699353218079,
+                0.772820234298706,
+                0.7901865839958191
+              ]
+            },
+            "selective_prediction": {
+              "total_samples": 28,
+              "accepted_samples": 26,
+              "coverage": 0.9286,
+              "abstention_rate": 0.0714,
+              "defective_accepted": 16,
+              "false_passes": 0,
+              "observed_false_pass_rate": 0.0,
+              "false_pass_ci_95": [
+                0.0,
+                0.1936
+              ],
+              "false_pass_exact_upper_bound_95": 0.1707,
+              "normal_accepted": 10,
+              "false_alarms": 0,
+              "observed_false_alarm_rate": 0.0,
+              "false_alarm_ci_95": [
+                0.0,
+                0.2775
+              ],
+              "provenance": "procedural_synthetic_benchmark_fixture",
+              "is_synthetic": true,
+              "is_sample_size_sufficient_for_1pct": false,
+              "guarantee_status": "SYNTHETIC_DEVELOPMENTAL_EVIDENCE_ONLY_NO_PRODUCTION_ESCAPE_GUARANTEE",
+              "sample_size_note": "Evaluation evaluated on procedural_synthetic_benchmark_fixture data (N_def=16). Observed risk on synthetic examples CANNOT mathematically guarantee production defect escape rates."
+            },
+            "selective_uncertainty_band": 0.01
+          }
+        },
+        "tile": {
+          "provenance": "procedural_synthetic_benchmark_fixture",
+          "is_real": false,
+          "PatchCore": {
+            "image_level": {
+              "auroc": 1.0,
+              "average_precision": 1.0,
+              "precision": 1.0,
+              "recall": 0.9375,
+              "f1": 0.9677,
+              "threshold": 9.692
+            },
+            "pixel_level": {
+              "pixel_auroc": 0.9994,
+              "pixel_ap": 0.9033,
+              "aupro": 0.9917,
+              "iou": 0.6509,
+              "dice": 0.7885,
+              "is_constant_map": false,
+              "spatial_variance": 0.444841,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 541,
+                  "detected_count": 31,
+                  "recall": 0.0573,
+                  "mean_overlap": 0.0386
+                },
+                "small (0.1-1%)": {
+                  "region_count": 8,
+                  "detected_count": 8,
+                  "recall": 1.0,
+                  "mean_overlap": 0.7398
+                },
+                "medium (1-5%)": {
+                  "region_count": 4,
+                  "detected_count": 4,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9806
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.1012,
+              "brier_score": 0.0246,
+              "empirical_false_alarm_rate": 0.0
+            },
+            "efficiency": {
+              "p50_latency_ms": 566.26,
+              "p95_latency_ms": 577.65,
+              "throughput_fps": 1.76
+            }
+          },
+          "PaDiM": {
+            "image_level": {
+              "auroc": 1.0,
+              "average_precision": 1.0,
+              "precision": 1.0,
+              "recall": 0.9375,
+              "f1": 0.9677,
+              "threshold": 25.8889
+            },
+            "pixel_level": {
+              "pixel_auroc": 0.9994,
+              "pixel_ap": 0.9019,
+              "aupro": 0.9918,
+              "iou": 0.6489,
+              "dice": 0.787,
+              "is_constant_map": false,
+              "spatial_variance": 1.445283,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 541,
+                  "detected_count": 68,
+                  "recall": 0.1257,
+                  "mean_overlap": 0.0812
+                },
+                "small (0.1-1%)": {
+                  "region_count": 8,
+                  "detected_count": 8,
+                  "recall": 1.0,
+                  "mean_overlap": 0.7793
+                },
+                "medium (1-5%)": {
+                  "region_count": 4,
+                  "detected_count": 4,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9961
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.113,
+              "brier_score": 0.0337,
+              "empirical_false_alarm_rate": 0.0
+            },
+            "efficiency": {
+              "p50_latency_ms": 551.42,
+              "p95_latency_ms": 582.73,
+              "throughput_fps": 1.79
+            }
+          },
+          "VISTA-VLM V7.0": {
+            "image_level": {
+              "auroc": 1.0,
+              "average_precision": 1.0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "threshold": 0.6261
+            },
+            "pixel_level": {
+              "pixel_auroc": 0.9992,
+              "pixel_ap": 0.856,
+              "aupro": 0.9939,
+              "iou": 0.5583,
+              "dice": 0.7166,
+              "is_constant_map": false,
+              "spatial_variance": 0.033125,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 541,
+                  "detected_count": 459,
+                  "recall": 0.8484,
+                  "mean_overlap": 0.8018
+                },
+                "small (0.1-1%)": {
+                  "region_count": 8,
+                  "detected_count": 8,
+                  "recall": 1.0,
+                  "mean_overlap": 0.7007
+                },
+                "medium (1-5%)": {
+                  "region_count": 4,
+                  "detected_count": 4,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9472
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.3786,
+              "brier_score": 0.1823,
+              "empirical_false_alarm_rate": 0.0
+            },
+            "efficiency": {
+              "p50_latency_ms": 630.39,
+              "p95_latency_ms": 636.39,
+              "throughput_fps": 1.59
+            },
+            "raw_scores": {
+              "y_true": [
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0
+              ],
+              "y_scores": [
+                0.8110544681549072,
+                0.812066912651062,
+                0.8117888569831848,
+                0.8116937875747681,
+                0.8031336069107056,
+                0.8047360777854919,
+                0.8017419576644897,
+                0.8007045984268188,
+                0.7694379091262817,
+                0.7685410380363464,
+                0.79171222448349,
+                0.7795208096504211,
+                0.609906017780304,
+                0.6090806722640991,
+                0.5989860892295837,
+                0.5896596908569336,
+                0.6052287817001343,
+                0.6203535199165344,
+                0.6067778468132019,
+                0.5986501574516296,
+                0.6026664972305298,
+                0.6110926270484924,
+                0.6040093898773193,
+                0.6161653399467468,
+                0.7826553583145142,
+                0.7702947854995728,
+                0.7840818762779236,
+                0.7688738703727722
+              ]
+            },
+            "selective_prediction": {
+              "total_samples": 28,
+              "accepted_samples": 26,
+              "coverage": 0.9286,
+              "abstention_rate": 0.0714,
+              "defective_accepted": 16,
+              "false_passes": 0,
+              "observed_false_pass_rate": 0.0,
+              "false_pass_ci_95": [
+                0.0,
+                0.1936
+              ],
+              "false_pass_exact_upper_bound_95": 0.1707,
+              "normal_accepted": 10,
+              "false_alarms": 0,
+              "observed_false_alarm_rate": 0.0,
+              "false_alarm_ci_95": [
+                0.0,
+                0.2775
+              ],
+              "provenance": "procedural_synthetic_benchmark_fixture",
+              "is_synthetic": true,
+              "is_sample_size_sufficient_for_1pct": false,
+              "guarantee_status": "SYNTHETIC_DEVELOPMENTAL_EVIDENCE_ONLY_NO_PRODUCTION_ESCAPE_GUARANTEE",
+              "sample_size_note": "Evaluation evaluated on procedural_synthetic_benchmark_fixture data (N_def=16). Observed risk on synthetic examples CANNOT mathematically guarantee production defect escape rates."
+            },
+            "selective_uncertainty_band": 0.01
+          }
+        },
+        "candle": {
+          "provenance": "procedural_synthetic_benchmark_fixture",
+          "is_real": false,
+          "PatchCore": {
+            "image_level": {
+              "auroc": 1.0,
+              "average_precision": 1.0,
+              "precision": 1.0,
+              "recall": 0.9375,
+              "f1": 0.9677,
+              "threshold": 10.2217
+            },
+            "pixel_level": {
+              "pixel_auroc": 1.0,
+              "pixel_ap": 0.9987,
+              "aupro": 0.9999,
+              "iou": 0.9593,
+              "dice": 0.9792,
+              "is_constant_map": false,
+              "spatial_variance": 0.829368,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                },
+                "small (0.1-1%)": {
+                  "region_count": 2,
+                  "detected_count": 2,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9403
+                },
+                "medium (1-5%)": {
+                  "region_count": 14,
+                  "detected_count": 14,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9777
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.0161,
+              "brier_score": 0.0003,
+              "empirical_false_alarm_rate": 0.0
+            },
+            "efficiency": {
+              "p50_latency_ms": 568.01,
+              "p95_latency_ms": 607.14,
+              "throughput_fps": 1.74
+            }
+          },
+          "PaDiM": {
+            "image_level": {
+              "auroc": 1.0,
+              "average_precision": 1.0,
+              "precision": 1.0,
+              "recall": 0.9375,
+              "f1": 0.9677,
+              "threshold": 40.0824
+            },
+            "pixel_level": {
+              "pixel_auroc": 1.0,
+              "pixel_ap": 0.9985,
+              "aupro": 0.9999,
+              "iou": 0.9591,
+              "dice": 0.9791,
+              "is_constant_map": false,
+              "spatial_variance": 3.599708,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                },
+                "small (0.1-1%)": {
+                  "region_count": 2,
+                  "detected_count": 2,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9619
+                },
+                "medium (1-5%)": {
+                  "region_count": 14,
+                  "detected_count": 14,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9801
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.0373,
+              "brier_score": 0.0038,
+              "empirical_false_alarm_rate": 0.0
+            },
+            "efficiency": {
+              "p50_latency_ms": 558.78,
+              "p95_latency_ms": 608.62,
+              "throughput_fps": 1.76
+            }
+          },
+          "VISTA-VLM V7.0": {
+            "image_level": {
+              "auroc": 1.0,
+              "average_precision": 1.0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "threshold": 0.8023
+            },
+            "pixel_level": {
+              "pixel_auroc": 0.9982,
+              "pixel_ap": 0.7445,
+              "aupro": 0.9943,
+              "iou": 0.7635,
+              "dice": 0.8659,
+              "is_constant_map": false,
+              "spatial_variance": 0.087716,
+              "defect_size_stratification": {
+                "tiny (<0.1%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                },
+                "small (0.1-1%)": {
+                  "region_count": 2,
+                  "detected_count": 2,
+                  "recall": 1.0,
+                  "mean_overlap": 0.84
+                },
+                "medium (1-5%)": {
+                  "region_count": 14,
+                  "detected_count": 14,
+                  "recall": 1.0,
+                  "mean_overlap": 0.9024
+                },
+                "large (>5%)": {
+                  "region_count": 0,
+                  "detected_count": 0,
+                  "recall": 1.0,
+                  "mean_overlap": 1.0
+                }
+              }
+            },
+            "reliability": {
+              "ece": 0.2773,
+              "brier_score": 0.196,
+              "empirical_false_alarm_rate": 0.0
+            },
+            "efficiency": {
+              "p50_latency_ms": 697.49,
+              "p95_latency_ms": 755.04,
+              "throughput_fps": 1.41
+            },
+            "raw_scores": {
+              "y_true": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0
+              ],
+              "y_scores": [
+                0.7725824117660522,
+                0.7933335304260254,
+                0.7949910759925842,
+                0.7969309091567993,
+                0.7959446907043457,
+                0.801418662071228,
+                0.817909300327301,
+                0.8163576722145081,
+                0.8173307180404663,
+                0.8149061799049377,
+                0.8165599703788757,
+                0.8164546489715576,
+                0.817980170249939,
+                0.8166791200637817,
+                0.8149824738502502,
+                0.8149958848953247,
+                0.8146747350692749,
+                0.815666675567627,
+                0.8130648732185364,
+                0.813386082649231,
+                0.813976526260376,
+                0.8170579075813293
+              ]
+            },
+            "selective_prediction": {
+              "total_samples": 22,
+              "accepted_samples": 0,
+              "coverage": 0.0,
+              "abstention_rate": 1.0,
+              "defective_accepted": 0,
+              "false_passes": 0,
+              "observed_false_pass_rate": 0.0,
+              "false_pass_ci_95": [
+                0.0,
+                1.0
+              ],
+              "false_pass_exact_upper_bound_95": 1.0,
+              "normal_accepted": 0,
+              "false_alarms": 0,
+              "observed_false_alarm_rate": 0.0,
+              "false_alarm_ci_95": [
+                0.0,
+                1.0
+              ],
+              "provenance": "procedural_synthetic_benchmark_fixture",
+              "is_synthetic": true,
+              "is_sample_size_sufficient_for_1pct": false,
+              "guarantee_status": "SYNTHETIC_DEVELOPMENTAL_EVIDENCE_ONLY_NO_PRODUCTION_ESCAPE_GUARANTEE",
+              "sample_size_note": "Evaluation evaluated on procedural_synthetic_benchmark_fixture data (N_def=0). Observed risk on synthetic examples CANNOT mathematically guarantee production defect escape rates."
+            },
+            "selective_uncertainty_band": 0.08
+          }
+        }
+      },
+      "macro_metrics": {
         "PatchCore": {
+          "image_auroc": {
+            "mean": 0.967,
+            "std": 0.0808,
+            "ci_lower": 0.8822,
+            "ci_upper": 1.0,
+            "sample_count": 6
+          },
+          "pixel_auroc": {
+            "mean": 0.9918,
+            "std": 0.0144,
+            "ci_lower": 0.9766,
+            "ci_upper": 1.0,
+            "sample_count": 6
+          },
+          "aupro": {
+            "mean": 0.922,
+            "std": 0.1274,
+            "ci_lower": 0.7883,
+            "ci_upper": 1.0,
+            "sample_count": 6
+          },
+          "iou": {
+            "mean": 0.6767,
+            "std": 0.1436,
+            "ci_lower": 0.526,
+            "ci_upper": 0.8275,
+            "sample_count": 6
+          },
+          "dice": {
+            "mean": 0.8006,
+            "std": 0.0926,
+            "ci_lower": 0.7035,
+            "ci_upper": 0.8977,
+            "sample_count": 6
+          },
+          "false_alarm_rate": {
+            "mean": 0.0139,
+            "std": 0.034,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0496,
+            "sample_count": 6
+          }
+        },
+        "PaDiM": {
+          "image_auroc": {
+            "mean": 0.98,
+            "std": 0.0489,
+            "ci_lower": 0.9287,
+            "ci_upper": 1.0,
+            "sample_count": 6
+          },
+          "pixel_auroc": {
+            "mean": 0.989,
+            "std": 0.0211,
+            "ci_lower": 0.9669,
+            "ci_upper": 1.0,
+            "sample_count": 6
+          },
+          "aupro": {
+            "mean": 0.9008,
+            "std": 0.1696,
+            "ci_lower": 0.7229,
+            "ci_upper": 1.0,
+            "sample_count": 6
+          },
+          "iou": {
+            "mean": 0.6822,
+            "std": 0.1435,
+            "ci_lower": 0.5316,
+            "ci_upper": 0.8327,
+            "sample_count": 6
+          },
+          "dice": {
+            "mean": 0.8044,
+            "std": 0.0932,
+            "ci_lower": 0.7067,
+            "ci_upper": 0.9022,
+            "sample_count": 6
+          },
+          "false_alarm_rate": {
+            "mean": 0.0555,
+            "std": 0.1361,
+            "ci_lower": 0.0,
+            "ci_upper": 0.1983,
+            "sample_count": 6
+          }
+        },
+        "VISTA-VLM V7.0": {
+          "image_auroc": {
+            "mean": 0.9305,
+            "std": 0.0935,
+            "ci_lower": 0.8324,
+            "ci_upper": 1.0,
+            "sample_count": 6
+          },
+          "pixel_auroc": {
+            "mean": 0.986,
+            "std": 0.0239,
+            "ci_lower": 0.9609,
+            "ci_upper": 1.0,
+            "sample_count": 6
+          },
+          "aupro": {
+            "mean": 0.8977,
+            "std": 0.1703,
+            "ci_lower": 0.7189,
+            "ci_upper": 1.0,
+            "sample_count": 6
+          },
+          "iou": {
+            "mean": 0.5649,
+            "std": 0.1059,
+            "ci_lower": 0.4538,
+            "ci_upper": 0.6761,
+            "sample_count": 6
+          },
+          "dice": {
+            "mean": 0.7174,
+            "std": 0.0811,
+            "ci_lower": 0.6323,
+            "ci_upper": 0.8026,
+            "sample_count": 6
+          },
+          "false_alarm_rate": {
+            "mean": 0.0,
+            "std": 0.0,
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "sample_count": 6
+          }
+        }
+      }
+    },
+    "track_2_cross_category": {
+      "source_category": "bottle",
+      "target_evaluations": {
+        "cable": {
+          "image_auroc": 0.5781,
+          "pixel_auroc": 0.7646,
+          "aupro": 0.1383
+        },
+        "capsule": {
+          "image_auroc": 0.9375,
+          "pixel_auroc": 0.992,
+          "aupro": 0.9254
+        },
+        "leather": {
+          "image_auroc": 0.4792,
+          "pixel_auroc": 0.6938,
+          "aupro": 0.0788
+        },
+        "tile": {
+          "image_auroc": 0.2135,
+          "pixel_auroc": 0.2689,
+          "aupro": 0.0638
+        },
+        "candle": {
+          "image_auroc": 0.0,
+          "pixel_auroc": 0.2851,
+          "aupro": 0.01
+        }
+      }
+    },
+    "track_3_zero_shot": {
+      "WinCLIP": {
+        "bottle": {
           "image_level": {
-            "auroc": 1.0,
-            "average_precision": 1.0,
-            "precision": 1.0,
-            "recall": 0.8333,
-            "f1": 0.9091,
-            "threshold": 8.1341
+            "auroc": 0.6146,
+            "average_precision": 0.6531,
+            "precision": 0.7333,
+            "recall": 0.6875,
+            "f1": 0.7097,
+            "threshold": 0.5748
           },
           "pixel_level": {
-            "pixel_auroc": 0.998,
-            "pixel_ap": 0.8317,
-            "aupro": 0.9846,
-            "iou": 0.5733,
-            "dice": 0.7288,
+            "pixel_auroc": 0.7792,
+            "pixel_ap": 0.0091,
+            "aupro": 0.2363,
+            "iou": 0.0106,
+            "dice": 0.0209,
             "is_constant_map": false,
-            "spatial_variance": 1.116087,
+            "spatial_variance": 0.031392,
             "defect_size_stratification": {
               "tiny (<0.1%)": {
-                "region_count": 440,
-                "detected_count": 71,
-                "recall": 0.1614,
-                "mean_overlap": 0.1205
+                "region_count": 431,
+                "detected_count": 114,
+                "recall": 0.2645,
+                "mean_overlap": 0.2481
               },
               "small (0.1-1%)": {
                 "region_count": 7,
                 "detected_count": 5,
                 "recall": 0.7143,
-                "mean_overlap": 0.1894
+                "mean_overlap": 0.3882
               },
               "medium (1-5%)": {
                 "region_count": 3,
                 "detected_count": 3,
                 "recall": 1.0,
-                "mean_overlap": 0.9927
+                "mean_overlap": 0.6094
               },
               "large (>5%)": {
                 "region_count": 0,
@@ -69,2078 +1782,208 @@
             }
           },
           "reliability": {
-            "ece": 0.2342,
-            "brier_score": 0.1757,
-            "empirical_false_alarm_rate": 0.0
+            "ece": 0.0038,
+            "brier_score": 0.2446,
+            "empirical_false_alarm_rate": 0.3333
           },
           "efficiency": {
-            "p50_latency_ms": 585.45,
-            "p95_latency_ms": 642.23,
-            "throughput_fps": 1.68
-          }
-        },
-        "PaDiM": {
-          "image_level": {
-            "auroc": 0.9333,
-            "average_precision": 0.9449,
-            "precision": 0.8462,
-            "recall": 0.9167,
-            "f1": 0.88,
-            "threshold": 28.7715
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9982,
-            "pixel_ap": 0.8367,
-            "aupro": 0.9845,
-            "iou": 0.5812,
-            "dice": 0.7351,
-            "is_constant_map": false,
-            "spatial_variance": 2.513622,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 440,
-                "detected_count": 66,
-                "recall": 0.15,
-                "mean_overlap": 0.1054
-              },
-              "small (0.1-1%)": {
-                "region_count": 7,
-                "detected_count": 7,
-                "recall": 1.0,
-                "mean_overlap": 0.6412
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.969
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.1496,
-            "brier_score": 0.0948,
-            "empirical_false_alarm_rate": 0.2
-          },
-          "efficiency": {
-            "p50_latency_ms": 554.94,
-            "p95_latency_ms": 597.36,
-            "throughput_fps": 1.78
-          }
-        },
-        "VISTA-VLM v5.0": {
-          "image_level": {
-            "auroc": 0.5333,
-            "average_precision": 0.7576,
-            "precision": 0.5455,
-            "recall": 1.0,
-            "f1": 0.7059,
-            "threshold": 0.5
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9966,
-            "pixel_ap": 0.714,
-            "aupro": 0.9713,
-            "iou": 0.2467,
-            "dice": 0.3957,
-            "is_constant_map": false,
-            "spatial_variance": 0.073972,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 440,
-                "detected_count": 368,
-                "recall": 0.8364,
-                "mean_overlap": 0.7995
-              },
-              "small (0.1-1%)": {
-                "region_count": 7,
-                "detected_count": 7,
-                "recall": 1.0,
-                "mean_overlap": 0.825
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.9983
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.2307,
-            "brier_score": 0.2403,
-            "empirical_false_alarm_rate": 1.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 637.26,
-            "p95_latency_ms": 695.13,
-            "throughput_fps": 1.54
+            "p50_latency_ms": 234.87,
+            "p95_latency_ms": 237.69,
+            "throughput_fps": 4.29
           }
         }
-      },
-      "cable": {
-        "PatchCore": {
-          "image_level": {
-            "auroc": 0.8333,
-            "average_precision": 0.8885,
-            "precision": 0.6875,
-            "recall": 0.9167,
-            "f1": 0.7857,
-            "threshold": 5.6723
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9287,
-            "pixel_ap": 0.6282,
-            "aupro": 0.2548,
-            "iou": 0.5657,
-            "dice": 0.7226,
-            "is_constant_map": false,
-            "spatial_variance": 0.730862,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 345,
-                "detected_count": 0,
-                "recall": 0.0,
-                "mean_overlap": 0.0
-              },
-              "small (0.1-1%)": {
-                "region_count": 6,
-                "detected_count": 0,
-                "recall": 0.0,
-                "mean_overlap": 0.0
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.9864
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.3439,
-            "brier_score": 0.3247,
-            "empirical_false_alarm_rate": 0.5
-          },
-          "efficiency": {
-            "p50_latency_ms": 597.99,
-            "p95_latency_ms": 642.67,
-            "throughput_fps": 1.65
-          }
-        },
-        "PaDiM": {
-          "image_level": {
-            "auroc": 0.7083,
-            "average_precision": 0.831,
-            "precision": 1.0,
-            "recall": 0.4167,
-            "f1": 0.5882,
-            "threshold": 18.3673
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9454,
-            "pixel_ap": 0.6176,
-            "aupro": 0.4775,
-            "iou": 0.549,
-            "dice": 0.7089,
-            "is_constant_map": false,
-            "spatial_variance": 2.04858,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 345,
-                "detected_count": 0,
-                "recall": 0.0,
-                "mean_overlap": 0.0
-              },
-              "small (0.1-1%)": {
-                "region_count": 6,
-                "detected_count": 2,
-                "recall": 0.3333,
-                "mean_overlap": 0.0543
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.9789
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.2667,
-            "brier_score": 0.28,
-            "empirical_false_alarm_rate": 0.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 555.52,
-            "p95_latency_ms": 607.65,
-            "throughput_fps": 1.77
-          }
-        },
-        "VISTA-VLM v5.0": {
-          "image_level": {
-            "auroc": 0.6667,
-            "average_precision": 0.7575,
-            "precision": 0.5455,
-            "recall": 1.0,
-            "f1": 0.7059,
-            "threshold": 0.5
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9372,
-            "pixel_ap": 0.5419,
-            "aupro": 0.3767,
-            "iou": 0.1534,
-            "dice": 0.266,
-            "is_constant_map": false,
-            "spatial_variance": 0.071056,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 345,
-                "detected_count": 6,
-                "recall": 0.0174,
-                "mean_overlap": 0.0133
-              },
-              "small (0.1-1%)": {
-                "region_count": 6,
-                "detected_count": 4,
-                "recall": 0.6667,
-                "mean_overlap": 0.3257
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.1131,
-            "brier_score": 0.2353,
-            "empirical_false_alarm_rate": 1.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 647.08,
-            "p95_latency_ms": 735.96,
-            "throughput_fps": 1.5
-          }
-        }
-      },
-      "capsule": {
-        "PatchCore": {
-          "image_level": {
-            "auroc": 1.0,
-            "average_precision": 1.0,
-            "precision": 1.0,
-            "recall": 0.8333,
-            "f1": 0.9091,
-            "threshold": 8.877
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9994,
-            "pixel_ap": 0.8934,
-            "aupro": 0.9929,
-            "iou": 0.6473,
-            "dice": 0.7859,
-            "is_constant_map": false,
-            "spatial_variance": 1.037399,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 225,
-                "detected_count": 19,
-                "recall": 0.0844,
-                "mean_overlap": 0.0536
-              },
-              "small (0.1-1%)": {
-                "region_count": 6,
-                "detected_count": 2,
-                "recall": 0.3333,
-                "mean_overlap": 0.0815
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.9758
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.2354,
-            "brier_score": 0.1328,
-            "empirical_false_alarm_rate": 0.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 606.39,
-            "p95_latency_ms": 649.74,
-            "throughput_fps": 1.63
-          }
-        },
-        "PaDiM": {
-          "image_level": {
-            "auroc": 0.975,
-            "average_precision": 0.9791,
-            "precision": 0.9167,
-            "recall": 0.9167,
-            "f1": 0.9167,
-            "threshold": 28.2388
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9993,
-            "pixel_ap": 0.8791,
-            "aupro": 0.9907,
-            "iou": 0.6624,
-            "dice": 0.7969,
-            "is_constant_map": false,
-            "spatial_variance": 2.486243,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 225,
-                "detected_count": 7,
-                "recall": 0.0311,
-                "mean_overlap": 0.0157
-              },
-              "small (0.1-1%)": {
-                "region_count": 6,
-                "detected_count": 6,
-                "recall": 1.0,
-                "mean_overlap": 0.7059
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.965
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.1636,
-            "brier_score": 0.0986,
-            "empirical_false_alarm_rate": 0.1
-          },
-          "efficiency": {
-            "p50_latency_ms": 573.16,
-            "p95_latency_ms": 620.76,
-            "throughput_fps": 1.72
-          }
-        },
-        "VISTA-VLM v5.0": {
-          "image_level": {
-            "auroc": 0.5333,
-            "average_precision": 0.753,
-            "precision": 0.5,
-            "recall": 0.6667,
-            "f1": 0.5714,
-            "threshold": 0.5
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9982,
-            "pixel_ap": 0.7337,
-            "aupro": 0.9882,
-            "iou": 0.224,
-            "dice": 0.366,
-            "is_constant_map": false,
-            "spatial_variance": 0.068245,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 225,
-                "detected_count": 217,
-                "recall": 0.9644,
-                "mean_overlap": 0.9528
-              },
-              "small (0.1-1%)": {
-                "region_count": 6,
-                "detected_count": 6,
-                "recall": 1.0,
-                "mean_overlap": 0.8351
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.9993
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.1508,
-            "brier_score": 0.2402,
-            "empirical_false_alarm_rate": 0.8
-          },
-          "efficiency": {
-            "p50_latency_ms": 655.31,
-            "p95_latency_ms": 697.04,
-            "throughput_fps": 1.51
-          }
-        }
-      },
-      "leather": {
-        "PatchCore": {
-          "image_level": {
-            "auroc": 1.0,
-            "average_precision": 1.0,
-            "precision": 1.0,
-            "recall": 0.9167,
-            "f1": 0.9565,
-            "threshold": 7.3705
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9992,
-            "pixel_ap": 0.7878,
-            "aupro": 0.9926,
-            "iou": 0.5707,
-            "dice": 0.7267,
-            "is_constant_map": false,
-            "spatial_variance": 0.272744,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 347,
-                "detected_count": 130,
-                "recall": 0.3746,
-                "mean_overlap": 0.3059
-              },
-              "small (0.1-1%)": {
-                "region_count": 9,
-                "detected_count": 9,
-                "recall": 1.0,
-                "mean_overlap": 0.919
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.9236
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.1234,
-            "brier_score": 0.0356,
-            "empirical_false_alarm_rate": 0.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 615.74,
-            "p95_latency_ms": 647.53,
-            "throughput_fps": 1.61
-          }
-        },
-        "PaDiM": {
-          "image_level": {
-            "auroc": 1.0,
-            "average_precision": 1.0,
-            "precision": 1.0,
-            "recall": 0.9167,
-            "f1": 0.9565,
-            "threshold": 15.8313
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9989,
-            "pixel_ap": 0.6803,
-            "aupro": 0.993,
-            "iou": 0.5421,
-            "dice": 0.7031,
-            "is_constant_map": false,
-            "spatial_variance": 0.750113,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 347,
-                "detected_count": 216,
-                "recall": 0.6225,
-                "mean_overlap": 0.5624
-              },
-              "small (0.1-1%)": {
-                "region_count": 9,
-                "detected_count": 9,
-                "recall": 1.0,
-                "mean_overlap": 0.947
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.9064
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.1345,
-            "brier_score": 0.0446,
-            "empirical_false_alarm_rate": 0.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 591.28,
-            "p95_latency_ms": 634.12,
-            "throughput_fps": 1.69
-          }
-        },
-        "VISTA-VLM v5.0": {
-          "image_level": {
-            "auroc": 0.425,
-            "average_precision": 0.6487,
-            "precision": 0.375,
-            "recall": 0.5,
-            "f1": 0.4286,
-            "threshold": 0.5
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.966,
-            "pixel_ap": 0.3532,
-            "aupro": 0.7152,
-            "iou": 0.0134,
-            "dice": 0.0265,
-            "is_constant_map": false,
-            "spatial_variance": 0.055852,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 347,
-                "detected_count": 318,
-                "recall": 0.9164,
-                "mean_overlap": 0.8606
-              },
-              "small (0.1-1%)": {
-                "region_count": 9,
-                "detected_count": 9,
-                "recall": 1.0,
-                "mean_overlap": 0.9857
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.9866
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.3268,
-            "brier_score": 0.271,
-            "empirical_false_alarm_rate": 1.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 673.57,
-            "p95_latency_ms": 768.28,
-            "throughput_fps": 1.44
-          }
-        }
-      },
-      "tile": {
-        "PatchCore": {
-          "image_level": {
-            "auroc": 1.0,
-            "average_precision": 1.0,
-            "precision": 1.0,
-            "recall": 0.9167,
-            "f1": 0.9565,
-            "threshold": 8.7971
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9994,
-            "pixel_ap": 0.8527,
-            "aupro": 0.9924,
-            "iou": 0.6092,
-            "dice": 0.7571,
-            "is_constant_map": false,
-            "spatial_variance": 0.405321,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 343,
-                "detected_count": 80,
-                "recall": 0.2332,
-                "mean_overlap": 0.1773
-              },
-              "small (0.1-1%)": {
-                "region_count": 7,
-                "detected_count": 7,
-                "recall": 1.0,
-                "mean_overlap": 0.8705
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.9719
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.0882,
-            "brier_score": 0.021,
-            "empirical_false_alarm_rate": 0.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 670.88,
-            "p95_latency_ms": 757.74,
-            "throughput_fps": 1.45
-          }
-        },
-        "PaDiM": {
-          "image_level": {
-            "auroc": 1.0,
-            "average_precision": 1.0,
-            "precision": 1.0,
-            "recall": 0.9167,
-            "f1": 0.9565,
-            "threshold": 19.7181
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9994,
-            "pixel_ap": 0.8426,
-            "aupro": 0.9924,
-            "iou": 0.6006,
-            "dice": 0.7505,
-            "is_constant_map": false,
-            "spatial_variance": 1.019915,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 343,
-                "detected_count": 63,
-                "recall": 0.1837,
-                "mean_overlap": 0.1222
-              },
-              "small (0.1-1%)": {
-                "region_count": 7,
-                "detected_count": 7,
-                "recall": 1.0,
-                "mean_overlap": 0.8718
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.9513
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.1026,
-            "brier_score": 0.0259,
-            "empirical_false_alarm_rate": 0.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 600.2,
-            "p95_latency_ms": 614.87,
-            "throughput_fps": 1.67
-          }
-        },
-        "VISTA-VLM v5.0": {
-          "image_level": {
-            "auroc": 0.25,
-            "average_precision": 0.5744,
-            "precision": 0.375,
-            "recall": 0.5,
-            "f1": 0.4286,
-            "threshold": 0.5
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9464,
-            "pixel_ap": 0.4989,
-            "aupro": 0.4048,
-            "iou": 0.0107,
-            "dice": 0.0212,
-            "is_constant_map": false,
-            "spatial_variance": 0.055991,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 343,
-                "detected_count": 263,
-                "recall": 0.7668,
-                "mean_overlap": 0.6992
-              },
-              "small (0.1-1%)": {
-                "region_count": 7,
-                "detected_count": 7,
-                "recall": 1.0,
-                "mean_overlap": 0.9465
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.997
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.3756,
-            "brier_score": 0.2787,
-            "empirical_false_alarm_rate": 1.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 736.54,
-            "p95_latency_ms": 750.95,
-            "throughput_fps": 1.4
-          }
-        }
-      },
-      "candle": {
-        "PatchCore": {
-          "image_level": {
-            "auroc": 1.0,
-            "average_precision": 1.0,
-            "precision": 1.0,
-            "recall": 0.9333,
-            "f1": 0.9655,
-            "threshold": 9.5717
-          },
-          "pixel_level": {
-            "pixel_auroc": 1.0,
-            "pixel_ap": 0.9987,
-            "aupro": 0.9999,
-            "iou": 0.961,
-            "dice": 0.9801,
-            "is_constant_map": false,
-            "spatial_variance": 0.965129,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "small (0.1-1%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "medium (1-5%)": {
-                "region_count": 15,
-                "detected_count": 15,
-                "recall": 1.0,
-                "mean_overlap": 0.9816
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.0095,
-            "brier_score": 0.0001,
-            "empirical_false_alarm_rate": 0.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 715.07,
-            "p95_latency_ms": 739.35,
-            "throughput_fps": 1.43
-          }
-        },
-        "PaDiM": {
-          "image_level": {
-            "auroc": 1.0,
-            "average_precision": 1.0,
-            "precision": 1.0,
-            "recall": 0.9333,
-            "f1": 0.9655,
-            "threshold": 27.4972
-          },
-          "pixel_level": {
-            "pixel_auroc": 1.0,
-            "pixel_ap": 0.9972,
-            "aupro": 0.9999,
-            "iou": 0.9432,
-            "dice": 0.9708,
-            "is_constant_map": false,
-            "spatial_variance": 2.773142,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "small (0.1-1%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "medium (1-5%)": {
-                "region_count": 15,
-                "detected_count": 15,
-                "recall": 1.0,
-                "mean_overlap": 0.9772
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.0215,
-            "brier_score": 0.0006,
-            "empirical_false_alarm_rate": 0.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 683.78,
-            "p95_latency_ms": 799.86,
-            "throughput_fps": 1.43
-          }
-        },
-        "VISTA-VLM v5.0": {
-          "image_level": {
-            "auroc": 1.0,
-            "average_precision": 1.0,
-            "precision": 0.7895,
-            "recall": 1.0,
-            "f1": 0.8824,
-            "threshold": 0.5
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9998,
-            "pixel_ap": 0.9858,
-            "aupro": 0.9993,
-            "iou": 0.7531,
-            "dice": 0.8592,
-            "is_constant_map": false,
-            "spatial_variance": 0.080609,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "small (0.1-1%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "medium (1-5%)": {
-                "region_count": 15,
-                "detected_count": 15,
-                "recall": 1.0,
-                "mean_overlap": 0.9983
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.3944,
-            "brier_score": 0.1613,
-            "empirical_false_alarm_rate": 1.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 751.38,
-            "p95_latency_ms": 919.35,
-            "throughput_fps": 1.28
-          }
-        }
-      }
-    },
-    "macro_averages": {
-      "PatchCore": {
-        "macro_image_auroc": 0.9722,
-        "std_image_auroc": 0.0621,
-        "macro_image_ap": 0.9814,
-        "macro_pixel_auroc": 0.9874,
-        "std_pixel_auroc": 0.0263,
-        "macro_aupro": 0.8695,
-        "mean_throughput_fps": 1.57
-      },
-      "PaDiM": {
-        "macro_image_auroc": 0.9361,
-        "std_image_auroc": 0.1046,
-        "macro_image_ap": 0.9592,
-        "macro_pixel_auroc": 0.9902,
-        "std_pixel_auroc": 0.02,
-        "macro_aupro": 0.9063,
-        "mean_throughput_fps": 1.68
-      },
-      "VISTA-VLM v5.0": {
-        "macro_image_auroc": 0.568,
-        "std_image_auroc": 0.2311,
-        "macro_image_ap": 0.7485,
-        "macro_pixel_auroc": 0.974,
-        "std_pixel_auroc": 0.0256,
-        "macro_aupro": 0.7426,
-        "mean_throughput_fps": 1.45
-      }
-    }
-  },
-  "track_2_cross_category": {
-    "source": "bottle",
-    "per_category": {
-      "cable": {
-        "VISTA-VLM (Source: Bottle)": {
-          "image_level": {
-            "auroc": 0.6083,
-            "average_precision": 0.709,
-            "precision": 0.0,
-            "recall": 0.0,
-            "f1": 0.0,
-            "threshold": 0.5
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.7359,
-            "pixel_ap": 0.4991,
-            "aupro": 0.0322,
-            "iou": 0.2073,
-            "dice": 0.3435,
-            "is_constant_map": false,
-            "spatial_variance": 0.018723,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 345,
-                "detected_count": 0,
-                "recall": 0.0,
-                "mean_overlap": 0.0
-              },
-              "small (0.1-1%)": {
-                "region_count": 6,
-                "detected_count": 0,
-                "recall": 0.0,
-                "mean_overlap": 0.0
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 2,
-                "recall": 0.6667,
-                "mean_overlap": 0.3236
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.1263,
-            "brier_score": 0.2597,
-            "empirical_false_alarm_rate": 0.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 734.66,
-            "p95_latency_ms": 837.44,
-            "throughput_fps": 1.33
-          }
-        }
-      },
-      "capsule": {
-        "VISTA-VLM (Source: Bottle)": {
-          "image_level": {
-            "auroc": 0.8333,
-            "average_precision": 0.895,
-            "precision": 0.0,
-            "recall": 0.0,
-            "f1": 0.0,
-            "threshold": 0.5
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9501,
-            "pixel_ap": 0.4314,
-            "aupro": 0.7058,
-            "iou": 0.0,
-            "dice": 0.0,
-            "is_constant_map": false,
-            "spatial_variance": 0.029945,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 225,
-                "detected_count": 0,
-                "recall": 0.0,
-                "mean_overlap": 0.0
-              },
-              "small (0.1-1%)": {
-                "region_count": 6,
-                "detected_count": 0,
-                "recall": 0.0,
-                "mean_overlap": 0.0
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 0,
-                "recall": 0.0,
-                "mean_overlap": 0.0
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.1404,
-            "brier_score": 0.2656,
-            "empirical_false_alarm_rate": 0.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 714.83,
-            "p95_latency_ms": 737.73,
-            "throughput_fps": 1.42
-          }
-        }
-      },
-      "leather": {
-        "VISTA-VLM (Source: Bottle)": {
-          "image_level": {
-            "auroc": 0.6667,
-            "average_precision": 0.811,
-            "precision": 0.5455,
-            "recall": 1.0,
-            "f1": 0.7059,
-            "threshold": 0.5
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9048,
-            "pixel_ap": 0.3342,
-            "aupro": 0.5871,
-            "iou": 0.0315,
-            "dice": 0.061,
-            "is_constant_map": false,
-            "spatial_variance": 0.033195,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 347,
-                "detected_count": 223,
-                "recall": 0.6427,
-                "mean_overlap": 0.59
-              },
-              "small (0.1-1%)": {
-                "region_count": 9,
-                "detected_count": 9,
-                "recall": 1.0,
-                "mean_overlap": 0.5611
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.9843
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.1459,
-            "brier_score": 0.246,
-            "empirical_false_alarm_rate": 1.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 737.02,
-            "p95_latency_ms": 805.65,
-            "throughput_fps": 1.37
-          }
-        }
-      },
-      "tile": {
-        "VISTA-VLM (Source: Bottle)": {
-          "image_level": {
-            "auroc": 0.6083,
-            "average_precision": 0.7253,
-            "precision": 0.5455,
-            "recall": 1.0,
-            "f1": 0.7059,
-            "threshold": 0.5
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.8125,
-            "pixel_ap": 0.0603,
-            "aupro": 0.3289,
-            "iou": 0.012,
-            "dice": 0.0238,
-            "is_constant_map": false,
-            "spatial_variance": 0.025861,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 343,
-                "detected_count": 182,
-                "recall": 0.5306,
-                "mean_overlap": 0.4292
-              },
-              "small (0.1-1%)": {
-                "region_count": 7,
-                "detected_count": 7,
-                "recall": 1.0,
-                "mean_overlap": 0.7024
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.8483
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.1201,
-            "brier_score": 0.249,
-            "empirical_false_alarm_rate": 1.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 676.74,
-            "p95_latency_ms": 740.38,
-            "throughput_fps": 1.46
-          }
-        }
-      },
-      "candle": {
-        "VISTA-VLM (Source: Bottle)": {
-          "image_level": {
-            "auroc": 1.0,
-            "average_precision": 1.0,
-            "precision": 0.7895,
-            "recall": 1.0,
-            "f1": 0.8824,
-            "threshold": 0.5
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.9994,
-            "pixel_ap": 0.9828,
-            "aupro": 0.9981,
-            "iou": 0.0269,
-            "dice": 0.0524,
-            "is_constant_map": false,
-            "spatial_variance": 0.038108,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "small (0.1-1%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "medium (1-5%)": {
-                "region_count": 15,
-                "detected_count": 15,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.3831,
-            "brier_score": 0.1579,
-            "empirical_false_alarm_rate": 1.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 717.3,
-            "p95_latency_ms": 767.33,
-            "throughput_fps": 1.4
-          }
-        }
-      }
-    },
-    "macro_averages": {
-      "VISTA-VLM (Source: Bottle)": {
-        "macro_image_auroc": 0.7433,
-        "std_image_auroc": 0.1525,
-        "macro_image_ap": 0.8281,
-        "macro_pixel_auroc": 0.8805,
-        "std_pixel_auroc": 0.095,
-        "macro_aupro": 0.5304,
-        "mean_throughput_fps": 1.4
-      }
-    }
-  },
-  "track_3_zero_shot_vlm": {
-    "per_category": {
-      "bottle": {
-        "WinCLIP": {
-          "image_level": {
-            "auroc": 0.5167,
-            "average_precision": 0.579,
-            "precision": 0.6667,
-            "recall": 0.6667,
-            "f1": 0.6667,
-            "threshold": 0.6807
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.8071,
-            "pixel_ap": 0.0098,
-            "aupro": 0.3574,
-            "iou": 0.0123,
-            "dice": 0.0243,
-            "is_constant_map": false,
-            "spatial_variance": 0.055602,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 440,
-                "detected_count": 403,
-                "recall": 0.9159,
-                "mean_overlap": 0.905
-              },
-              "small (0.1-1%)": {
-                "region_count": 7,
-                "detected_count": 7,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.8913
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.1379,
-            "brier_score": 0.2668,
-            "empirical_false_alarm_rate": 0.4
-          },
-          "efficiency": {
-            "p50_latency_ms": 221.41,
-            "p95_latency_ms": 251.71,
-            "throughput_fps": 4.38
-          }
-        },
-        "AnomalyCLIP": {
-          "image_level": {
-            "auroc": 0.275,
-            "average_precision": 0.4441,
-            "precision": 0.55,
-            "recall": 0.9167,
-            "f1": 0.6875,
-            "threshold": 0.526
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.1413,
-            "pixel_ap": 0.0021,
-            "aupro": 0.0,
-            "iou": 0.0038,
-            "dice": 0.0077,
-            "is_constant_map": false,
-            "spatial_variance": 0.028426,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 440,
-                "detected_count": 440,
-                "recall": 1.0,
-                "mean_overlap": 0.9999
-              },
-              "small (0.1-1%)": {
-                "region_count": 7,
-                "detected_count": 7,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.0172,
-            "brier_score": 0.2492,
-            "empirical_false_alarm_rate": 0.9
-          },
-          "efficiency": {
-            "p50_latency_ms": 230.19,
-            "p95_latency_ms": 280.15,
-            "throughput_fps": 4.15
-          }
-        }
-      },
-      "cable": {
-        "WinCLIP": {
-          "image_level": {
-            "auroc": 0.1333,
-            "average_precision": 0.4206,
-            "precision": 0.5238,
-            "recall": 0.9167,
-            "f1": 0.6667,
-            "threshold": 0.5907
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.6519,
-            "pixel_ap": 0.0274,
-            "aupro": 0.0579,
-            "iou": 0.0536,
-            "dice": 0.1018,
-            "is_constant_map": false,
-            "spatial_variance": 0.018638,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 345,
-                "detected_count": 0,
-                "recall": 0.0,
-                "mean_overlap": 0.0
-              },
-              "small (0.1-1%)": {
-                "region_count": 6,
-                "detected_count": 2,
-                "recall": 0.3333,
-                "mean_overlap": 0.0399
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 2,
-                "recall": 0.6667,
-                "mean_overlap": 0.127
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.0498,
-            "brier_score": 0.2524,
-            "empirical_false_alarm_rate": 1.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 228.94,
-            "p95_latency_ms": 244.39,
-            "throughput_fps": 4.33
-          }
-        },
-        "AnomalyCLIP": {
-          "image_level": {
-            "auroc": 0.4583,
-            "average_precision": 0.6,
-            "precision": 0.5238,
-            "recall": 0.9167,
-            "f1": 0.6667,
-            "threshold": 0.4939
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.5745,
-            "pixel_ap": 0.0065,
-            "aupro": 0.1584,
-            "iou": 0.0097,
-            "dice": 0.0191,
-            "is_constant_map": false,
-            "spatial_variance": 0.018088,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 345,
-                "detected_count": 0,
-                "recall": 0.0,
-                "mean_overlap": 0.0
-              },
-              "small (0.1-1%)": {
-                "region_count": 6,
-                "detected_count": 0,
-                "recall": 0.0,
-                "mean_overlap": 0.0
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 1,
-                "recall": 0.3333,
-                "mean_overlap": 0.0426
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.0485,
-            "brier_score": 0.2503,
-            "empirical_false_alarm_rate": 1.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 212.49,
-            "p95_latency_ms": 233.55,
-            "throughput_fps": 4.62
-          }
-        }
-      },
-      "capsule": {
-        "WinCLIP": {
-          "image_level": {
-            "auroc": 0.4167,
-            "average_precision": 0.5635,
-            "precision": 0.5556,
-            "recall": 0.8333,
-            "f1": 0.6667,
-            "threshold": 0.6736
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.8265,
-            "pixel_ap": 0.0153,
-            "aupro": 0.4561,
-            "iou": 0.0125,
-            "dice": 0.0247,
-            "is_constant_map": false,
-            "spatial_variance": 0.045176,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 225,
-                "detected_count": 4,
-                "recall": 0.0178,
-                "mean_overlap": 0.0136
-              },
-              "small (0.1-1%)": {
-                "region_count": 6,
-                "detected_count": 0,
-                "recall": 0.0,
-                "mean_overlap": 0.0
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 0,
-                "recall": 0.0,
-                "mean_overlap": 0.0315
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.1294,
-            "brier_score": 0.2647,
-            "empirical_false_alarm_rate": 0.8
-          },
-          "efficiency": {
-            "p50_latency_ms": 217.86,
-            "p95_latency_ms": 254.3,
-            "throughput_fps": 4.43
-          }
-        },
-        "AnomalyCLIP": {
-          "image_level": {
-            "auroc": 0.45,
-            "average_precision": 0.5748,
-            "precision": 0.55,
-            "recall": 0.9167,
-            "f1": 0.6875,
-            "threshold": 0.5673
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.8351,
-            "pixel_ap": 0.0144,
-            "aupro": 0.5012,
-            "iou": 0.0147,
-            "dice": 0.029,
-            "is_constant_map": false,
-            "spatial_variance": 0.044428,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 225,
-                "detected_count": 49,
-                "recall": 0.2178,
-                "mean_overlap": 0.1946
-              },
-              "small (0.1-1%)": {
-                "region_count": 6,
-                "detected_count": 2,
-                "recall": 0.3333,
-                "mean_overlap": 0.1403
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 1,
-                "recall": 0.3333,
-                "mean_overlap": 0.0491
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.0253,
-            "brier_score": 0.2485,
-            "empirical_false_alarm_rate": 0.9
-          },
-          "efficiency": {
-            "p50_latency_ms": 217.92,
-            "p95_latency_ms": 249.03,
-            "throughput_fps": 4.45
-          }
-        }
-      },
-      "leather": {
-        "WinCLIP": {
-          "image_level": {
-            "auroc": 0.5,
-            "average_precision": 0.5677,
-            "precision": 0.55,
-            "recall": 0.9167,
-            "f1": 0.6875,
-            "threshold": 0.6262
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.4263,
-            "pixel_ap": 0.0032,
-            "aupro": 0.0562,
-            "iou": 0.0039,
-            "dice": 0.0077,
-            "is_constant_map": false,
-            "spatial_variance": 0.028624,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 347,
-                "detected_count": 323,
-                "recall": 0.9308,
-                "mean_overlap": 0.9217
-              },
-              "small (0.1-1%)": {
-                "region_count": 9,
-                "detected_count": 9,
-                "recall": 1.0,
-                "mean_overlap": 0.9915
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.0844,
-            "brier_score": 0.2549,
-            "empirical_false_alarm_rate": 0.9
-          },
-          "efficiency": {
-            "p50_latency_ms": 227.62,
-            "p95_latency_ms": 254.34,
-            "throughput_fps": 4.3
-          }
-        },
-        "AnomalyCLIP": {
-          "image_level": {
-            "auroc": 0.35,
-            "average_precision": 0.4685,
-            "precision": 0.5263,
-            "recall": 0.8333,
-            "f1": 0.6452,
-            "threshold": 0.4534
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.5465,
-            "pixel_ap": 0.0043,
-            "aupro": 0.2506,
-            "iou": 0.0046,
-            "dice": 0.0091,
-            "is_constant_map": false,
-            "spatial_variance": 0.029296,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 347,
-                "detected_count": 195,
-                "recall": 0.562,
-                "mean_overlap": 0.5386
-              },
-              "small (0.1-1%)": {
-                "region_count": 9,
-                "detected_count": 6,
-                "recall": 0.6667,
-                "mean_overlap": 0.4464
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.4709
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.0887,
-            "brier_score": 0.2563,
-            "empirical_false_alarm_rate": 0.9
-          },
-          "efficiency": {
-            "p50_latency_ms": 211.63,
-            "p95_latency_ms": 231.54,
-            "throughput_fps": 4.64
-          }
-        }
-      },
-      "tile": {
-        "WinCLIP": {
-          "image_level": {
-            "auroc": 0.625,
-            "average_precision": 0.7247,
-            "precision": 0.5789,
-            "recall": 0.9167,
-            "f1": 0.7097,
-            "threshold": 0.5257
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.2739,
-            "pixel_ap": 0.0023,
-            "aupro": 0.0191,
-            "iou": 0.0037,
-            "dice": 0.0074,
-            "is_constant_map": false,
-            "spatial_variance": 0.01722,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 343,
-                "detected_count": 343,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "small (0.1-1%)": {
-                "region_count": 7,
-                "detected_count": 7,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 3,
-                "recall": 1.0,
-                "mean_overlap": 0.9984
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.0184,
-            "brier_score": 0.248,
-            "empirical_false_alarm_rate": 0.8
-          },
-          "efficiency": {
-            "p50_latency_ms": 218.53,
-            "p95_latency_ms": 253.25,
-            "throughput_fps": 4.43
-          }
-        },
-        "AnomalyCLIP": {
-          "image_level": {
-            "auroc": 0.425,
-            "average_precision": 0.5178,
-            "precision": 0.5789,
-            "recall": 0.9167,
-            "f1": 0.7097,
-            "threshold": 0.5586
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.6119,
-            "pixel_ap": 0.0054,
-            "aupro": 0.0587,
-            "iou": 0.007,
-            "dice": 0.0138,
-            "is_constant_map": false,
-            "spatial_variance": 0.018377,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 343,
-                "detected_count": 0,
-                "recall": 0.0,
-                "mean_overlap": 0.0
-              },
-              "small (0.1-1%)": {
-                "region_count": 7,
-                "detected_count": 0,
-                "recall": 0.0,
-                "mean_overlap": 0.0
-              },
-              "medium (1-5%)": {
-                "region_count": 3,
-                "detected_count": 1,
-                "recall": 0.3333,
-                "mean_overlap": 0.0499
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.0147,
-            "brier_score": 0.2484,
-            "empirical_false_alarm_rate": 0.8
-          },
-          "efficiency": {
-            "p50_latency_ms": 216.63,
-            "p95_latency_ms": 247.15,
-            "throughput_fps": 4.47
-          }
-        }
-      },
-      "candle": {
-        "WinCLIP": {
-          "image_level": {
-            "auroc": 0.0667,
-            "average_precision": 0.6628,
-            "precision": 0.7778,
-            "recall": 0.9333,
-            "f1": 0.8485,
-            "threshold": 0.5355
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.112,
-            "pixel_ap": 0.0069,
-            "aupro": 0.0117,
-            "iou": 0.0132,
-            "dice": 0.0261,
-            "is_constant_map": false,
-            "spatial_variance": 0.015083,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "small (0.1-1%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "medium (1-5%)": {
-                "region_count": 15,
-                "detected_count": 15,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.2526,
-            "brier_score": 0.2303,
-            "empirical_false_alarm_rate": 1.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 221.69,
-            "p95_latency_ms": 234.87,
-            "throughput_fps": 4.46
-          }
-        },
-        "AnomalyCLIP": {
-          "image_level": {
-            "auroc": 0.05,
-            "average_precision": 0.6228,
-            "precision": 0.7778,
-            "recall": 0.9333,
-            "f1": 0.8485,
-            "threshold": 0.5763
-          },
-          "pixel_level": {
-            "pixel_auroc": 0.6192,
-            "pixel_ap": 0.0267,
-            "aupro": 0.3026,
-            "iou": 0.0332,
-            "dice": 0.0643,
-            "is_constant_map": false,
-            "spatial_variance": 0.010134,
-            "defect_size_stratification": {
-              "tiny (<0.1%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "small (0.1-1%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              },
-              "medium (1-5%)": {
-                "region_count": 15,
-                "detected_count": 4,
-                "recall": 0.2667,
-                "mean_overlap": 0.0604
-              },
-              "large (>5%)": {
-                "region_count": 0,
-                "detected_count": 0,
-                "recall": 1.0,
-                "mean_overlap": 1.0
-              }
-            }
-          },
-          "reliability": {
-            "ece": 0.2125,
-            "brier_score": 0.2116,
-            "empirical_false_alarm_rate": 1.0
-          },
-          "efficiency": {
-            "p50_latency_ms": 247.12,
-            "p95_latency_ms": 251.86,
-            "throughput_fps": 4.08
-          }
-        }
-      }
-    },
-    "macro_averages": {
-      "WinCLIP": {
-        "macro_image_auroc": 0.3764,
-        "std_image_auroc": 0.2055,
-        "macro_image_ap": 0.5864,
-        "macro_pixel_auroc": 0.5163,
-        "std_pixel_auroc": 0.2675,
-        "macro_aupro": 0.1597,
-        "mean_throughput_fps": 4.39
       },
       "AnomalyCLIP": {
-        "macro_image_auroc": 0.3347,
-        "std_image_auroc": 0.1423,
-        "macro_image_ap": 0.538,
-        "macro_pixel_auroc": 0.5547,
-        "std_pixel_auroc": 0.2071,
-        "macro_aupro": 0.2119,
-        "mean_throughput_fps": 4.4
+        "bottle": {
+          "image_level": {
+            "auroc": 0.5938,
+            "average_precision": 0.7079,
+            "precision": 0.5769,
+            "recall": 0.9375,
+            "f1": 0.7143,
+            "threshold": 0.5215
+          },
+          "pixel_level": {
+            "pixel_auroc": 0.2632,
+            "pixel_ap": 0.002,
+            "aupro": 0.014,
+            "iou": 0.0033,
+            "dice": 0.0066,
+            "is_constant_map": false,
+            "spatial_variance": 0.026304,
+            "defect_size_stratification": {
+              "tiny (<0.1%)": {
+                "region_count": 431,
+                "detected_count": 431,
+                "recall": 1.0,
+                "mean_overlap": 1.0
+              },
+              "small (0.1-1%)": {
+                "region_count": 7,
+                "detected_count": 7,
+                "recall": 1.0,
+                "mean_overlap": 0.9949
+              },
+              "medium (1-5%)": {
+                "region_count": 3,
+                "detected_count": 3,
+                "recall": 1.0,
+                "mean_overlap": 1.0
+              },
+              "large (>5%)": {
+                "region_count": 0,
+                "detected_count": 0,
+                "recall": 1.0,
+                "mean_overlap": 1.0
+              }
+            }
+          },
+          "reliability": {
+            "ece": 0.0465,
+            "brier_score": 0.2468,
+            "empirical_false_alarm_rate": 0.9167
+          },
+          "efficiency": {
+            "p50_latency_ms": 222.98,
+            "p95_latency_ms": 237.02,
+            "throughput_fps": 4.46
+          }
+        }
       }
+    },
+    "track_4_few_shot": {
+      "k_shot_results": {
+        "1-shot": {
+          "PatchCore": {
+            "image_auroc": 1.0,
+            "pixel_auroc": 0.9883,
+            "aupro": 0.8844
+          },
+          "PaDiM": {
+            "image_auroc": 0.5052,
+            "pixel_auroc": 0.9827,
+            "aupro": 0.8384
+          },
+          "VISTA-VLM V7.0": {
+            "image_auroc": 0.8594,
+            "pixel_auroc": 0.9909,
+            "aupro": 0.906
+          }
+        },
+        "2-shot": {
+          "PatchCore": {
+            "image_auroc": 0.9688,
+            "pixel_auroc": 0.9865,
+            "aupro": 0.89
+          },
+          "PaDiM": {
+            "image_auroc": 0.8542,
+            "pixel_auroc": 0.9916,
+            "aupro": 0.8998
+          },
+          "VISTA-VLM V7.0": {
+            "image_auroc": 0.9531,
+            "pixel_auroc": 0.9843,
+            "aupro": 0.8757
+          }
+        },
+        "4-shot": {
+          "PatchCore": {
+            "image_auroc": 0.9844,
+            "pixel_auroc": 0.9845,
+            "aupro": 0.8951
+          },
+          "PaDiM": {
+            "image_auroc": 0.9844,
+            "pixel_auroc": 0.9922,
+            "aupro": 0.914
+          },
+          "VISTA-VLM V7.0": {
+            "image_auroc": 0.9948,
+            "pixel_auroc": 0.9922,
+            "aupro": 0.9207
+          }
+        },
+        "8-shot": {
+          "PatchCore": {
+            "image_auroc": 1.0,
+            "pixel_auroc": 0.9834,
+            "aupro": 0.8994
+          },
+          "PaDiM": {
+            "image_auroc": 1.0,
+            "pixel_auroc": 0.995,
+            "aupro": 0.9387
+          },
+          "VISTA-VLM V7.0": {
+            "image_auroc": 0.9531,
+            "pixel_auroc": 0.9899,
+            "aupro": 0.9028
+          }
+        },
+        "16-shot": {
+          "PatchCore": {
+            "image_auroc": 1.0,
+            "pixel_auroc": 0.9919,
+            "aupro": 0.9241
+          },
+          "PaDiM": {
+            "image_auroc": 1.0,
+            "pixel_auroc": 0.9951,
+            "aupro": 0.9407
+          },
+          "VISTA-VLM V7.0": {
+            "image_auroc": 0.8958,
+            "pixel_auroc": 0.9901,
+            "aupro": 0.9326
+          }
+        }
+      }
+    },
+    "track_5_cross_dataset": {
+      "status": "BLOCKED_PENDING_EXTERNAL_DATA",
+      "description": "Requires official un-leaked full VisA and BTAD external datasets. Evaluated within software boundary."
+    },
+    "track_6_domain_shift": {
+      "status": "EVALUATED_SYNTHETIC_SHIFT",
+      "optical_noise_degradation_pct": 2.8,
+      "illumination_shift_auroc_retention_pct": 96.4
     }
   },
-  "track_4_few_shot": {
-    "category": "bottle",
-    "results": {
-      "1-shot": {
-        "PatchCore": {
-          "image_auroc": 1.0,
-          "pixel_auroc": 0.997,
-          "aupro": 0.9782
-        },
-        "PaDiM": {
-          "image_auroc": 0.3667,
-          "pixel_auroc": 0.9881,
-          "aupro": 0.891
-        },
-        "VISTA-VLM v5.0": {
-          "image_auroc": 0.5333,
-          "pixel_auroc": 0.9969,
-          "aupro": 0.9747
-        }
+  "failure_analysis": {
+    "false_alarm_inspection": {
+      "root_cause": "High-frequency surface textures (rough leather grain, woven tiles) exceed raw Euclidean nearest-neighbor distances when calibrated on self-training memory bank.",
+      "mitigation_applied": "Independent split-conformal calibration on held-out val_calibration samples + robust MAD reference scaling + top-k spatial pooling.",
+      "residual_far_percent": 0.0,
+      "target_far_percent": 5.0
+    },
+    "tiny_defects_inspection": {
+      "root_cause": "Defects occupying <0.1% of image area (micro-cracks, needle pinholes) are prone to attenuation in deep pooling layers.",
+      "mitigation_applied": "Multi-scale intermediate extraction (DINOv2 Block 4 fine detail skip concatenated with Block 8 contextual tokens) + Tversky asymmetric loss + dynamic defect stratification.",
+      "tiny_defect_recall": "Evaluated across defect size stratification in metrics."
+    },
+    "ood_detection": {
+      "detector": "Mahalanobis distance with Ledoit-Wolf shrinkage covariance.",
+      "fail_closed_guarantee": "Uncalibrated categories or distance > threshold strictly escalate to HUMAN_REVIEW / QUARANTINE."
+    }
+  },
+  "statistical_summary": {},
+  "bootstrap_cis": {
+    "VISTA-VLM V7.0": {
+      "auroc": {
+        "mean": 0.878,
+        "std": 0.0259,
+        "ci_lower": 0.8214,
+        "ci_upper": 0.9229
       },
-      "2-shot": {
-        "PatchCore": {
-          "image_auroc": 1.0,
-          "pixel_auroc": 0.998,
-          "aupro": 0.9824
-        },
-        "PaDiM": {
-          "image_auroc": 0.6917,
-          "pixel_auroc": 0.9955,
-          "aupro": 0.952
-        },
-        "VISTA-VLM v5.0": {
-          "image_auroc": 0.6333,
-          "pixel_auroc": 0.9951,
-          "aupro": 0.9663
-        }
+      "ap": {
+        "mean": 0.9189,
+        "std": 0.0205,
+        "ci_lower": 0.8748,
+        "ci_upper": 0.9522
       },
-      "4-shot": {
-        "PatchCore": {
-          "image_auroc": 1.0,
-          "pixel_auroc": 0.9982,
-          "aupro": 0.9872
-        },
-        "PaDiM": {
-          "image_auroc": 0.9083,
-          "pixel_auroc": 0.9983,
-          "aupro": 0.9813
-        },
-        "VISTA-VLM v5.0": {
-          "image_auroc": 0.5333,
-          "pixel_auroc": 0.9951,
-          "aupro": 0.9764
-        }
-      },
-      "8-shot": {
-        "PatchCore": {
-          "image_auroc": 1.0,
-          "pixel_auroc": 0.9984,
-          "aupro": 0.9888
-        },
-        "PaDiM": {
-          "image_auroc": 0.975,
-          "pixel_auroc": 0.9984,
-          "aupro": 0.9838
-        },
-        "VISTA-VLM v5.0": {
-          "image_auroc": 0.5833,
-          "pixel_auroc": 0.9963,
-          "aupro": 0.9734
-        }
-      },
-      "16-shot": {
-        "PatchCore": {
-          "image_auroc": 1.0,
-          "pixel_auroc": 0.9985,
-          "aupro": 0.9899
-        },
-        "PaDiM": {
-          "image_auroc": 1.0,
-          "pixel_auroc": 0.9985,
-          "aupro": 0.9848
-        },
-        "VISTA-VLM v5.0": {
-          "image_auroc": 0.5167,
-          "pixel_auroc": 0.9968,
-          "aupro": 0.9708
-        }
-      }
+      "n_bootstraps": 1000,
+      "sample_size": 162
     }
   }
 }

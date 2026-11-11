@@ -14,7 +14,8 @@ def evaluate_vista_model(
     model: VISTAAnomalyModel,
     dataloader: DataLoader,
     device: str = "cpu",
-    calibrated_threshold: float = 0.5
+    calibrated_threshold: float = 0.5,
+    pixel_threshold: Optional[float] = None
 ) -> Dict[str, Any]:
     model.eval()
     y_true_list = []
@@ -48,7 +49,7 @@ def evaluate_vista_model(
     y_pred_maps = np.concatenate(y_pred_map_list, axis=0)
 
     img_metrics = compute_image_metrics(y_true, y_scores, threshold=calibrated_threshold)
-    pix_metrics = compute_pixel_metrics(y_masks, y_pred_maps, threshold=calibrated_threshold)
+    pix_metrics = compute_pixel_metrics(y_masks, y_pred_maps, threshold=pixel_threshold)
     rel_metrics = compute_reliability_metrics(y_true, y_scores, calibrated_threshold=calibrated_threshold)
 
     return {

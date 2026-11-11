@@ -74,7 +74,7 @@ class BatchInspectionResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     status: str
-    system_version: str = "6.0.0"
+    system_version: str = "7.0.0"
     device: str
     backbone: str
     models_loaded: bool
@@ -82,7 +82,7 @@ class HealthResponse(BaseModel):
     calibrated_categories: List[str]
 
 class ModelInfoResponse(BaseModel):
-    version: str = "6.0.0"
+    version: str = "7.0.0"
     architecture: str
     backbone: str
     embed_dim: int
