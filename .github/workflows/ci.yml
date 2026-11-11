@@ -15,7 +15,8 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -33,23 +34,41 @@ jobs:
       run: |
         python -c "import vista_vlm; print('Installed vista_vlm from:', vista_vlm.__file__)"
         python -m pip show vista-vlm
-
-    - name: Verify dependencies
-      run: |
-        python -c "import multipart; print('python-multipart installed successfully')"
         python -m pip check
 
-    - name: Validate environment
+    - name: Environment diagnostics
       run: |
         python scripts/validate_environment.py
 
-    - name: Prepare benchmark test fixtures
+    - name: Verify fixture script compilation
       run: |
-        python scripts/prepare_benchmark_data.py
+        python -m py_compile scripts/prepare_benchmark_data.py
 
-    - name: Run pytest test suite
+    - name: Generate procedural synthetic regression fixtures
       run: |
-        python -m pytest tests/ -v
+        python scripts/prepare_benchmark_data.py --output-root data/synthetic_fixtures
+
+    - name: Validate synthetic fixture provenance and integrity
+      run: |
+        python -c "
+        import json
+        with open('data/manifests/synthetic/mvtec_manifest.json') as f:
+            m = json.load(f)
+        assert m['is_valid'] is True, f'MVTec manifest invalid: {m.get(\"integrity_errors\")}'
+        assert m['provenance'] == 'procedural_synthetic_benchmark_fixture'
+        print('MVTec synthetic fixture manifest certified:', m['total_samples'], 'samples')
+
+        with open('data/manifests/synthetic/visa_manifest.json') as f:
+            v = json.load(f)
+        assert v['is_valid'] is True, f'VisA manifest invalid: {v.get(\"integrity_errors\")}'
+        assert v['provenance'] == 'procedural_synthetic_benchmark_fixture'
+        print('VisA synthetic fixture manifest certified:', v['total_samples'], 'samples')
+        "
+
+    - name: Run pytest test suite with coverage
+      run: |
+        mkdir -p reports
+        python -m pytest tests/ -v --junitxml=reports/junit.xml --cov=vista_vlm --cov-report=xml:reports/coverage.xml --cov-report=term
 
     - name: Build distribution packages (wheel and sdist)
       run: |
@@ -66,3 +85,12 @@ jobs:
         python -c "import vista_vlm.api, vista_vlm.calibration, vista_vlm.data, vista_vlm.models, vista_vlm.evaluation, vista_vlm.optimization, vista_vlm.utils; print('All subpackages imported successfully from wheel')"
         python -c "from vista_vlm.api.routes import router; print('FastAPI routes imported successfully from clean wheel')"
 
+    - name: Upload test artifacts and reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-reports-python-${{ matrix.python-version }}
+        path: |
+          reports/junit.xml
+          reports/coverage.xml
+          data/manifests/synthetic/*.json

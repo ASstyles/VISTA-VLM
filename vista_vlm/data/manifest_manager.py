@@ -5,6 +5,8 @@ detects train/test leakage, and generates immutable dataset manifests
 with strict separation of synthetic fixtures vs real industrial datasets.
 """
 
+from __future__ import annotations
+
 import os
 import glob
 import hashlib
@@ -249,28 +251,52 @@ class DatasetIntegrityChecker:
             json.dump(manifest, f, indent=2)
 
 
-def resolve_dataset_root(dataset_key: str) -> Tuple[str, str, bool]:
+def _has_valid_images(directory: str) -> bool:
+    """Helper to verify that a directory actually contains image files and is not merely an empty folder or .gitkeep."""
+    if not os.path.isdir(directory):
+        return False
+    valid_exts = (".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp")
+    for root, _, files in os.walk(directory):
+        for f in files:
+            if f.lower().endswith(valid_exts):
+                return True
+    return False
+
+
+def resolve_dataset_root(
+    dataset_key: str,
+    allow_synthetic_fallback: bool = True
+) -> Tuple[str, str, bool]:
     """
     Resolves dataset root path considering VISTA_DATA_ROOT, local real path, and synthetic fixtures.
+    Does NOT treat folder existence or placeholder files (.gitkeep) as evidence that a real dataset is present.
     Returns:
         (resolved_path, provenance, is_real)
     """
     env_root = os.environ.get("VISTA_DATA_ROOT")
-    if env_root and os.path.exists(os.path.join(env_root, dataset_key)):
-        return os.path.join(env_root, dataset_key), "real_public_dataset", True
+    if env_root:
+        env_cand = os.path.join(env_root, dataset_key)
+        if _has_valid_images(env_cand):
+            return env_cand, "real_public_dataset", True
 
     real_path = os.path.join("data", "real", dataset_key)
-    if os.path.exists(real_path) and len(os.listdir(real_path)) > 0:
+    if _has_valid_images(real_path):
         return real_path, "real_public_dataset", True
 
-    # Synthetic fixture fallback
-    synth_name = f"{dataset_key}_like"
-    synth_path = os.path.join("data", "synthetic_fixtures", synth_name)
-    if os.path.exists(synth_path) and len(os.listdir(synth_path)) > 0:
+    if not allow_synthetic_fallback:
+        return real_path, "real_dataset_unavailable", False
+
+    # Check synthetic fixture path (first mvtec/visa, then mvtec_like/visa_like)
+    synth_path = os.path.join("data", "synthetic_fixtures", dataset_key)
+    if _has_valid_images(synth_path):
         return synth_path, "procedural_synthetic_benchmark_fixture", False
 
+    synth_like = os.path.join("data", "synthetic_fixtures", f"{dataset_key}_like")
+    if _has_valid_images(synth_like):
+        return synth_like, "procedural_synthetic_benchmark_fixture", False
+
     legacy_processed = os.path.join("data", "processed", dataset_key)
-    if os.path.exists(legacy_processed) and len(os.listdir(legacy_processed)) > 0:
+    if _has_valid_images(legacy_processed):
         return legacy_processed, "procedural_synthetic_benchmark_fixture", False
 
     return real_path, "unverified", False

@@ -4,7 +4,7 @@
 [![Version](https://img.shields.io/badge/version-5.0.0-blue.svg)](https://github.com/ASstyles/VISTA-VLM)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.14-blue.svg)](https://www.python.org/)
 [![PyTorch 2.6+](https://img.shields.io/badge/PyTorch-2.6%2B-red.svg)](https://pytorch.org/)
-[![Tests](https://img.shields.io/badge/tests-58%20passed%20(100%25)-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-72%20passed%20(100%25)-brightgreen.svg)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Safety: SIL 0 Advisory](https://img.shields.io/badge/Safety-SIL%200%20Advisory%20Only-orange.svg)](reports/V5_SAFETY_CASE.md)
 
@@ -72,14 +72,15 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-### 2. Run Test Suite (58 Tests, 100% Passing)
+### 2. Run Test Suite (72 Tests, 100% Passing)
 ```bash
 python -m pytest tests/ -v
 ```
 
 ### 3. Generate Benchmark Test Fixtures with SHA-256 Manifests
+Procedural synthetic regression fixtures are strictly isolated in `data/synthetic_fixtures/` to test CI and pipeline execution without polluting academic benchmarks in `data/real/`:
 ```bash
-python scripts/prepare_benchmark_data.py
+python scripts/prepare_benchmark_data.py --output-root data/synthetic_fixtures
 ```
 
 ### 4. Train, Fit Memory Bank & Calibrate VISTA-VLM v5.0

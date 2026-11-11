@@ -18,7 +18,20 @@ All research and experimentation conducted under the VISTA-VLM project must stri
 
 ---
 
-## 2. Standardized Benchmark Tracks
+## 2. Explicit Boundary: Synthetic Fixtures vs. Real Research Data
+
+- **Synthetic Regression Fixtures (`data/synthetic_fixtures/`)**:
+  - Exclusively for fast CI runs, software regression, and unit testing.
+  - Generated deterministically by `scripts/prepare_benchmark_data.py`.
+  - **Scientific Warning**: Synthetic fixture accuracy does **NOT** constitute evidence of real-world defect detection or academic benchmark validity.
+- **Real Academic Datasets (`data/real/`)**:
+  - MVTec AD, VisA, BTAD, MPDD, Real-IAD.
+  - Used for formal benchmark tracks and publication claims.
+  - When real datasets cannot be mounted or accessed, researchers must report their execution status as `BLOCKED (EXTERNAL ASSET PENDING)` rather than substituting synthetic fixtures.
+
+---
+
+## 3. Standardized Benchmark Tracks
 
 Research evaluations must be reported across four standardized tracks:
 
@@ -39,15 +52,14 @@ Research evaluations must be reported across four standardized tracks:
 
 ---
 
-## 3. Cryptographic Manifest and Leakage Verification Protocol
+## 4. Cryptographic Manifest and Leakage Verification Protocol
 
 Before running any benchmark:
 1. Generate the immutable dataset manifest:
    ```bash
-   python -c "from vista_vlm.data.manifest_manager import generate_dataset_manifest; generate_dataset_manifest('data/real/mvtec_ad', 'data/manifests/real/mvtec_manifest.json', 'mvtec_ad', '5.0.0')"
+   python -c "from vista_vlm.data.manifest_manager import generate_dataset_manifest; generate_dataset_manifest('data/synthetic_fixtures/mvtec', 'data/manifests/synthetic/mvtec_manifest.json', 'mvtec', '5.0.0')"
    ```
 2. Verify that `manifest["is_valid"]` is `True`. The manifest manager enforces:
    - Zero image hash duplicates between train, val, and test splits.
    - 1:1 pixel spatial dimension match between raw images and ground-truth masks.
    - Exact category folder schema conformance.
-
