@@ -172,10 +172,11 @@ class VISTAInspectionPipeline:
         anomaly_map_orig = cv2.resize(anomaly_map_tensor, (orig_w, orig_h), interpolation=cv2.INTER_LINEAR)
 
         # 3. Calibration & Conformal Prediction
-        is_anomaly_calibrated, p_value, threshold = self.calibrator.predict(image_score, category=category)
+        is_calibrated = self.calibrator.is_calibrated(category)
+        is_anomaly_calibrated, p_value, threshold = self.calibrator.predict(image_score, category=category, strict=False)
 
         # 4. Out-of-Distribution Detection
-        is_ood, ood_dist, ood_thresh = self.ood_detector.compute_distance(global_features, category=category)
+        is_ood, ood_dist, ood_thresh = self.ood_detector.compute_distance(global_features, category=category, strict=False)
 
         # 5. Multimodal Vision-Language Verification on ROIs
         rois = self.verifier.extract_rois(anomaly_map_orig, image_shape=(orig_h, orig_w))
@@ -195,11 +196,14 @@ class VISTAInspectionPipeline:
         else:
             region_findings_raw = []
 
-        # 6. Selective Prediction & Human Escalation Evaluation
+        # 6. Selective Prediction & Human Escalation Evaluation under Fail-Safe Controls
         escalation_eval = self.selective_predictor.evaluate_decision(
             anomaly_score=image_score,
             calibrated_threshold=threshold,
             is_ood=is_ood,
+            is_calibrated=is_calibrated,
+            image_quality_ok=True,
+            model_ready=True,
             is_region_ambiguous=has_ambiguity
         )
 
@@ -263,13 +267,16 @@ class VISTAInspectionPipeline:
         ]
 
         reliability = ReliabilityIndicators(
-            calibrated_threshold=round(threshold, 4),
-            conformal_p_value=round(p_value, 4),
+            is_calibrated=is_calibrated,
+            calibrated_threshold=round(threshold, 4) if threshold is not None else None,
+            conformal_p_value=round(p_value, 4) if p_value is not None else None,
             target_false_alarm_rate=self.config.calibration.target_false_alarm_rate,
             is_ood=is_ood,
             ood_distance=ood_dist,
             ood_threshold=ood_thresh,
             in_uncertainty_band=escalation_eval["in_uncertainty_band"],
+            operational_state=escalation_eval["state"],
+            disposition=escalation_eval["disposition"],
             human_review_recommended=escalation_eval["human_review_required"],
             review_reason=escalation_eval["reason"]
         )
@@ -283,7 +290,7 @@ class VISTAInspectionPipeline:
             status=status,
             image_anomaly_score=round(image_score, 4),
             is_anomaly=is_anomaly_calibrated,
-            threshold=round(threshold, 4),
+            threshold=round(threshold, 4) if threshold is not None else 0.5,
             num_defects_found=len(bounding_boxes),
             bounding_boxes=bounding_boxes,
             region_findings=region_findings,

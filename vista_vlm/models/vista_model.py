@@ -93,6 +93,7 @@ class VISTAAnomalyModel(nn.Module):
         global_head_weight: float = 0.5,
         scoring_mode: str = "hybrid",
         freeze_backbone: bool = True,
+        memory_fusion_weight: float = 0.65,
     ):
         super().__init__()
         self.image_size = image_size
@@ -100,6 +101,7 @@ class VISTAAnomalyModel(nn.Module):
         self.global_head_weight = global_head_weight
         self.scoring_mode = scoring_mode
         self.embed_dim = embed_dim
+        self.memory_fusion_weight = memory_fusion_weight
 
         # 1. Visual Backbone
         if backbone_name == "dinov2_vits14":
@@ -155,6 +157,8 @@ class VISTAAnomalyModel(nn.Module):
     def fit_memory_bank(self, normal_loader, device: str = "cpu", max_patches: int = 1500):
         """
         Fits category nominal memory bank from normal reference images (for Track 1 / Track 4).
+        Extracts multi-scale representations combining Block 4 (fine structural edges)
+        and Block 8 (mid-level contextual semantics).
         """
         self.encoder.eval()
         patch_list = []
@@ -162,45 +166,59 @@ class VISTAAnomalyModel(nn.Module):
             for batch in normal_loader:
                 imgs = batch["image"].to(device)
                 feat_dict = self.encoder(imgs)
-                # Use block 8 and 12 patch tokens: [B, C, gh, gw]
+                # Concatenate block 4 (low-level fine edges) and block 8 (mid-level semantics)
+                p4 = feat_dict["patch_features"][0]
                 p8 = feat_dict["patch_features"][1]
-                p12 = feat_dict["patch_features"][2]
-                p_cat = torch.cat([p8, p12], dim=1) # [B, 2*embed_dim, gh, gw]
+                p_cat = torch.cat([p4, p8], dim=1)  # [B, 2*embed_dim, gh, gw]
                 B, C, gh, gw = p_cat.shape
-                tokens = p_cat.permute(0, 2, 3, 1).reshape(-1, C) # [B*gh*gw, C]
-                # L2 normalize
-                tokens = F.normalize(tokens, p=2, dim=1)
-                patch_list.append(tokens)
+                tokens = p_cat.permute(0, 2, 3, 1).reshape(-1, C)
+                patch_list.append(tokens.cpu())
 
         if patch_list:
             all_patches = torch.cat(patch_list, dim=0)
-            if all_patches.shape[0] > max_patches:
-                perm = torch.randperm(all_patches.shape[0])[:max_patches]
-                all_patches = all_patches[perm]
-            self.memory_bank = all_patches.to(device)
-            logger.info(f"Fitted nominal memory bank with {self.memory_bank.shape[0]} reference patches.")
+            total_p = all_patches.shape[0]
+            if total_p > max_patches:
+                indices = torch.linspace(0, total_p - 1, steps=max_patches).long()
+                selected = all_patches[indices]
+            else:
+                selected = all_patches
+            self.memory_bank = selected.to(device)
+            logger.info(f"Fitted nominal memory bank with {self.memory_bank.shape[0]} reference patches (Blocks 4 & 8).")
 
-    def compute_memory_guide(self, patch_feats: List[torch.Tensor]) -> Optional[torch.Tensor]:
-        """Computes nearest-neighbor patch distance map from nominal reference memory."""
-        if self.memory_bank is None or len(patch_feats) < 3:
-            return None
+    def compute_memory_guide(self, patch_feats: List[torch.Tensor]) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor]]:
+        """
+        Computes nearest-neighbor patch distance map from nominal reference memory.
+        Returns:
+            guide_norm: Normalized [B, 1, gh, gw] in [0, 1] for decoder conditioning
+            raw_scores: Un-normalized max distance [B] for image-level ranking
+        """
+        if self.memory_bank is None or len(patch_feats) < 2:
+            return None, None
+
+        device = patch_feats[0].device
+        mem = self.memory_bank.to(device)
+        p4 = patch_feats[0]
         p8 = patch_feats[1]
-        p12 = patch_feats[2]
-        p_cat = torch.cat([p8, p12], dim=1) # [B, 2*embed_dim, gh, gw]
+        p_cat = torch.cat([p4, p8], dim=1)  # [B, 2*embed_dim, gh, gw]
         B, C, gh, gw = p_cat.shape
-        tokens = p_cat.permute(0, 2, 3, 1).reshape(B * gh * gw, C)
-        tokens = F.normalize(tokens, p=2, dim=1)
+        patches = p_cat.permute(0, 2, 3, 1).reshape(B, gh * gw, C)
 
-        # Cosine distance to nearest memory patch
-        sims = tokens @ self.memory_bank.T # [B*gh*gw, M]
-        max_sim, _ = sims.max(dim=1)
-        dist = 1.0 - max_sim # [B*gh*gw]
-        guide = dist.reshape(B, 1, gh, gw)
-        # Normalize guide map per image to [0, 1]
-        g_min = guide.amin(dim=(-2, -1), keepdim=True)
-        g_max = guide.amax(dim=(-2, -1), keepdim=True)
-        guide = (guide - g_min) / (g_max - g_min + 1e-6)
-        return guide
+        dist_maps = []
+        for b in range(B):
+            p_b = patches[b]
+            dists = torch.cdist(p_b, mem, p=2.0)
+            min_dists, _ = torch.topk(dists, k=3, dim=1, largest=False)
+            dist_maps.append(min_dists[:, 0].reshape(1, 1, gh, gw))
+
+        raw_dist = torch.cat(dist_maps, dim=0)  # [B, 1, gh, gw]
+        raw_scores = raw_dist.view(B, -1).max(dim=1)[0]  # [B]
+
+        # Normalized guide map per image for decoder injection
+        g_min = raw_dist.amin(dim=(-2, -1), keepdim=True)
+        g_max = raw_dist.amax(dim=(-2, -1), keepdim=True)
+        guide_norm = (raw_dist - g_min) / (g_max - g_min + 1e-6)
+
+        return guide_norm, raw_scores
 
     def forward(
         self,
@@ -222,16 +240,17 @@ class VISTAAnomalyModel(nn.Module):
         # 1. Backbone features
         with torch.no_grad():
             feat_dict = self.encoder(x)
-            patch_feats = feat_dict["patch_features"] # List of [B, embed_dim, 37, 37]
-            cls_feats = feat_dict["cls_features"]     # List of [B, embed_dim]
-            global_cls = feat_dict["global_cls"]      # [B, embed_dim]
+            patch_feats = feat_dict["patch_features"]  # List of [B, embed_dim, 37, 37]
+            cls_feats = feat_dict["cls_features"]      # List of [B, embed_dim]
+            global_cls = feat_dict["global_cls"]       # [B, embed_dim]
 
         # Compute empirical memory guide if memory bank fitted and not provided
+        raw_mem_scores = None
         if guide_map is None and self.memory_bank is not None:
-            guide_map = self.compute_memory_guide(patch_feats)
+            guide_map, raw_mem_scores = self.compute_memory_guide(patch_feats)
 
         # 2. Global-Local Fusion
-        fused = self.fusion(patch_feats, cls_feats) # [B, proj_dim, 37, 37]
+        fused = self.fusion(patch_feats, cls_feats)  # [B, proj_dim, 37, 37]
 
         # 3. Progressive Segmentation Decoder with SE Attention and Skips
         dec_out = self.decoder(
@@ -247,9 +266,16 @@ class VISTAAnomalyModel(nn.Module):
             pixel_logits = dec_out
             aux_logits = None
 
-        anomaly_map = torch.sigmoid(pixel_logits)
+        neural_map = torch.sigmoid(pixel_logits)
 
-        # 4. Image-Level Anomaly Score
+        # 4. Memory-Guided Spatial Residual Fusion (Phase 5 Localization Breakthrough)
+        if guide_map is not None:
+            guide_up = F.interpolate(guide_map, size=(H, W), mode="bilinear", align_corners=False)
+            anomaly_map = (1.0 - self.memory_fusion_weight) * neural_map + self.memory_fusion_weight * guide_up
+        else:
+            anomaly_map = neural_map
+
+        # 5. Image-Level Anomaly Score
         flat_map = anomaly_map.view(B, -1)
         k = max(1, int(flat_map.shape[1] * self.top_k_ratio))
         top_k_vals, _ = torch.topk(flat_map, k, dim=1)
@@ -264,7 +290,7 @@ class VISTAAnomalyModel(nn.Module):
         elif self.scoring_mode == "percentile_99":
             idx = int(flat_map.shape[1] * 0.99)
             image_score = torch.sort(flat_map, dim=1)[0][:, idx]
-        else: # "hybrid"
+        else:  # "hybrid"
             image_score = self.global_head_weight * head_score + (1.0 - self.global_head_weight) * topk_score
 
         image_score = torch.clamp(image_score, 0.0, 1.0)
@@ -335,13 +361,15 @@ class VISTAAnomalyModel(nn.Module):
     ):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         checkpoint = {
-            "version": "4.0.0",
+            "version": "5.0.0",
             "model_state_dict": self.state_dict(),
+            "memory_bank": self.memory_bank.cpu() if self.memory_bank is not None else None,
             "config": {
                 "image_size": self.image_size,
                 "top_k_ratio": self.top_k_ratio,
                 "global_head_weight": self.global_head_weight,
                 "scoring_mode": self.scoring_mode,
+                "memory_fusion_weight": self.memory_fusion_weight,
             },
             "epoch": epoch,
             "optimizer_state_dict": optimizer.state_dict() if optimizer is not None else None,
@@ -356,5 +384,8 @@ class VISTAAnomalyModel(nn.Module):
             raise FileNotFoundError(f"Checkpoint file not found: {path}")
         checkpoint = torch.load(path, map_location=device)
         self.load_state_dict(checkpoint["model_state_dict"], strict=strict)
+        if "memory_bank" in checkpoint and checkpoint["memory_bank"] is not None:
+            self.memory_bank = checkpoint["memory_bank"].to(device)
+            logger.info(f"Loaded memory bank with {self.memory_bank.shape[0]} reference patches.")
         logger.info(f"Checkpoint loaded successfully from {path}")
         return checkpoint.get("metadata", {})

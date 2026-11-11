@@ -33,13 +33,16 @@ class RegionFinding(BaseModel):
     candidate_rankings: List[CandidateRanking] = Field(default_factory=list)
 
 class ReliabilityIndicators(BaseModel):
-    calibrated_threshold: float
-    conformal_p_value: float
+    is_calibrated: bool = True
+    calibrated_threshold: Optional[float] = None
+    conformal_p_value: Optional[float] = None
     target_false_alarm_rate: float
     is_ood: bool
     ood_distance: float
     ood_threshold: float
     in_uncertainty_band: bool
+    operational_state: str = "NORMAL"
+    disposition: str = "ACCEPT"  # ACCEPT, REJECT, HOLD, QUARANTINE, HUMAN_REVIEW
     human_review_recommended: bool
     review_reason: str
 

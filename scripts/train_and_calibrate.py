@@ -142,7 +142,11 @@ def main():
     training_time = round(time.time() - t_start, 2)
     logger.info(f"Training completed in {training_time}s.")
 
-    # 4. Save Model Checkpoint
+    # 4. Fit Nominal Memory Bank on Normal Reference Images (Phase 5 Localization Breakthrough)
+    logger.info(f"Fitting nominal reference memory bank for category '{args.category}'...")
+    model.fit_memory_bank(train_loader, device=device, max_patches=1500)
+
+    # Save Model Checkpoint
     os.makedirs(args.output_dir, exist_ok=True)
     ckpt_path = os.path.join(args.output_dir, f"vista_mvtec_{args.category}.pth")
     model.save_checkpoint(
@@ -154,8 +158,8 @@ def main():
             "epochs": args.epochs,
             "training_time_s": training_time,
             "train_samples": len(train_ds),
-            "architecture": "v4.0.0-multi-scale-fusion-se-attention",
-            "version": "4.0.0"
+            "architecture": "v5.0.0-multi-scale-memory-residual-fusion",
+            "version": "5.0.0"
         }
     )
 
@@ -177,16 +181,26 @@ def main():
     cal_features_np = np.concatenate(cal_features, axis=0)
 
     # Fit Conformal Calibrator
-    calibrator = ConformalCalibrator(target_false_alarm_rate=args.target_far)
-    calibrated_threshold = calibrator.fit(cal_scores, category=args.category)
     calib_file = os.path.join(args.output_dir, f"calibration_mvtec.json")
+    calibrator = ConformalCalibrator(target_false_alarm_rate=args.target_far)
+    if os.path.exists(calib_file):
+        try:
+            calibrator.load(calib_file)
+        except Exception:
+            pass
+    calibrated_threshold = calibrator.fit(cal_scores, category=args.category)
     calibrator.save(calib_file)
     logger.info(f"Split Conformal Calibration: Category '{args.category}' threshold set to {calibrated_threshold:.4f} (alpha={args.target_far})")
 
     # Fit OOD Detector with regularized shrinkage covariance
-    ood_detector = OODDetector(metric="mahalanobis", threshold_percentile=98.0)
-    ood_detector.fit(cal_features_np, category=args.category)
     ood_file = os.path.join(args.output_dir, f"ood_mvtec.json")
+    ood_detector = OODDetector(metric="mahalanobis", threshold_percentile=98.0)
+    if os.path.exists(ood_file):
+        try:
+            ood_detector.load(ood_file)
+        except Exception:
+            pass
+    ood_detector.fit(cal_features_np, category=args.category)
     ood_detector.save(ood_file)
     logger.info(f"OOD Detector fitted on {len(cal_features_np)} normal vectors. Saved to {ood_file}")
 

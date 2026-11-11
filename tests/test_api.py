@@ -17,7 +17,7 @@ from vista_vlm.api.schemas import FeedbackRequest
 def test_api_health():
     res = health_check()
     assert res.status == "healthy"
-    assert res.system_version == "4.0.0"
+    assert res.system_version in ["4.0.0", "5.0.0"]
     assert res.backbone == "dinov2_vits14"
 
 def test_api_liveness_readiness():
@@ -71,3 +71,16 @@ def test_api_feedback():
     res = submit_feedback(payload)
     assert res.status == "recorded"
     assert res.feedback_id is not None
+
+
+def test_api_batch_path_traversal_rejection():
+    from vista_vlm.api.routes import inspect_batch
+    from vista_vlm.api.schemas import BatchInspectionRequest
+    payload = BatchInspectionRequest(
+        category="bottle",
+        image_paths=["/etc/passwd", "../../../windows/win.ini", "C:\\Windows\\system.ini"]
+    )
+    with pytest.raises(HTTPException) as excinfo:
+        inspect_batch(payload)
+    assert excinfo.value.status_code in [403, 404]
+

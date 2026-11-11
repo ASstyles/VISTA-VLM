@@ -107,6 +107,7 @@ def compute_pixel_metrics(
 
     # AUPRO: calculated on globally scaled continuous maps to preserve dynamic range
     aupro = compute_aupro_score(y_true_masks, y_pred_maps)
+    defect_strat = compute_defect_size_metrics(y_true_masks, y_pred_maps, threshold=eval_thresh)
 
     return {
         "pixel_auroc": round(pix_auroc, 4),
@@ -116,6 +117,7 @@ def compute_pixel_metrics(
         "dice": round(dice, 4),
         "is_constant_map": is_degenerate,
         "spatial_variance": val_info.get("mean_spatial_std", 0.0),
+        "defect_size_stratification": defect_strat,
     }
 
 
@@ -189,7 +191,11 @@ def compute_aupro_score(y_true_masks: np.ndarray, y_pred_maps: np.ndarray, max_f
     normal_scores = maps_scaled[y_true_masks == 0]
     total_normal_pix = float(len(normal_scores)) + 1e-8
 
-    thresholds = np.linspace(0.0, 1.0, num_thresholds)
+    # Adaptive threshold sweep combining quantile FPR distribution and dynamic range
+    target_fprs = np.linspace(0.0, max_fpr, max(10, num_thresholds // 2))
+    q_thresholds = np.quantile(normal_scores, np.clip(1.0 - target_fprs, 0.0, 1.0))
+    lin_thresholds = np.linspace(float(np.min(normal_scores)), float(np.max(maps_scaled)), max(10, num_thresholds // 2))
+    thresholds = np.unique(np.concatenate([q_thresholds, lin_thresholds]))
     pro_list = []
     fpr_list = []
 
@@ -299,3 +305,96 @@ def compute_reliability_metrics(
         "brier_score": round(brier, 4),
         "empirical_false_alarm_rate": round(empirical_far, 4),
     }
+
+
+def compute_defect_size_metrics(
+    y_true_masks: np.ndarray,
+    y_pred_maps: np.ndarray,
+    threshold: float = 0.5,
+    min_overlap: float = 0.10
+) -> Dict[str, Dict[str, Any]]:
+    """
+    Evaluates localization sensitivity stratified by defect area (Phase 5.3):
+    - Tiny defects:   < 0.1% of image area (< 0.001)
+    - Small defects:  0.1% - 1.0% of image area (0.001 - 0.01)
+    - Medium defects: 1.0% - 5.0% of image area (0.01 - 0.05)
+    - Large defects:  > 5.0% of image area (> 0.05)
+    """
+    bins = {
+        "tiny (<0.1%)": {"count": 0, "detected": 0, "overlaps": []},
+        "small (0.1-1%)": {"count": 0, "detected": 0, "overlaps": []},
+        "medium (1-5%)": {"count": 0, "detected": 0, "overlaps": []},
+        "large (>5%)": {"count": 0, "detected": 0, "overlaps": []},
+    }
+
+    N = len(y_true_masks)
+    for i in range(N):
+        gt = y_true_masks[i]
+        if gt.sum() == 0:
+            continue
+        total_pixels = float(gt.shape[0] * gt.shape[1])
+        pred_map = y_pred_maps[i]
+        pred_bin = (pred_map > threshold).astype(int)
+
+        labeled_gt, num_reg = label(gt)
+        for r_id in range(1, num_reg + 1):
+            reg = (labeled_gt == r_id)
+            reg_area = float(reg.sum())
+            ratio = reg_area / total_pixels
+
+            if ratio < 0.001:
+                bin_key = "tiny (<0.1%)"
+            elif ratio < 0.01:
+                bin_key = "small (0.1-1%)"
+            elif ratio < 0.05:
+                bin_key = "medium (1-5%)"
+            else:
+                bin_key = "large (>5%)"
+
+            overlap = float(np.count_nonzero(pred_bin[reg])) / max(1.0, reg_area)
+            bins[bin_key]["count"] += 1
+            bins[bin_key]["overlaps"].append(overlap)
+            if overlap >= min_overlap:
+                bins[bin_key]["detected"] += 1
+
+    summary = {}
+    for k, v in bins.items():
+        cnt = v["count"]
+        det = v["detected"]
+        rec = float(det / cnt) if cnt > 0 else 1.0
+        m_pro = float(np.mean(v["overlaps"])) if cnt > 0 else 1.0
+        summary[k] = {
+            "region_count": cnt,
+            "detected_count": det,
+            "recall": round(rec, 4),
+            "mean_overlap": round(m_pro, 4)
+        }
+    return summary
+
+
+def compute_statistical_confidence_intervals(
+    values: List[float],
+    confidence: float = 0.95
+) -> Dict[str, float]:
+    """Computes mean, standard deviation, and 95% confidence bounds across multiple runs/categories."""
+    if not values:
+        return {"mean": 0.0, "std": 0.0, "ci_lower": 0.0, "ci_upper": 0.0, "n": 0}
+
+    arr = np.array(values, dtype=float)
+    n = len(arr)
+    mean_val = float(np.mean(arr))
+    std_val = float(np.std(arr, ddof=1)) if n > 1 else 0.0
+
+    # Normal approximation for z = 1.96 (or t-distribution for small N)
+    from scipy.stats import t as t_dist
+    t_crit = float(t_dist.ppf((1.0 + confidence) / 2.0, df=max(1, n - 1))) if n > 1 else 1.96
+    margin = t_crit * (std_val / np.sqrt(n)) if n > 1 else 0.0
+
+    return {
+        "mean": round(mean_val, 4),
+        "std": round(std_val, 4),
+        "ci_lower": round(max(0.0, mean_val - margin), 4),
+        "ci_upper": round(min(1.0, mean_val + margin), 4),
+        "sample_count": n
+    }
+

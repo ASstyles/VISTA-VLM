@@ -26,7 +26,7 @@ def test_end_to_end_pipeline_execution():
     assert isinstance(res, InspectionResponse)
     assert res.inspection_id is not None
     assert res.category == "bottle"
-    assert res.status in ["NORMAL", "ANOMALOUS", "UNCERTAIN", "OOD"]
+    assert res.status in ["NORMAL", "ANOMALOUS", "ANOMALY_DETECTED", "UNCERTAIN", "OOD", "ESCALATE_TO_HUMAN"]
     assert 0.0 <= res.image_anomaly_score <= 1.0
     assert res.reliability.calibrated_threshold > 0.0
     assert res.heatmap_base64 is not None

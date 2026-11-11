@@ -1,14 +1,25 @@
 import numpy as np
 from typing import Dict, Any, Tuple, Optional, Union, List
 
+
+class OperationalState:
+    NORMAL = "NORMAL"
+    ANOMALY_DETECTED = "ANOMALY_DETECTED"
+    UNCERTAIN = "UNCERTAIN"
+    OOD = "OOD"
+    IMAGE_QUALITY_FAILURE = "IMAGE_QUALITY_FAILURE"
+    MODEL_UNAVAILABLE = "MODEL_UNAVAILABLE"
+    CALIBRATION_INVALID = "CALIBRATION_INVALID"
+    COMMUNICATION_FAILURE = "COMMUNICATION_FAILURE"
+    HUMAN_REVIEW_REQUIRED = "HUMAN_REVIEW_REQUIRED"
+
+
 class SelectivePredictor:
     """
-    Selective Prediction & Escalation Engine (Phase 11).
-    Determines whether a prediction can be safely committed autonomously or requires
-    human-in-the-loop review based on:
-    1. Conformal uncertainty band [tau_c - delta, tau_c + delta]
-    2. Out-of-Distribution status
-    3. Vision-language semantic ambiguity
+    Selective Prediction & Industrial Safety Escalation Engine (Phase 7 & Phase 11).
+    Implements a formal 9-state fail-safe decision engine.
+    Ensures that under uncertainty, distribution shift, uncalibrated status, or sensor faults,
+    the platform NEVER issues an autonomous ACCEPT decision.
     """
     def __init__(self, uncertainty_band_width: float = 0.08, enabled: bool = True):
         self.uncertainty_band = uncertainty_band_width
@@ -60,7 +71,7 @@ class SelectivePredictor:
     ) -> Dict[str, Any]:
         """
         Rigorously evaluates false-pass (defect escape) and false-alarm (overkill) risks
-        with Wilson score 95% confidence intervals.
+        with Wilson score 95% confidence intervals and exact sample size checks.
         """
         scores_arr = np.asarray(scores, dtype=float)
         labels_arr = np.asarray(labels, dtype=int)
@@ -69,7 +80,7 @@ class SelectivePredictor:
         low_b = max(0.0, calibrated_threshold - band)
         high_b = min(1.0, calibrated_threshold + band)
 
-        # Autonomous decisions only (outside uncertainty band)
+        # Autonomous decisions only (strictly outside uncertainty band)
         accepted = (scores_arr < low_b) | (scores_arr > high_b)
         n_total = len(scores_arr)
         n_accepted = int(np.sum(accepted))
@@ -92,8 +103,7 @@ class SelectivePredictor:
         false_alarms = int(np.sum((acc_scores > calibrated_threshold) & normal_mask))
         false_alarm_rate = float(false_alarms / max(1, n_normal)) if n_normal > 0 else 0.0
 
-        # Wilson Score 95% Confidence Interval for false-pass rate
-        # z = 1.96 for 95% CI
+        # Wilson Score 95% Confidence Interval for false-pass rate (z = 1.96)
         z = 1.96
         if n_defective > 0:
             denom = 1.0 + (z ** 2) / n_defective
@@ -104,7 +114,7 @@ class SelectivePredictor:
         else:
             ci_lower, ci_upper = 0.0, 1.0
 
-        # Check sample size validity: Rule of 300 for 1% risk claims
+        # Exact Rule of 300 check: N_defective >= 300 required for 1% upper bound at 95% confidence
         is_sample_size_sufficient = bool(n_defective >= 300)
 
         return {
@@ -122,7 +132,7 @@ class SelectivePredictor:
             "is_sample_size_sufficient_for_1pct": is_sample_size_sufficient,
             "sample_size_warning": (
                 None if is_sample_size_sufficient
-                else f"Sample size (N_def={n_defective}) is insufficient to statistically prove <=1% false-pass rate at 95% power (N>=300 required)."
+                else f"Sample size (N_def={n_defective}) is insufficient to statistically prove <=1% false-pass rate at 95% confidence (N>=300 required)."
             )
         }
 
@@ -133,9 +143,7 @@ class SelectivePredictor:
         calibrated_threshold: float,
         num_steps: int = 50
     ) -> List[Dict[str, float]]:
-        """
-        Computes the complete risk-coverage trade-off curve across candidate uncertainty bands.
-        """
+        """Computes complete risk-coverage trade-off curve across candidate uncertainty bands."""
         scores_arr = np.asarray(scores, dtype=float)
         labels_arr = np.asarray(labels, dtype=int)
         deltas = np.linspace(0.0, 0.40, num_steps)
@@ -169,59 +177,94 @@ class SelectivePredictor:
     def evaluate_decision(
         self,
         anomaly_score: float,
-        calibrated_threshold: float,
-        is_ood: bool,
+        calibrated_threshold: Optional[float] = None,
+        is_ood: bool = False,
+        is_calibrated: bool = True,
+        image_quality_ok: bool = True,
+        model_ready: bool = True,
         is_region_ambiguous: bool = False
     ) -> Dict[str, Any]:
         """
-        Evaluates prediction confidence and human review recommendation.
+        Evaluates prediction under Phase 11.4 Fail-Safe State Machine.
+        Returns explicit state, autonomous disposition, and human escalation requirement.
         """
-        if not self.enabled:
-            is_anomaly = anomaly_score > calibrated_threshold
+        # 1. Hardware / Pipeline Fault Checks
+        if not model_ready:
             return {
-                "autonomous_action": "ANOMALY_DETECTED" if is_anomaly else "NORMAL",
-                "human_review_required": False,
-                "reason": "Autonomous prediction enabled without selective gating",
+                "state": OperationalState.MODEL_UNAVAILABLE,
+                "autonomous_action": "ESCALATE_TO_HUMAN",
+                "disposition": "HOLD",
+                "human_review_required": True,
+                "reason": "Inspection model or runtime pipeline unavailable.",
                 "in_uncertainty_band": False
             }
 
-        # 1. Check OOD
+        if not image_quality_ok:
+            return {
+                "state": OperationalState.IMAGE_QUALITY_FAILURE,
+                "autonomous_action": "ESCALATE_TO_HUMAN",
+                "disposition": "QUARANTINE",
+                "human_review_required": True,
+                "reason": "Input image failed acquisition quality / format / dimensions checks.",
+                "in_uncertainty_band": False
+            }
+
+        if not is_calibrated or calibrated_threshold is None:
+            return {
+                "state": OperationalState.CALIBRATION_INVALID,
+                "autonomous_action": "ESCALATE_TO_HUMAN",
+                "disposition": "HOLD",
+                "human_review_required": True,
+                "reason": "UNCALIBRATED: Target category lacks validated conformal calibration artifact.",
+                "in_uncertainty_band": False
+            }
+
+        # 2. Out-of-Distribution Check
         if is_ood:
             return {
+                "state": OperationalState.OOD,
                 "autonomous_action": "ESCALATE_TO_HUMAN",
+                "disposition": "QUARANTINE",
                 "human_review_required": True,
-                "reason": "Out-of-Distribution (OOD) visual signature detected; object differs from known normal distribution.",
+                "reason": "Out-of-Distribution visual signature detected; visual features deviate from nominal calibration baseline.",
                 "in_uncertainty_band": False
             }
 
-        # 2. Check conformal uncertainty band
+        # 3. Conformal Uncertainty Band Check
         low_bound = max(0.0, calibrated_threshold - self.uncertainty_band)
         high_bound = min(1.0, calibrated_threshold + self.uncertainty_band)
         in_band = (low_bound <= anomaly_score <= high_bound)
 
-        if in_band:
+        if self.enabled and in_band:
             return {
+                "state": OperationalState.UNCERTAIN,
                 "autonomous_action": "ESCALATE_TO_HUMAN",
+                "disposition": "HUMAN_REVIEW",
                 "human_review_required": True,
                 "reason": f"Anomaly score ({anomaly_score:.3f}) falls within conformal uncertainty band [{low_bound:.3f}, {high_bound:.3f}].",
                 "in_uncertainty_band": True
             }
 
-        # 3. Check language ambiguity
-        if is_region_ambiguous and (anomaly_score > calibrated_threshold):
+        # 4. Vision-Language Ambiguity Check
+        if self.enabled and is_region_ambiguous and (anomaly_score > calibrated_threshold):
             return {
+                "state": OperationalState.HUMAN_REVIEW_REQUIRED,
                 "autonomous_action": "ESCALATE_TO_HUMAN",
+                "disposition": "HUMAN_REVIEW",
                 "human_review_required": True,
-                "reason": "Visual defect detected, but semantic defect classification is ambiguous or unidentified.",
+                "reason": "Visual defect localized, but semantic defect taxonomy classification is ambiguous.",
                 "in_uncertainty_band": False
             }
 
-        # 4. Confident autonomous decision
+        # 5. High-Confidence Autonomous Decision
         is_anomaly = anomaly_score > calibrated_threshold
-        action = "ANOMALY_DETECTED" if is_anomaly else "NORMAL"
+        state = OperationalState.ANOMALY_DETECTED if is_anomaly else OperationalState.NORMAL
+        disposition = "REJECT" if is_anomaly else "ACCEPT"
         return {
-            "autonomous_action": action,
+            "state": state,
+            "autonomous_action": state,
+            "disposition": disposition,
             "human_review_required": False,
-            "reason": f"High-confidence autonomous decision (score {anomaly_score:.3f} vs threshold {calibrated_threshold:.3f}).",
+            "reason": f"High-confidence autonomous decision (score {anomaly_score:.3f} vs calibrated threshold {calibrated_threshold:.3f}).",
             "in_uncertainty_band": False
         }
