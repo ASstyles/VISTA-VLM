@@ -22,6 +22,7 @@ from typing import Dict, Any, Tuple, Optional, List, Union
 from enum import Enum
 
 import torch
+import torch.nn.functional as F
 import numpy as np
 
 from vista_vlm.utils.logger import setup_logger

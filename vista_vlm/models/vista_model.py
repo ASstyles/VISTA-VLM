@@ -27,7 +27,7 @@ import torch.nn.functional as F
 from vista_vlm.models.backbones.dinov2 import dinov2_vits14, dinov2_vitb14
 from vista_vlm.models.fusion.global_local import GlobalLocalFusion
 from vista_vlm.models.decoder.segmentation import ProgressiveSegmentationDecoder
-from vista_vlm.models.memory_bank import NominalMemoryBank, CoresetAlgorithm
+from vista_vlm.models.memory_bank import NominalMemoryBank
 from vista_vlm.utils.logger import setup_logger
 
 logger = setup_logger("vista_vlm.model")

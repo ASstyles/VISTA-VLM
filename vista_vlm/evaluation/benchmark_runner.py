@@ -2,7 +2,7 @@ import time
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from vista_vlm.models.vista_model import VISTAAnomalyModel
 from vista_vlm.evaluation.metrics import compute_image_metrics, compute_pixel_metrics, compute_reliability_metrics

@@ -15,7 +15,7 @@ import glob
 import hashlib
 import json
 from dataclasses import dataclass, asdict
-from typing import List, Dict, Any, Optional, Tuple, Set
+from typing import List, Dict, Any, Optional, Tuple
 from PIL import Image
 
 @dataclass
@@ -248,7 +248,6 @@ class DatasetIntegrityChecker:
 
                     train_set = set(norm_files[:n_train])
                     cal_set = set(norm_files[n_train:n_train + n_cal])
-                    test_norm_set = set(norm_files[n_train + n_cal:])
 
                     for img_file in norm_files:
                         with Image.open(img_file) as im:

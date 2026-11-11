@@ -150,7 +150,6 @@ class VisADataset(BaseAnomalyDataset):
 
         with open(csv_path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
-            headers = [h.strip().lower() for h in (reader.fieldnames or [])]
 
             # Detect column names flexibly
             img_col = next((c for c in reader.fieldnames or [] if c.lower() in ("image", "image_path", "filename")), None)
@@ -336,7 +335,6 @@ class VisADataset(BaseAnomalyDataset):
             n_train = n_total_norm - n_cal - n_test_norm
             train_norm_files = set(normal_files[:n_train])
             cal_norm_files = set(normal_files[n_train:n_train + n_cal])
-            test_norm_files = set(normal_files[n_train + n_cal:])
         elif n_total_norm >= 5:
             n_cal = max(1, int(n_total_norm * val_ratio))
             n_test_norm = max(1, int(n_total_norm * 0.20))
@@ -344,15 +342,12 @@ class VisADataset(BaseAnomalyDataset):
 
             train_norm_files = set(normal_files[:n_train])
             cal_norm_files = set(normal_files[n_train:n_train + n_cal])
-            test_norm_files = set(normal_files[n_train + n_cal:])
         elif n_total_norm >= 3:
             train_norm_files = {normal_files[0]}
             cal_norm_files = {normal_files[1]}
-            test_norm_files = set(normal_files[2:])
         else:
             train_norm_files = set(normal_files[:1])
             cal_norm_files = set(normal_files[1:]) if len(normal_files) > 1 else set(normal_files)
-            test_norm_files = set(normal_files[1:]) if len(normal_files) > 1 else set(normal_files)
 
         for p in normal_files:
             with Image.open(p) as img:

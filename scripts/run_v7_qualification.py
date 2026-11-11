@@ -42,7 +42,7 @@ from vista_vlm.data.manifest_manager import resolve_dataset_root
 from vista_vlm.data.synthetic import SyntheticAnomalyGenerator
 from vista_vlm.data.transforms import denormalize_image, VISTATransform
 from vista_vlm.models.baselines import PatchCore, PaDiM, WinCLIP, AnomalyCLIP
-from vista_vlm.models.vista_model import VISTAAnomalyModel, ModelState
+from vista_vlm.models.vista_model import VISTAAnomalyModel
 from vista_vlm.calibration.conformal import ConformalCalibrator
 from vista_vlm.calibration.ood import OODDetector
 from vista_vlm.calibration.selective import SelectivePredictor

@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 import glob
 from PIL import Image
-from typing import List, Optional, Dict, Any, Tuple
+from typing import List
 from vista_vlm.data.common_schema import ImageSample
 from vista_vlm.data.base import BaseAnomalyDataset
 from vista_vlm.utils.registry import DATASET_REGISTRY
