@@ -1,30 +1,56 @@
 {
   "image_level": {
-    "auroc": 0.0833,
-    "average_precision": 0.4436,
+    "auroc": 1.0,
+    "average_precision": 1.0,
     "precision": 1.0,
-    "recall": 0.0833,
-    "f1": 0.1538,
-    "threshold": 0.3962
+    "recall": 1.0,
+    "f1": 1.0,
+    "threshold": 0.3722
   },
   "pixel_level": {
-    "pixel_auroc": 0.5385,
-    "pixel_ap": 0.0353,
-    "aupro": 0.2123,
-    "iou": 0.0054,
-    "dice": 0.0107,
+    "pixel_auroc": 0.9991,
+    "pixel_ap": 0.8224,
+    "aupro": 0.9923,
+    "iou": 0.3836,
+    "dice": 0.5545,
     "is_constant_map": false,
-    "spatial_variance": 0.035578
+    "spatial_variance": 0.046261,
+    "defect_size_stratification": {
+      "tiny (<0.1%)": {
+        "region_count": 401,
+        "detected_count": 388,
+        "recall": 0.9676,
+        "mean_overlap": 0.9608
+      },
+      "small (0.1-1%)": {
+        "region_count": 7,
+        "detected_count": 7,
+        "recall": 1.0,
+        "mean_overlap": 0.9883
+      },
+      "medium (1-5%)": {
+        "region_count": 3,
+        "detected_count": 3,
+        "recall": 1.0,
+        "mean_overlap": 1.0
+      },
+      "large (>5%)": {
+        "region_count": 0,
+        "detected_count": 0,
+        "recall": 1.0,
+        "mean_overlap": 1.0
+      }
+    }
   },
   "reliability": {
-    "ece": 0.1495,
-    "brier_score": 0.2705,
+    "ece": 0.4489,
+    "brier_score": 0.2097,
     "empirical_false_alarm_rate": 0.0
   },
   "efficiency": {
-    "p50_latency_ms": 711.77,
-    "p95_latency_ms": 813.15,
-    "throughput_fps": 1.38
+    "p50_latency_ms": 649.13,
+    "p95_latency_ms": 698.62,
+    "throughput_fps": 1.52
   },
   "raw_scores": {
     "y_true": [
@@ -52,244 +78,244 @@
       1.0
     ],
     "y_scores": [
-      0.39851588010787964,
-      0.3960845470428467,
-      0.3956882357597351,
-      0.39407098293304443,
-      0.39456814527511597,
-      0.3942565321922302,
-      0.3958147168159485,
-      0.39596325159072876,
-      0.3958985209465027,
-      0.3962112367153168,
-      0.3962112367153168,
-      0.3962112367153168,
-      0.3962112367153168,
-      0.3962112367153168,
-      0.3962112367153168,
-      0.3962112367153168,
-      0.3962112367153168,
-      0.3962112367153168,
-      0.3962112367153168,
-      0.3958147168159485,
-      0.3959633708000183,
-      0.3958984613418579
+      0.5737467408180237,
+      0.5953986644744873,
+      0.5921519994735718,
+      0.5347689390182495,
+      0.5065960884094238,
+      0.5593726634979248,
+      0.40754538774490356,
+      0.42767786979675293,
+      0.40659576654434204,
+      0.372230589389801,
+      0.372230589389801,
+      0.37223055958747864,
+      0.372230589389801,
+      0.372230589389801,
+      0.372230589389801,
+      0.37223055958747864,
+      0.372230589389801,
+      0.372230589389801,
+      0.372230589389801,
+      0.40754538774490356,
+      0.42767778038978577,
+      0.40659579634666443
     ]
   },
   "selective_prediction": {
     "total_samples": 22,
-    "accepted_samples": 0,
-    "coverage": 0.0,
-    "abstention_rate": 1.0,
-    "defective_accepted": 0,
+    "accepted_samples": 6,
+    "coverage": 0.2727,
+    "abstention_rate": 0.7273,
+    "defective_accepted": 6,
     "false_passes": 0,
     "observed_false_pass_rate": 0.0,
     "false_pass_ci_95": [
       0.0,
-      1.0
+      0.3903
     ],
     "normal_accepted": 0,
     "false_alarms": 0,
     "observed_false_alarm_rate": 0.0,
     "is_sample_size_sufficient_for_1pct": false,
-    "sample_size_warning": "Sample size (N_def=0) is insufficient to statistically prove <=1% false-pass rate at 95% power (N>=300 required)."
+    "sample_size_warning": "Sample size (N_def=6) is insufficient to statistically prove <=1% false-pass rate at 95% confidence (N>=300 required)."
   },
   "risk_coverage_curve": [
     {
       "delta": 0.0,
       "coverage": 1.0,
-      "selective_risk": 0.5,
-      "false_pass_rate": 0.9167,
+      "selective_risk": 0.0,
+      "false_pass_rate": 0.0,
       "abstention_rate": 0.0
     },
     {
       "delta": 0.0082,
-      "coverage": 0.0,
+      "coverage": 0.5455,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.4545
     },
     {
       "delta": 0.0163,
-      "coverage": 0.0,
+      "coverage": 0.5455,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.4545
     },
     {
       "delta": 0.0245,
-      "coverage": 0.0,
+      "coverage": 0.5455,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.4545
     },
     {
       "delta": 0.0327,
-      "coverage": 0.0,
+      "coverage": 0.5455,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.4545
     },
     {
       "delta": 0.0408,
-      "coverage": 0.0,
+      "coverage": 0.3636,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.6364
     },
     {
       "delta": 0.049,
-      "coverage": 0.0,
+      "coverage": 0.3636,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.6364
     },
     {
       "delta": 0.0571,
-      "coverage": 0.0,
+      "coverage": 0.2727,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.7273
     },
     {
       "delta": 0.0653,
-      "coverage": 0.0,
+      "coverage": 0.2727,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.7273
     },
     {
       "delta": 0.0735,
-      "coverage": 0.0,
+      "coverage": 0.2727,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.7273
     },
     {
       "delta": 0.0816,
-      "coverage": 0.0,
+      "coverage": 0.2727,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.7273
     },
     {
       "delta": 0.0898,
-      "coverage": 0.0,
+      "coverage": 0.2727,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.7273
     },
     {
       "delta": 0.098,
-      "coverage": 0.0,
+      "coverage": 0.2727,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.7273
     },
     {
       "delta": 0.1061,
-      "coverage": 0.0,
+      "coverage": 0.2727,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.7273
     },
     {
       "delta": 0.1143,
-      "coverage": 0.0,
+      "coverage": 0.2727,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.7273
     },
     {
       "delta": 0.1224,
-      "coverage": 0.0,
+      "coverage": 0.2727,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.7273
     },
     {
       "delta": 0.1306,
-      "coverage": 0.0,
+      "coverage": 0.2727,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.7273
     },
     {
       "delta": 0.1388,
-      "coverage": 0.0,
+      "coverage": 0.2273,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.7727
     },
     {
       "delta": 0.1469,
-      "coverage": 0.0,
+      "coverage": 0.2273,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.7727
     },
     {
       "delta": 0.1551,
-      "coverage": 0.0,
+      "coverage": 0.2273,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.7727
     },
     {
       "delta": 0.1633,
-      "coverage": 0.0,
+      "coverage": 0.1818,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.8182
     },
     {
       "delta": 0.1714,
-      "coverage": 0.0,
+      "coverage": 0.1818,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.8182
     },
     {
       "delta": 0.1796,
-      "coverage": 0.0,
+      "coverage": 0.1818,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.8182
     },
     {
       "delta": 0.1878,
-      "coverage": 0.0,
+      "coverage": 0.1364,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.8636
     },
     {
       "delta": 0.1959,
-      "coverage": 0.0,
+      "coverage": 0.1364,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.8636
     },
     {
       "delta": 0.2041,
-      "coverage": 0.0,
+      "coverage": 0.0909,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.9091
     },
     {
       "delta": 0.2122,
-      "coverage": 0.0,
+      "coverage": 0.0909,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.9091
     },
     {
       "delta": 0.2204,
-      "coverage": 0.0,
+      "coverage": 0.0455,
       "selective_risk": 0.0,
       "false_pass_rate": 0.0,
-      "abstention_rate": 1.0
+      "abstention_rate": 0.9545
     },
     {
       "delta": 0.2286,

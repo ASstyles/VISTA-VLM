@@ -3,7 +3,9 @@ import sys
 import time
 import json
 import uuid
+import io
 from typing import List, Optional, Dict, Any
+from PIL import Image
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 
@@ -27,6 +29,10 @@ router = APIRouter()
 # Global pipeline instance initialized lazily
 pipeline_instance = None
 
+MAX_IMAGE_BYTES = 20 * 1024 * 1024  # 20MB limit
+CHUNK_SIZE = 64 * 1024  # 64KB chunks
+
+
 def get_pipeline():
     global pipeline_instance
     if pipeline_instance is None:
@@ -46,12 +52,12 @@ def get_pipeline():
 
 @router.get("/health", response_model=HealthResponse)
 def health_check():
-    """General health check (backward compatible)."""
+    """General health check."""
     pipeline = get_pipeline()
     calibrated_cats = list(pipeline.calibrator.category_thresholds.keys())
     return HealthResponse(
         status="healthy",
-        system_version="4.0.0",
+        system_version="5.0.0",
         device=str(pipeline.device),
         backbone=pipeline.config.model.backbone,
         models_loaded=True,
@@ -88,7 +94,7 @@ def get_model_info():
     pipeline = get_pipeline()
     footprint = get_model_footprint(pipeline.model)
     return ModelInfoResponse(
-        architecture="VISTA-VLM v4.0 (Vision Intelligence through Spatial and Textual Alignment)",
+        architecture="VISTA-VLM v5.0 (Vision Intelligence through Spatial and Textual Alignment)",
         backbone=pipeline.config.model.backbone,
         embed_dim=pipeline.config.model.embed_dim,
         patch_size=pipeline.config.data.patch_size,
@@ -123,6 +129,91 @@ def validate_image_format(contents: bytes) -> bool:
     return False
 
 
+def read_upload_stream_safely(file: UploadFile, max_bytes: int = MAX_IMAGE_BYTES) -> bytes:
+    """Reads uploaded file stream in bounded chunks to prevent heap memory exhaustion DoS."""
+    chunks = []
+    total_read = 0
+    while True:
+        chunk = file.file.read(CHUNK_SIZE)
+        if not chunk:
+            break
+        total_read += len(chunk)
+        if total_read > max_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"Uploaded file payload exceeds maximum allowed cap of {max_bytes // (1024 * 1024)}MB"
+            )
+        chunks.append(chunk)
+
+    if total_read == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Empty image file uploaded"
+        )
+    return b"".join(chunks)
+
+
+def validate_and_decode_image(contents: bytes) -> Image.Image:
+    """
+    Validates magic bytes, decodes via Pillow with decompression bomb protection,
+    and enforces dimensional boundaries.
+    """
+    if not validate_image_format(contents):
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Unsupported image format. Allowed formats: PNG, JPEG, BMP, TIFF, WEBP."
+        )
+
+    # Set Pillow decompression bomb threshold (max 25 Megapixels)
+    Image.MAX_IMAGE_PIXELS = 25_000_000
+    try:
+        pil_img = Image.open(io.BytesIO(contents))
+        pil_img.verify()
+        pil_img = Image.open(io.BytesIO(contents)).convert("RGB")
+    except Image.DecompressionBombError:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Image dimensions exceed maximum allowed decompression limits (potential decompression bomb)."
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Malformed image binary could not be parsed: {str(e)}"
+        )
+
+    w, h = pil_img.size
+    if w < 16 or h < 16 or w > 4096 or h > 4096:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Image dimensions ({w}x{h}) outside permissible operating boundaries [16x16 to 4096x4096]."
+        )
+    return pil_img
+
+
+def validate_safe_path(path: str, allowed_root: str = "data") -> str:
+    """Validates that a filesystem path is strictly confined within an authorized sandboxed root."""
+    abs_allowed = os.path.abspath(allowed_root)
+    abs_path = os.path.abspath(path)
+    try:
+        common = os.path.commonpath([abs_path, abs_allowed])
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cross-drive or absolute root filesystem path access is strictly forbidden."
+        )
+    if common != abs_allowed:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Path traversal detected: Access to arbitrary server paths outside data/ is forbidden."
+        )
+    if not os.path.exists(abs_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Specified asset not found in sandboxed repository: {os.path.basename(path)}"
+        )
+    return abs_path
+
+
 @router.post("/inspect", response_model=InspectionResponse)
 def inspect_image(
     file: UploadFile = File(...),
@@ -130,22 +221,10 @@ def inspect_image(
 ):
     try:
         pipeline = get_pipeline()
-        contents = file.file.read()
-        if len(contents) == 0:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty image file uploaded")
+        contents = read_upload_stream_safely(file)
+        pil_img = validate_and_decode_image(contents)
 
-        # Size check (max 20MB)
-        if len(contents) > 20 * 1024 * 1024:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File too large (exceeds 20MB limit)")
-
-        # Format validation
-        if not validate_image_format(contents):
-            raise HTTPException(
-                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                detail="Unsupported image format. Allowed formats: PNG, JPEG, BMP, TIFF, WEBP."
-            )
-
-        result = pipeline.inspect(contents, category=category)
+        result = pipeline.inspect(pil_img, category=category)
         return result
     except HTTPException:
         raise
@@ -166,10 +245,11 @@ def inspect_batch(payload: BatchInspectionRequest):
 
     for path in payload.image_paths:
         try:
-            if not os.path.exists(path):
-                raise FileNotFoundError(f"Path not found: {path}")
-            res = pipeline.inspect(path, category=payload.category)
+            safe_p = validate_safe_path(path)
+            res = pipeline.inspect(safe_p, category=payload.category)
             results.append(res)
+        except HTTPException:
+            raise
         except Exception as e:
             logger.warning(f"Batch item failed for {path}: {e}")
 

@@ -1,32 +1,41 @@
-# VISTA-VLM Dataset Acquisition and Engineering Guide
+# VISTA-VLM V5.0 Dataset Engineering and Provenance Guide
 
-## 1. Supported Benchmark Datasets
-
-VISTA-VLM provides standardized loaders, parsers, and validation reports for four primary industrial anomaly datasets:
-
-1. **MVTec AD (Anomaly Detection)**:
-   - 15 industrial categories (5 textures, 10 objects): `bottle`, `cable`, `capsule`, `carpet`, `grid`, `hazelnut`, `leather`, `metal_nut`, `pill`, `screw`, `tile`, `toothbrush`, `transistor`, `wood`, `zipper`.
-   - Resolution: 700×700 to 1024×1024 RGB.
-   - Annotations: Exact pixel-level binary ground truth masks for all test defect types.
-   - Licensing: CC BY-NC-SA 4.0.
-
-2. **VisA (Visual Anomaly)**:
-   - 12 complex multi-instance categories: `capsules`, `candle`, `macaroni`, `pcb1`, `pcb2`, `pcb3`, `pcb4`, `chewinggum`, `fryum`, `pipe_fryum`, `cashews`, `print`.
-   - High spatial complexity with multiple foreground instances.
-   - Licensing: CC BY 4.0.
-
-3. **BTAD (BeanTech Anomaly Detection)**:
-   - 3 industrial manufacturing surface categories (`01`, `02`, `03`).
-   - Body-centered industrial component scans.
-
-4. **MPDD (Metal Parts Defect Dataset)**:
-   - Variable background illumination and perspective shifts.
+**Document ID:** `V5-DOC-DAT-001`  
+**Version:** 5.0.0  
+**Status:** APPROVED  
+**Date:** 2026-11-11  
 
 ---
 
-## 2. Common Annotation Schema
+## 1. Segregated Data Architecture
 
-All datasets are normalized into a single unified schema (`vista_vlm.data.common_schema.ImageSample`):
+In compliance with **Non-Negotiable Principle 1.2 (Strict Separation of Evidence)**, VISTA-VLM V5.0 enforces permanent filesystem separation:
+
+```
+data/
+  synthetic_fixtures/         # Procedural test fixtures (CI & local unit tests only)
+    mvtec_like/               # Conforming to MVTec AD schema (seed-randomized)
+    visa_like/                # Conforming to VisA schema
+
+  real/                       # Genuine industrial datasets (External mount / authorized access)
+    mvtec_ad/                 # 15 official MVTec AD categories (CC BY-NC-SA 4.0)
+    visa/                     # 12 official VisA categories (CC BY 4.0)
+    btad/                     # BeanTech Anomaly Detection (3 categories)
+    mpdd/                     # Metal Parts Defect Dataset (6 categories)
+    real_iad/                 # Real-IAD multi-view dataset
+
+  manifests/                  # Cryptographic SHA-256 dataset manifests
+    synthetic/                # mvtec_like_manifest.json, visa_like_manifest.json
+    real/                     # Generated on archive unpack
+```
+
+**Rule**: Synthetic procedural fixtures must **never** be written to or read from `data/real/`.
+
+---
+
+## 2. Common Data Schema
+
+All datasets are normalized into a unified schema (`vista_vlm.data.common_schema.ImageSample`):
 
 ```python
 class ImageSample(BaseModel):
@@ -44,33 +53,36 @@ class ImageSample(BaseModel):
 
 ---
 
-## 3. Data Split & Zero-Leakage Protocol
+## 3. Cryptographic Manifest and Leakage Verification Protocol
 
-To ensure rigorous scientific validity:
-1. **Train Split**: Pure nominal/flawless images only ($y = 0$). No real defects are ever observed during feature learning or decoder training.
-2. **Calibration Split**: Independent held-out normal images ($y = 0$) used exclusively for split conformal quantile threshold calculation and OOD covariance fitting.
-3. **Test Split**: Contains both nominal images and all real defect classes with corresponding pixel ground truth masks.
-4. **Synthetic Anomalies**: Generated exclusively on-the-fly from nominal training images via CutPaste, Perlin-blended perturbations, and geometric polygons. No test defect geometries or masks are referenced during synthesis.
+Before training or benchmarking, datasets must be audited with `vista_vlm.data.manifest_manager`:
 
----
-
-## 4. Benchmark Data Preparation & Verification
-
-Generate standardized dataset splits and validation reports:
 ```bash
-python scripts/prepare_benchmark_data.py
+# Generate and audit dataset manifest:
+python -c "
+from vista_vlm.data.manifest_manager import generate_dataset_manifest
+manifest = generate_dataset_manifest(
+    data_dir='data/synthetic_fixtures/mvtec_like',
+    output_path='data/manifests/synthetic/mvtec_like_manifest.json',
+    dataset_name='mvtec_like',
+    version='5.0.0'
+)
+print('Manifest valid:', manifest['is_valid'])
+"
 ```
-This produces `benchmarks/dataset_validation_report.json` verifying:
-- Image-mask dimension correspondence
-- Binary mask value integrity (`{0, 255}`)
-- Total sample counts per category
-- Strict zero-leakage split partitions.
+
+The manifest audit enforces:
+1. **Zero Data Leakage**: Computes SHA-256 hashes of all images; flags an error if any test image is identical or near-duplicate to a train image.
+2. **Mask Correspondence**: Verifies that every defective test image has a corresponding ground-truth mask with identical $(W, H)$ dimensions.
+3. **Directory Conformance**: Verifies required subfolders (`train/good`, `test/good`, `test/<defect>`, `ground_truth/<defect>`).
 
 ---
 
-## 5. Benchmark Provenance & Transparency (SEC-15)
+## 4. Configuring Real Dataset Paths
 
-The repository provides lightweight, procedural synthetic benchmark fixtures conforming strictly to official MVTec AD and VisA directory schemas (`train/good`, `val_calibration/good`, `test/good`, `test/defect_name`, `ground_truth/defect_name`).
-- **Tag**: `"dataset_provenance": "procedural_synthetic_benchmark_fixture"`
-- **Purpose**: Enables immediate, deterministic, reproducible testing and regression audits on CI/CD pipelines and local CPU/GPU development environments without requiring multi-gigabyte external tarball downloads.
-- **Production Conversion**: When benchmarking on physical raw industrial archives, simply replace the contents of `data/processed/mvtec/` and `data/processed/visa/` with extracted official archives; all loaders and evaluation scripts operate without modification.
+To evaluate against mounted real datasets:
+```bash
+export VISTA_DATA_ROOT=/path/to/authorized/datasets
+python scripts/run_multi_track_benchmark.py
+```
+If `VISTA_DATA_ROOT` is unset, the loader falls back cleanly to `data/synthetic_fixtures` and logs a transparent disclosure that synthetic benchmark fixtures are being used.

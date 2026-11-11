@@ -2,9 +2,9 @@ name: VISTA-VLM CI
 
 on:
   push:
-    branches: [ main, master, v4-research-production-upgrade ]
+    branches: [ main, master, v4-research-production-upgrade, v5-real-world-qualification ]
   pull_request:
-    branches: [ main, master, v4-research-production-upgrade ]
+    branches: [ main, master, v4-research-production-upgrade, v5-real-world-qualification ]
 
 jobs:
   test:

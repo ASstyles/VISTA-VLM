@@ -3,12 +3,12 @@
 ## Executive Summary
 
 This report provides an exhaustive, evidence-based failure audit of VISTA-VLM v4.0 across the 6 benchmark categories.
-Evaluations were performed against calibrated decision boundary $\tau_c = 0.3962$ with ground-truth spatial annotations.
+Evaluations were performed against calibrated decision boundary $\tau_c = 0.3722$ with ground-truth spatial annotations.
 
 ### Provenance & Execution Context
 - **Dataset Provenance**: `procedural_synthetic_benchmark_fixture`
 - **Total Samples Audited**: `129`
-- **Timestamp**: `2026-11-09 13:57:41`
+- **Timestamp**: `2026-11-11 19:22:21`
 
 ---
 
@@ -16,12 +16,12 @@ Evaluations were performed against calibrated decision boundary $\tau_c = 0.3962
 
 | Category | Total | Correct Normal | Correct Defective | False Alarm (Type I) | False Pass (Type II) | Small-Defect Miss | Boundary Leakage | Shift |
 |:---|---:|---:|---:|---:|---:|---:|---:|---:|
-| **bottle** | 22 | 10 | 0 | 0 | 11 | 1 | 0 | 0 |
-| **cable** | 22 | 10 | 0 | 0 | 12 | 0 | 0 | 0 |
-| **capsule** | 22 | 10 | 0 | 0 | 11 | 1 | 0 | 0 |
-| **leather** | 22 | 0 | 0 | 10 | 0 | 7 | 0 | 5 |
-| **tile** | 22 | 0 | 0 | 10 | 0 | 7 | 0 | 5 |
-| **candle** | 19 | 0 | 0 | 4 | 0 | 5 | 10 | 0 |
+| **bottle** | 22 | 10 | 11 | 0 | 0 | 0 | 1 | 0 |
+| **cable** | 22 | 0 | 2 | 10 | 0 | 9 | 1 | 0 |
+| **capsule** | 22 | 10 | 12 | 0 | 0 | 0 | 0 | 0 |
+| **leather** | 22 | 0 | 3 | 10 | 0 | 8 | 1 | 0 |
+| **tile** | 22 | 0 | 12 | 10 | 0 | 0 | 0 | 0 |
+| **candle** | 19 | 0 | 15 | 4 | 0 | 0 | 0 | 0 |
 
 ---
 
