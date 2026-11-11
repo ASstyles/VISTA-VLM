@@ -1,4 +1,4 @@
-# Multi-stage production container for VISTA-VLM V6.0
+# Multi-stage production container for VISTA-VLM V7.0
 # Hardened, non-root user execution with healthcheck and minimal attack surface
 
 FROM python:3.11-slim as builder

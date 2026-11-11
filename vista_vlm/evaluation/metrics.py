@@ -65,7 +65,7 @@ def compute_pixel_metrics(
         y_true_masks: [N, H, W] binary masks
         y_pred_maps: [N, H, W] continuous anomaly heatmaps in [0, 1]
     """
-    y_true_flat = y_true_masks.reshape(-1).astype(int)
+    y_true_flat = (y_true_masks.reshape(-1) > 0.5).astype(int)
     y_pred_flat = np.nan_to_num(y_pred_maps.reshape(-1).astype(float), nan=0.0)
 
     # Subsample if pixel count is huge (e.g. > 2 million pixels) to ensure fast exact computation
@@ -366,6 +366,76 @@ def compute_defect_size_metrics(
             "mean_overlap": round(m_pro, 4)
         }
     return summary
+
+
+def compute_bootstrap_ci(
+    y_true: np.ndarray,
+    y_scores: np.ndarray,
+    n_bootstraps: int = 1000,
+    confidence: float = 0.95,
+    seed: int = 42
+) -> Dict[str, Any]:
+    """
+    Computes rigorous non-parametric image-level bootstrap confidence intervals
+    (1000 resamples) for AUROC and Average Precision across all evaluated samples.
+    """
+    y_true = np.asarray(y_true).astype(int)
+    y_scores = np.asarray(y_scores).astype(float)
+    n = len(y_true)
+    if n < 5 or len(np.unique(y_true)) < 2:
+        return {
+            "auroc": {"ci_lower": 0.0, "ci_upper": 1.0, "mean": 0.0, "std": 0.0},
+            "ap": {"ci_lower": 0.0, "ci_upper": 1.0, "mean": 0.0, "std": 0.0},
+            "n_bootstraps": n_bootstraps,
+            "sample_size": n
+        }
+
+    rng = np.random.RandomState(seed)
+    boot_aurocs = []
+    boot_aps = []
+
+    for _ in range(n_bootstraps):
+        idx = rng.choice(n, size=n, replace=True)
+        yt_sample = y_true[idx]
+        ys_sample = y_scores[idx]
+        if len(np.unique(yt_sample)) < 2:
+            continue
+        try:
+            boot_aurocs.append(float(roc_auc_score(yt_sample, ys_sample)))
+            boot_aps.append(float(average_precision_score(yt_sample, ys_sample)))
+        except Exception:
+            continue
+
+    if not boot_aurocs:
+        return {
+            "auroc": {"ci_lower": 0.0, "ci_upper": 1.0, "mean": 0.0, "std": 0.0},
+            "ap": {"ci_lower": 0.0, "ci_upper": 1.0, "mean": 0.0, "std": 0.0},
+            "n_bootstraps": 0,
+            "sample_size": n
+        }
+
+    alpha_tail = (1.0 - confidence) / 2.0
+    auroc_low = float(np.percentile(boot_aurocs, 100.0 * alpha_tail))
+    auroc_high = float(np.percentile(boot_aurocs, 100.0 * (1.0 - alpha_tail)))
+    ap_low = float(np.percentile(boot_aps, 100.0 * alpha_tail))
+    ap_high = float(np.percentile(boot_aps, 100.0 * (1.0 - alpha_tail)))
+
+    return {
+        "auroc": {
+            "mean": round(float(np.mean(boot_aurocs)), 4),
+            "std": round(float(np.std(boot_aurocs)), 4),
+            "ci_lower": round(auroc_low, 4),
+            "ci_upper": round(auroc_high, 4)
+        },
+        "ap": {
+            "mean": round(float(np.mean(boot_aps)), 4),
+            "std": round(float(np.std(boot_aps)), 4),
+            "ci_lower": round(ap_low, 4),
+            "ci_upper": round(ap_high, 4)
+        },
+        "n_bootstraps": len(boot_aurocs),
+        "sample_size": n
+    }
 
 
 def compute_statistical_confidence_intervals(

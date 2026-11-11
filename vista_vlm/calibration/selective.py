@@ -156,11 +156,13 @@ class SelectivePredictor:
         scores: Union[np.ndarray, List[float]],
         labels: Union[np.ndarray, List[int]],
         calibrated_threshold: float,
-        uncertainty_band: Optional[float] = None
+        uncertainty_band: Optional[float] = None,
+        provenance: str = "synthetic"
     ) -> Dict[str, Any]:
         """
         Rigorously evaluates false-pass (defect escape) and false-alarm (overkill) risks
         with Wilson score 95% confidence intervals and exact one-sided binomial upper bound.
+        Explicitly distinguishes between synthetic developmental risk and genuine industrial qualification.
         """
         scores_arr = np.asarray(scores, dtype=np.float64)
         labels_arr = np.asarray(labels, dtype=int)
@@ -198,6 +200,21 @@ class SelectivePredictor:
         ci_fa_low, ci_fa_high = wilson_score_interval(false_alarms, n_normal, confidence=0.95)
 
         is_sample_size_sufficient = bool(n_defective >= 300)
+        is_synthetic = "synthetic" in provenance.lower()
+
+        if is_synthetic:
+            guarantee_status = "SYNTHETIC_DEVELOPMENTAL_EVIDENCE_ONLY_NO_PRODUCTION_ESCAPE_GUARANTEE"
+            sample_note = (
+                f"Evaluation evaluated on {provenance} data (N_def={n_defective}). "
+                f"Observed risk on synthetic examples CANNOT mathematically guarantee production defect escape rates."
+            )
+        else:
+            if is_sample_size_sufficient:
+                guarantee_status = "STATISTICALLY_SUPPORTED_1PCT_UPPER_BOUND"
+                sample_note = f"Sufficient test defect samples (N={n_defective} >= 300); exact 95% upper bound is {exact_ub:.2%}."
+            else:
+                guarantee_status = "SAMPLE_SIZE_LIMITED_ESTIMATE"
+                sample_note = f"Defective sample size (N_def={n_defective} < 300) is limited; exact 95% upper confidence bound is {exact_ub:.2%}."
 
         return {
             "total_samples": n_total,
@@ -213,12 +230,11 @@ class SelectivePredictor:
             "false_alarms": false_alarms,
             "observed_false_alarm_rate": round(false_alarm_rate, 4),
             "false_alarm_ci_95": [round(ci_fa_low, 4), round(ci_fa_high, 4)],
+            "provenance": provenance,
+            "is_synthetic": is_synthetic,
             "is_sample_size_sufficient_for_1pct": is_sample_size_sufficient,
-            "sample_size_note": (
-                "Sufficient test defect samples (N>=300) for statistical 1% upper bound."
-                if is_sample_size_sufficient
-                else f"Sample size (N_def={n_defective}) is limited; exact 95% upper bound is {exact_ub:.2%}."
-            )
+            "guarantee_status": guarantee_status,
+            "sample_size_note": sample_note
         }
 
     def compute_risk_coverage_curve(

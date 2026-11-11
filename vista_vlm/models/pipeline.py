@@ -140,6 +140,14 @@ class VISTAInspectionPipeline:
         pil_img.save(buf, format="PNG")
         return base64.b64encode(buf.getvalue()).decode("utf-8")
 
+    def _check_image_quality(self, orig_np: np.ndarray) -> bool:
+        if orig_np.size == 0:
+            return False
+        # Degenerate image check (completely black, completely white, or near-zero variance)
+        if float(np.std(orig_np)) < 1.0:
+            return False
+        return True
+
     def inspect(
         self,
         image_input: Union[str, Image.Image, np.ndarray, bytes],
@@ -197,13 +205,16 @@ class VISTAInspectionPipeline:
             region_findings_raw = []
 
         # 6. Selective Prediction & Human Escalation Evaluation under Fail-Safe Controls
+        image_quality_ok = self._check_image_quality(orig_np)
+        model_ready = getattr(self.model, "is_ready", True)
+
         escalation_eval = self.selective_predictor.evaluate_decision(
             anomaly_score=image_score,
             calibrated_threshold=threshold,
             is_ood=is_ood,
             is_calibrated=is_calibrated,
-            image_quality_ok=True,
-            model_ready=True,
+            image_quality_ok=image_quality_ok,
+            model_ready=model_ready,
             is_region_ambiguous=has_ambiguity
         )
 

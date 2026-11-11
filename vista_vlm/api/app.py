@@ -16,17 +16,23 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="VISTA-VLM Inference & Intelligence API",
         description="Vision Intelligence through Spatial and Textual Alignment for Industrial Anomaly Detection and Localization",
-        version="1.0.0",
+        version="7.0.0",
         docs_url="/docs",
         redoc_url="/redoc"
     )
 
-    # Enable CORS for local Studio frontend and external clients
+    # Configurable CORS with safe local development defaults
+    allowed_origins = os.environ.get(
+        "VISTA_CORS_ORIGINS",
+        "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173"
+    ).split(",")
+    origins_list = [o.strip() for o in allowed_origins if o.strip()]
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=origins_list,
         allow_credentials=True,
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["*"],
     )
 
@@ -35,7 +41,7 @@ def create_app() -> FastAPI:
         logger.error(f"Global unhandled exception on {request.url.path}: {exc}", exc_info=True)
         return JSONResponse(
             status_code=500,
-            content={"detail": str(exc), "path": request.url.path}
+            content={"detail": "Internal server error. Inspection request could not be processed.", "path": request.url.path}
         )
 
     app.include_router(router)

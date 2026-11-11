@@ -68,7 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   VISTA-VLM
                 </span>
                 <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-800/80 font-bold">
-                  V6.0 Industrial Studio
+                  V7.0 Industrial Studio
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 font-medium">Vision Intelligence through Spatial & Textual Alignment</p>

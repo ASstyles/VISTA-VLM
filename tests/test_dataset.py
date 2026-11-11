@@ -165,6 +165,43 @@ def test_geometric_mask():
     assert set(np.unique(mask)).issubset({0.0, 1.0})
 
 
+def test_mvtec_four_partition_loading():
+    """Validates that all 4 disjoint partitions load with correct label semantics."""
+    root = "data/synthetic_fixtures/mvtec"
+    if not os.path.exists(root):
+        pytest.skip("Synthetic fixtures not present")
+
+    train_ds = MVTecDataset(root, category="bottle", split="train")
+    cal_ds = MVTecDataset(root, category="bottle", split="val_calibration")
+    tune_ds = MVTecDataset(root, category="bottle", split="val_tuning")
+    test_ds = MVTecDataset(root, category="bottle", split="test")
+
+    # Train and Cal are strictly normal only
+    assert all(train_ds[i]["label"].item() == 0.0 for i in range(len(train_ds)))
+    assert all(cal_ds[i]["label"].item() == 0.0 for i in range(len(cal_ds)))
+    assert len(cal_ds) >= 19, "Calibration set must have at least 19 samples for alpha=0.05"
+
+    # Val tuning and Test contain both normal and defective
+    tune_labels = {tune_ds[i]["label"].item() for i in range(len(tune_ds))}
+    assert tune_labels == {0.0, 1.0}, "Val tuning must contain both normal and defective"
+
+    test_labels = {test_ds[i]["label"].item() for i in range(len(test_ds))}
+    assert test_labels == {0.0, 1.0}, "Test must contain both normal and defective"
+
+    # Zero leakage check
+    train_paths = set(train_ds.image_paths)
+    cal_paths = set(cal_ds.image_paths)
+    tune_paths = set(tune_ds.image_paths)
+    test_paths = set(test_ds.image_paths)
+
+    assert len(train_paths.intersection(cal_paths)) == 0, "Leakage between train and cal"
+    assert len(train_paths.intersection(tune_paths)) == 0, "Leakage between train and tune"
+    assert len(train_paths.intersection(test_paths)) == 0, "Leakage between train and test"
+    assert len(cal_paths.intersection(tune_paths)) == 0, "Leakage between cal and tune"
+    assert len(cal_paths.intersection(test_paths)) == 0, "Leakage between cal and test"
+    assert len(tune_paths.intersection(test_paths)) == 0, "Leakage between tune and test"
+
+
 def test_foreground_mask():
     dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
     dummy_img[20:80, 20:80] = 200

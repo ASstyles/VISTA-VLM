@@ -53,13 +53,15 @@ def test_coreset_algorithms_shapes_and_reproducibility():
     assert len(set(idx_km)) == M
 
     # 4. Uniform
-    c_uni = coreset_uniform(features, M)
+    c_uni, idx_uni = coreset_uniform(features, M)
     assert c_uni.shape == (M, D)
+    assert len(set(idx_uni)) == M
 
     # 5. Random
-    c_rand = coreset_random(features, M, seed=42)
+    c_rand, idx_rand = coreset_random(features, M, seed=42)
     assert c_rand.shape == (M, D)
-    c_rand2 = coreset_random(features, M, seed=42)
+    assert len(set(idx_rand)) == M
+    c_rand2, _ = coreset_random(features, M, seed=42)
     assert torch.equal(c_rand, c_rand2)
 
 
@@ -110,7 +112,7 @@ def test_memory_bank_state_dict_roundtrip():
     mem1.fit(torch.randn(150, 32), category="leather")
 
     state = mem1.state_dict()
-    assert state["version"] == "6.0.0"
+    assert state["version"] in ("6.0.0", "7.0.0")
     assert state["sha256"] == mem1.sha256
 
     mem2 = NominalMemoryBank()

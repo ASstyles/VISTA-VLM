@@ -34,6 +34,9 @@ export interface ReliabilityIndicators {
   ood_distance: number;
   ood_threshold: number;
   in_uncertainty_band: boolean;
+  operational_state?: string;
+  disposition?: string;
+  guarantee_status?: string;
   human_review_recommended: boolean;
   review_reason: string;
 }

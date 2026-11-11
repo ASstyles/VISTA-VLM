@@ -26,29 +26,51 @@ from vista_vlm.api.routes import (
 from vista_vlm.api.schemas import BatchInspectionRequest
 
 
-def test_api_v6_health_endpoint():
+def test_api_v6_health_endpoint(mock_ready_pipeline):
     res = health_check()
     assert res.status == "healthy"
-    assert res.system_version == "6.0.0"
+    assert res.system_version == "7.0.0"
     assert res.model_state is not None
 
 
 def test_api_v6_liveness_endpoint():
     res = liveness_check()
     assert res["status"] == "alive"
-    assert res["version"] == "6.0.0"
+    assert res["version"] == "7.0.0"
 
 
-def test_api_v6_readiness_endpoint():
+def test_api_v6_readiness_valid_pipeline(mock_ready_pipeline):
+    """Test readiness against a valid complete production pipeline."""
     res = readiness_check()
-    assert res["status"] in ("ready", "uncalibrated")
-    assert res["version"] == "6.0.0"
+    assert res["status"] == "ready"
+    assert res["version"] == "7.0.0"
+    assert res["model_state"] == "READY"
+    assert "calibrated_categories" in res
+    assert "bottle" in res["calibrated_categories"]
 
 
-def test_api_v6_model_info():
+def test_api_v6_readiness_incomplete_pipeline(mock_pipeline_builder):
+    """Test readiness fails with HTTP 503 when model is missing."""
+    mock_pipeline_builder(has_model=False)
+    with pytest.raises(HTTPException) as exc:
+        readiness_check()
+    assert exc.value.status_code == 503
+    assert "uninitialized" in exc.value.detail.lower()
+
+
+def test_api_v6_readiness_unfitted_memory_bank(mock_pipeline_builder):
+    """Test readiness specifically fails with HTTP 503 when memory bank is unfitted."""
+    mock_pipeline_builder(memory_fitted=False)
+    with pytest.raises(HTTPException) as exc:
+        readiness_check()
+    assert exc.value.status_code == 503
+    assert "memory bank is not fitted" in exc.value.detail.lower()
+
+
+def test_api_v6_model_info(mock_ready_pipeline):
     res = get_model_info()
-    assert res.version == "6.0.0"
-    assert "v6.0" in res.architecture
+    assert res.version == "7.0.0"
+    assert "VISTA-VLM" in res.architecture
 
 
 def test_api_v6_batch_path_traversal_blocked():

@@ -3,5 +3,5 @@ VISTA-VLM: Vision Intelligence through Spatial and Textual Alignment
 for Industrial Anomaly Detection and Localization.
 """
 
-__version__ = "6.0.0"
+__version__ = "7.0.0"
 

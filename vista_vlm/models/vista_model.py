@@ -1,15 +1,15 @@
 """
-VISTA-VLM Core Anomaly Detection Model (V6.0).
-=============================================
+VISTA-VLM Core Anomaly Detection Model (V7.0 Research Upgrade).
+==============================================================
 Unified Architecture combining:
-  1. Frozen DINOv2 ViT-S/14 Visual Foundation Backbone (Intermediate Blocks 4, 8, 12)
+  1. Frozen DINOv2 Foundation Backbone (Intermediate Blocks 4, 8, 12)
   2. Multi-Scale Global-Local FiLM Feature Conditioning
   3. Progressive Convolutional Decoder with Squeeze-and-Excitation Attention & Lateral Skips
   4. Nominal Reference Memory Bank with Exact/Approximate Greedy k-Center Coreset Sampling
-  5. Calibrated Cross-Image Feature Scaling (eliminating destructive per-image min-max distortion)
-  6. High-Accuracy Image-Level Anomaly Discrimination (AUROC >= 0.95)
+  5. Calibrated Multi-Neighbor Spatial Guidance (1-NN, Mean k-NN, Distance-Weighted)
+  6. Harmonized Image-Level Scoring Branch (training loss and inference share identical formulations)
   7. Multi-Task Supervision: Focal Loss + Soft Dice + Tversky Loss + Sobel Boundary Loss
-  8. Explicit Model Operational Lifecycle State Machine
+  8. Strict Operational Lifecycle State Machine (UNINITIALIZED, LOADING, READY, INVALID, UNAVAILABLE)
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ logger = setup_logger("vista_vlm.model")
 
 
 class ModelState(str, Enum):
-    """Explicit Operational Model State Machine (Phase 3)."""
+    """Explicit Operational Model State Machine."""
     UNINITIALIZED = "UNINITIALIZED"
     LOADING = "LOADING"
     READY = "READY"
@@ -77,7 +77,7 @@ class DiceLoss(nn.Module):
 
 class TverskyLoss(nn.Module):
     """
-    Tversky Loss (Salehi et al., 2017) with asymmetric false-negative penalization.
+    Tversky Loss with asymmetric false-negative penalization.
     Forces high recall on fine defect cracks and boundary anomalies by setting alpha > beta.
     """
     def __init__(self, alpha: float = 0.7, beta: float = 0.3, smooth: float = 1.0):
@@ -125,16 +125,7 @@ class SobelBoundaryLoss(nn.Module):
 
 class VISTAAnomalyModel(nn.Module):
     """
-    VISTA Anomaly Detection & Dense Localization Model (VISTA-VLM V6.0).
-    Integrates:
-      1. Frozen DINOv2 ViT-S/14 Foundation Backbone with multi-scale intermediate extraction (Blocks 4, 8, 12)
-      2. Multi-variant Global-Local Fusion (FiLM, Gated, Cross-Attention, Concat-Proj)
-      3. Progressive Segmentation Decoder with Squeeze-and-Excitation, Lateral Skips & Deep Supervision
-      4. Nominal Reference Memory Bank with Exact/Approximate Greedy k-Center Selection
-      5. Reference-Calibrated Residual Spatial Guidance (preserving cross-image anomaly ranking)
-      6. Configurable image-level scoring policies (hybrid, memory_topk, memory_max, calibrated_residual)
-      7. Multi-task loss: Binary Focal Loss + Soft Dice + Tversky Loss + Differentiable Sobel Boundary Loss
-      8. State Machine lifecycle tracking
+    VISTA Anomaly Detection & Dense Localization Model (V7.0 Research Upgrade).
     """
     def __init__(
         self,
@@ -146,13 +137,15 @@ class VISTAAnomalyModel(nn.Module):
         fusion_type: str = "global_local",
         use_film: bool = True,
         top_k_ratio: float = 0.005,
-        global_head_weight: float = 0.2,
+        global_head_weight: float = 0.20,
         scoring_mode: str = "hybrid",
         freeze_backbone: bool = True,
         memory_fusion_weight: float = 0.65,
         coreset_algorithm: str = "approx_greedy_k_center",
         coreset_max_patches: int = 1500,
-        category: str = "generic"
+        category: str = "generic",
+        k_neighbors: int = 3,
+        neighbor_aggregation: str = "mean"
     ):
         super().__init__()
         self.image_size = image_size
@@ -166,7 +159,7 @@ class VISTAAnomalyModel(nn.Module):
         self.category = category
         self.state = ModelState.UNINITIALIZED
 
-        # 1. Visual Backbone
+        # 1. Visual Foundation Backbone
         if backbone_name == "dinov2_vits14":
             self.encoder = dinov2_vits14(img_size=image_size, out_indices=out_indices)
         elif backbone_name == "dinov2_vitb14":
@@ -179,7 +172,7 @@ class VISTAAnomalyModel(nn.Module):
                 param.requires_grad = False
             self.encoder.eval()
 
-        # 2. Global-Local Fusion
+        # 2. Global-Local Multi-Scale Fusion
         num_layers = len(out_indices)
         in_channels_list = [embed_dim] * num_layers
         self.fusion = GlobalLocalFusion(
@@ -189,7 +182,7 @@ class VISTAAnomalyModel(nn.Module):
             use_film_conditioning=use_film
         )
 
-        # 3. Progressive Segmentation Decoder with SE Attention & Multi-Scale Skips
+        # 3. Progressive Segmentation Decoder with SE Attention & Lateral Skips
         self.decoder = ProgressiveSegmentationDecoder(
             in_channels=proj_dim,
             hidden_dims=[128, 64, 32, 16],
@@ -207,12 +200,13 @@ class VISTAAnomalyModel(nn.Module):
             nn.Sigmoid()
         )
 
-        # 5. Nominal Memory Bank
+        # 5. Nominal Reference Memory Bank
         self.nominal_memory = NominalMemoryBank(
             algorithm=coreset_algorithm,
             max_patches=coreset_max_patches,
             seed=42,
-            k_neighbors=1
+            k_neighbors=k_neighbors,
+            neighbor_aggregation=neighbor_aggregation
         )
 
         # Loss functions
@@ -250,7 +244,7 @@ class VISTAAnomalyModel(nn.Module):
         Fits category nominal memory bank from normal reference images.
         Extracts multi-scale representations combining Block 4 (fine structural details)
         and Block 8 (mid-level contextual semantics).
-        Computes reference normal distribution statistics for calibrated cross-image scaling.
+        Computes robust reference normal distribution statistics for calibrated cross-image scaling.
         """
         self.encoder.eval()
         target_cat = category or self.category
@@ -309,13 +303,7 @@ class VISTAAnomalyModel(nn.Module):
         return_aux: bool = False
     ) -> Dict[str, Any]:
         """
-        Forward pass.
-        Args:
-            x: Input images [B, 3, H, W]
-            guide_map: Optional empirical memory distance guide [B, 1, H, W] or [B, 1, 37, 37]
-            return_aux: Whether to return auxiliary logits for deep supervision
-        Returns:
-            Dictionary with pixel_logits, anomaly_map, image_score, raw_scores, global_features
+        Forward pass with unified scoring branch.
         """
         B, C, H, W = x.shape
 
@@ -326,7 +314,7 @@ class VISTAAnomalyModel(nn.Module):
             cls_feats = feat_dict["cls_features"]      # List of [B, embed_dim]
             global_cls = feat_dict["global_cls"]       # [B, embed_dim]
 
-        # Compute empirical memory guide if memory bank is fitted and not provided
+        # Compute empirical memory guide if memory bank is fitted and guide not provided
         raw_mem_scores = None
         raw_dist_map = None
         if guide_map is None and self.nominal_memory.is_fitted:
@@ -351,14 +339,14 @@ class VISTAAnomalyModel(nn.Module):
 
         neural_map = torch.sigmoid(pixel_logits)
 
-        # 4. Memory-Guided Spatial Residual Fusion (V6.0 Reference-Calibrated)
+        # 4. Memory-Guided Spatial Residual Fusion
         if guide_map is not None:
             guide_up = F.interpolate(guide_map, size=(H, W), mode="bilinear", align_corners=False)
             anomaly_map = (1.0 - self.memory_fusion_weight) * neural_map + self.memory_fusion_weight * guide_up
         else:
             anomaly_map = neural_map
 
-        # 5. Image-Level Anomaly Score (V6.0 High-Discrimination Scoring)
+        # 5. Image-Level Anomaly Score: Harmonized Unified Formulation
         flat_map = anomaly_map.view(B, -1)
         k = max(1, int(flat_map.shape[1] * self.top_k_ratio))
         top_k_vals, _ = torch.topk(flat_map, k, dim=1)
@@ -386,10 +374,13 @@ class VISTAAnomalyModel(nn.Module):
         elif self.scoring_mode == "percentile_99":
             idx = int(flat_map.shape[1] * 0.99)
             image_score = torch.sort(flat_map, dim=1)[0][:, idx]
-        else:  # "hybrid" (V6.0 Calibrated Multimodal Hybrid)
-            if raw_mem_scores is not None:
-                # 70% calibrated memory distance + 30% spatial top-k map score
-                image_score = 0.70 * cal_mem_score + 0.30 * topk_spatial_score
+        else:  # "hybrid" / "learned_fusion" (Unified Harmonized Scoring)
+            if raw_mem_scores is not None and self.nominal_memory.is_fitted:
+                # Fuses memory distance, spatial top-k, and trained global head
+                w_head = self.global_head_weight
+                w_mem = 0.50 * (1.0 - w_head)
+                w_spatial = 0.50 * (1.0 - w_head)
+                image_score = w_mem * cal_mem_score + w_spatial * topk_spatial_score + w_head * head_score
             else:
                 image_score = self.global_head_weight * head_score + (1.0 - self.global_head_weight) * topk_spatial_score
 
@@ -464,14 +455,15 @@ class VISTAAnomalyModel(nn.Module):
         extra_metadata: Optional[Dict[str, Any]] = None
     ) -> str:
         """
-        Saves production-grade checkpoint with full V6.0 metadata, architectural
+        Saves production-grade checkpoint with full V7.0 metadata, architectural
         specifications, nominal memory bank state, and SHA-256 integrity digest.
+        Uses atomic file write to prevent corrupted checkpoint saves on interruption.
         """
         os.makedirs(os.path.dirname(path), exist_ok=True)
         meta = extra_metadata or {}
         meta.update({
-            "version": "6.0.0",
-            "architecture": "v6.0.0-calibrated-multiscale-memory-residual-fusion",
+            "version": "7.0.0",
+            "architecture": "v7.0.0-calibrated-multiscale-memory-residual-fusion",
             "backbone": self.backbone_name,
             "embed_dim": self.embed_dim,
             "out_indices": self.out_indices,
@@ -484,7 +476,7 @@ class VISTAAnomalyModel(nn.Module):
         })
 
         checkpoint = {
-            "version": "6.0.0",
+            "version": "7.0.0",
             "model_state_dict": self.state_dict(),
             "memory_bank_state": self.nominal_memory.state_dict(),
             "memory_bank": self.nominal_memory.patches.cpu() if self.nominal_memory.patches is not None else None,
@@ -496,18 +488,23 @@ class VISTAAnomalyModel(nn.Module):
                 "memory_fusion_weight": self.memory_fusion_weight,
                 "embed_dim": self.embed_dim,
                 "backbone_name": self.backbone_name,
+                "k_neighbors": self.nominal_memory.k_neighbors,
+                "neighbor_aggregation": self.nominal_memory.neighbor_aggregation
             },
             "epoch": epoch,
             "optimizer_state_dict": optimizer.state_dict() if optimizer is not None else None,
             "scheduler_state_dict": scheduler.state_dict() if scheduler is not None else None,
             "metadata": meta
         }
-        torch.save(checkpoint, path)
 
-        # Compute file SHA-256
+        # Atomic write
+        tmp_path = f"{path}.tmp"
+        torch.save(checkpoint, tmp_path)
+        os.replace(tmp_path, path)
+
         with open(path, "rb") as f:
             file_hash = hashlib.sha256(f.read()).hexdigest()
-        logger.info(f"V6 Checkpoint saved to {path} | SHA-256={file_hash[:12]}...")
+        logger.info(f"V7 Checkpoint saved to {path} | SHA-256={file_hash[:12]}...")
         return file_hash
 
     def load_checkpoint(
@@ -541,6 +538,14 @@ class VISTAAnomalyModel(nn.Module):
                 f"Checkpoint category mismatch: expected '{expected_category}', checkpoint contains '{saved_cat}'"
             )
 
+        # Validate architecture compatibility
+        cfg = checkpoint.get("config", {})
+        if "embed_dim" in cfg and cfg["embed_dim"] != self.embed_dim:
+            self.state = ModelState.INVALID
+            raise ValueError(
+                f"Architecture mismatch: checkpoint embed_dim={cfg['embed_dim']} vs model embed_dim={self.embed_dim}"
+            )
+
         # Load weights
         self.load_state_dict(checkpoint["model_state_dict"], strict=strict)
 
@@ -554,5 +559,5 @@ class VISTAAnomalyModel(nn.Module):
             self.category = saved_cat
 
         self.state = ModelState.READY
-        logger.info(f"V6 Checkpoint loaded successfully from {path} | Category: {self.category}")
+        logger.info(f"V7 Checkpoint loaded successfully from {path} | Category: {self.category}")
         return meta

@@ -26,6 +26,11 @@ class BaseAnomalyDataset(Dataset):
     def __len__(self) -> int:
         return len(self.samples)
 
+    @property
+    def image_paths(self) -> List[str]:
+        """Convenience property for accessing all sample image paths."""
+        return [s.image_path for s in self.samples]
+
     def __getitem__(self, idx: int) -> Dict[str, Any]:
         sample = self.samples[idx]
 

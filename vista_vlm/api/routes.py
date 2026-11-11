@@ -58,7 +58,7 @@ def health_check():
         model_st = model_st.value
     return HealthResponse(
         status="healthy",
-        system_version="6.0.0",
+        system_version="7.0.0",
         device=str(pipeline.device),
         backbone=pipeline.config.model.backbone,
         models_loaded=True,
@@ -70,7 +70,7 @@ def health_check():
 @router.get("/health/live")
 def liveness_check():
     """Kubernetes liveness probe: returns 200 immediately if process is alive."""
-    return {"status": "alive", "timestamp": time.time(), "version": "6.0.0"}
+    return {"status": "alive", "timestamp": time.time(), "version": "7.0.0"}
 
 
 @router.get("/health/ready")
@@ -78,13 +78,28 @@ def readiness_check():
     """Kubernetes readiness probe: verifies pipeline, model, calibrator, and OOD modules are ready to serve."""
     try:
         pipeline = get_pipeline()
-        is_ready = bool(
-            pipeline.model is not None
-            and getattr(pipeline.model, "is_ready", True)
-            and pipeline.calibrator is not None
-        )
-        if not is_ready:
-            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Model pipeline is initializing")
+        # Verify model presence and readiness
+        if pipeline.model is None or not getattr(pipeline.model, "is_ready", False):
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Model pipeline is uninitialized or not ready")
+
+        # Verify memory bank is fitted
+        mem_bank = getattr(pipeline.model, "nominal_memory", None)
+        mem_fitted = False
+        if mem_bank is not None and getattr(mem_bank, "is_fitted", False):
+            mem_fitted = True
+        elif getattr(pipeline.model, "memory_bank", None) is not None:
+            mem_fitted = True
+
+        if not mem_fitted:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Model memory bank is not fitted")
+
+        # Verify calibrator has calibrated thresholds
+        if pipeline.calibrator is None or not pipeline.calibrator.category_thresholds:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Conformal calibrator is not initialized with valid thresholds")
+
+        # Verify OOD detector has fitted prototypes
+        if pipeline.ood_detector is None or not getattr(pipeline.ood_detector, "prototypes", {}):
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="OOD detector is not fitted")
 
         model_st = getattr(pipeline.model, "state", "READY")
         if hasattr(model_st, "value"):
@@ -92,7 +107,7 @@ def readiness_check():
 
         return {
             "status": "ready",
-            "version": "6.0.0",
+            "version": "7.0.0",
             "model_state": str(model_st),
             "device": str(pipeline.device),
             "calibrated_categories": list(pipeline.calibrator.category_thresholds.keys()),
@@ -101,7 +116,8 @@ def readiness_check():
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=f"Service not ready: {str(e)}")
+        logger.error(f"Readiness check failed: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Service not ready: components uninitialized")
 
 
 @router.get("/model/info", response_model=ModelInfoResponse)
@@ -109,8 +125,8 @@ def get_model_info():
     pipeline = get_pipeline()
     footprint = get_model_footprint(pipeline.model)
     return ModelInfoResponse(
-        version="6.0.0",
-        architecture="VISTA-VLM v6.0 (Vision Intelligence through Spatial and Textual Alignment)",
+        version="7.0.0",
+        architecture="VISTA-VLM v7.0 (Vision Intelligence through Spatial and Textual Alignment)",
         backbone=pipeline.config.model.backbone,
         embed_dim=pipeline.config.model.embed_dim,
         patch_size=pipeline.config.data.patch_size,
