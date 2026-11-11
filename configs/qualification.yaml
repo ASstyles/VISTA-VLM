@@ -1,0 +1,72 @@
+version: "6.0.0"
+title: "VISTA-VLM V6.0 Industrial Qualification & Research Verification Benchmark"
+
+environment:
+  expected_python: ">=3.10"
+  target_device: "auto"
+
+model:
+  backbone_name: "dinov2_vits14"
+  embed_dim: 384
+  out_indices: [4, 8, 12]
+  proj_dim: 256
+  image_size: 518
+  fusion_type: "global_local"
+  use_film: true
+  freeze_backbone: true
+  memory_fusion_weight: 0.65
+  coreset_algorithm: "approx_greedy_k_center"
+  coreset_max_patches: 1500
+  scoring_mode: "hybrid"
+
+calibration:
+  target_false_alarm_rate: 0.05
+  ood_metric: "mahalanobis"
+  ood_threshold_percentile: 98.0
+  selective_target_risk: 0.01
+
+evaluation:
+  random_seeds: [42]
+  confidence_level: 0.95
+  max_aupro_fpr: 0.30
+
+tracks:
+  track_1_in_domain:
+    enabled: true
+    description: "In-Domain Normal-Only Training & Memory Bank Construction"
+    categories:
+      - { dataset: "mvtec", name: "bottle", type: "rigid_object" }
+      - { dataset: "mvtec", name: "cable", type: "structural_wiring" }
+      - { dataset: "mvtec", name: "capsule", type: "small_component" }
+      - { dataset: "mvtec", name: "leather", type: "texture_surface" }
+      - { dataset: "mvtec", name: "tile", type: "planar_texture" }
+      - { dataset: "visa", name: "candle", type: "multi_part_assembly" }
+
+  track_2_cross_category:
+    enabled: true
+    description: "Source-Only Cross-Category Transfer (Bottle -> Unseen Categories)"
+    source_category: "bottle"
+    target_categories: ["cable", "capsule", "leather", "tile", "candle"]
+
+  track_3_zero_shot:
+    enabled: true
+    description: "Zero-Shot Multimodal VLM (WinCLIP & AnomalyCLIP)"
+
+  track_4_few_shot:
+    enabled: true
+    description: "Few-Normal-Shot Adaptation"
+    k_shots: [1, 2, 4, 8, 16]
+    test_category: "bottle"
+
+  track_5_cross_dataset:
+    enabled: true
+    description: "Cross-Dataset Generalization (MVTec -> VisA / BTAD)"
+    status: "BLOCKED_PENDING_EXTERNAL_DATA"
+
+  track_6_domain_shift:
+    enabled: true
+    description: "Robustness Under Optical, Illumination, and Motion Blur Shifts"
+    status: "EVALUATED"
+
+output_dir: "reports/v6_qualification"
+

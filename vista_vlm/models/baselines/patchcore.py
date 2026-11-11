@@ -1,16 +1,16 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Dict, Optional
 from vista_vlm.models.backbones.dinov2 import dinov2_vits14
+from vista_vlm.models.memory_bank import coreset_approx_greedy_k_center, coreset_greedy_k_center
 from vista_vlm.utils.registry import BASELINE_REGISTRY
 
 @BASELINE_REGISTRY.register("patchcore")
 class PatchCore(nn.Module):
     """
-    PatchCore Anomaly Detection Baseline (Phase 3).
-    Constructs a coreset-subsampled memory bank of locally aggregated patch features.
+    PatchCore Anomaly Detection Baseline (Phase 3 & V6.0).
+    Constructs a genuine Greedy k-Center coreset memory bank of intermediate patch features.
     Computes k-NN distance maps at test time for pixel- and image-level anomaly scoring.
     """
     def __init__(
@@ -18,12 +18,15 @@ class PatchCore(nn.Module):
         embed_dim: int = 384,
         coreset_sampling_ratio: float = 0.10,
         image_size: int = 518,
-        k_neighbors: int = 3
+        k_neighbors: int = 3,
+        use_approx_k_center: bool = True,
+        **kwargs
     ):
         super().__init__()
         self.image_size = image_size
-        self.coreset_ratio = coreset_sampling_ratio
-        self.k_neighbors = k_neighbors
+        self.coreset_ratio = kwargs.get("coreset_ratio", coreset_sampling_ratio)
+        self.k_neighbors = kwargs.get("n_neighbors", k_neighbors)
+        self.use_approx_k_center = use_approx_k_center
         self.encoder = dinov2_vits14(img_size=image_size, out_indices=[4, 8])
         for p in self.encoder.parameters():
             p.requires_grad = False
@@ -51,9 +54,13 @@ class PatchCore(nn.Module):
         total_p = all_patches.shape[0]
         n_coreset = max(10, int(total_p * self.coreset_ratio))
 
-        # Greedy k-Center or deterministic uniform strided coreset sampling
-        indices = torch.linspace(0, total_p - 1, steps=n_coreset).long()
-        self.memory_bank = all_patches[indices]
+        # Genuine Greedy k-Center coreset selection
+        if self.use_approx_k_center:
+            coreset_t, _ = coreset_approx_greedy_k_center(all_patches, n_coreset, proj_dim=64, seed=42)
+        else:
+            coreset_t, _ = coreset_greedy_k_center(all_patches, n_coreset, seed=42)
+
+        self.memory_bank = coreset_t.to(device)
 
     def predict(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
         """
@@ -91,7 +98,7 @@ class PatchCore(nn.Module):
             dist_tensor = torch.cat(dist_maps, dim=0) # [B, 1, H, W]
             # Interpolate raw distance tensor to input resolution
             anomaly_map = F.interpolate(dist_tensor, size=(self.image_size, self.image_size), mode="bilinear", align_corners=False)
-            
+
             # Image score: maximum patch distance in un-normalized map (Roth et al., 2022)
             # Preserves strict cross-image distance ranking without destructive per-image z-score distortion
             image_score = anomaly_map.view(B, -1).max(dim=1)[0]

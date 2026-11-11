@@ -1,7 +1,7 @@
-# VISTA-VLM V5.0 Production Operations, Drift Monitoring and Continuous Learning Guide
+# VISTA-VLM V6.0 Production Operations, Drift Monitoring and Continuous Learning Guide
 
-**Document ID:** `V5-DOC-OPS-001`  
-**Version:** 5.0.0  
+**Document ID:** `V6-DOC-OPS-001`  
+**Version:** 6.0.0  
 **Target:** MLOps & Production Site Reliability Engineers  
 **Classification:** PRODUCTION OPERATIONS MANUAL  
 

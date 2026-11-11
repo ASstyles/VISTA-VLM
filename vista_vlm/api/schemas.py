@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 from enum import Enum
 
 class InspectionStatus(str, Enum):
@@ -74,13 +74,15 @@ class BatchInspectionResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     status: str
-    system_version: str
+    system_version: str = "6.0.0"
     device: str
     backbone: str
     models_loaded: bool
+    model_state: str = "READY"
     calibrated_categories: List[str]
 
 class ModelInfoResponse(BaseModel):
+    version: str = "6.0.0"
     architecture: str
     backbone: str
     embed_dim: int

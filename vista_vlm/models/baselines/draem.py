@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Dict, Any, Optional
+from typing import Dict
 from vista_vlm.utils.registry import BASELINE_REGISTRY
 
 class ReconstructiveSubNetwork(nn.Module):

@@ -127,7 +127,7 @@ class DatasetIntegrityChecker:
                                     w, h = im.size
                                 img_hash = compute_sha256(img_file)
                                 sid = f"{cat}_test_{dtype}_{os.path.splitext(os.path.basename(img_file))[0]}"
-                                
+
                                 # Leakage check: test image identical to training image
                                 if img_hash in sha_map and sha_map[img_hash].startswith("train:"):
                                     errors.append(f"DATA LEAKAGE DETECTED: Test image {img_file} is identical to {sha_map[img_hash]}")

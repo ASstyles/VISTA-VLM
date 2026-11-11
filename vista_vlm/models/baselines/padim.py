@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from typing import Dict, Any, Optional
+from typing import Dict, Optional
 from vista_vlm.models.backbones.dinov2 import dinov2_vits14
 from vista_vlm.utils.registry import BASELINE_REGISTRY
 
@@ -12,10 +11,10 @@ class PaDiM(nn.Module):
     PaDiM: Patch Distribution Modeling (Phase 3).
     Models spatial patch positions using multivariate Gaussian distributions.
     """
-    def __init__(self, embed_dim: int = 128, image_size: int = 518):
+    def __init__(self, embed_dim: int = 128, image_size: int = 518, **kwargs):
         super().__init__()
         self.image_size = image_size
-        self.embed_dim = embed_dim
+        self.embed_dim = kwargs.get("d_reduced", embed_dim)
         self.encoder = dinov2_vits14(img_size=image_size, out_indices=[4])
         for p in self.encoder.parameters():
             p.requires_grad = False

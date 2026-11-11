@@ -1,18 +1,11 @@
-import os
-import sys
 import time
-import json
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
-from typing import Dict, Any, List
+from typing import Dict, Any
 
-from vista_vlm.config.schema import VISTAConfig
-from vista_vlm.data.mvtec import MVTecDataset
 from vista_vlm.models.vista_model import VISTAAnomalyModel
-from vista_vlm.models.baselines import PatchCore, EfficientAD, DRAEM, PaDiM, WinCLIP, AnomalyCLIP
 from vista_vlm.evaluation.metrics import compute_image_metrics, compute_pixel_metrics, compute_reliability_metrics
-from vista_vlm.evaluation.visualizer import plot_roc_pr_curves, plot_calibration_reliability_diagram
 from vista_vlm.utils.logger import setup_logger
 
 logger = setup_logger("vista_vlm.benchmark_runner")

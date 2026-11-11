@@ -7,7 +7,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import roc_curve, precision_recall_curve
-from typing import Dict, Any, List, Optional
 
 def plot_roc_pr_curves(
     y_true: np.ndarray,

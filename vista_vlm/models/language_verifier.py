@@ -1,9 +1,7 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
 import cv2
-from PIL import Image
 from typing import List, Dict, Any, Tuple, Optional
 from vista_vlm.models.backbones.clip_vision import CLIPModel
 from vista_vlm.utils.logger import setup_logger
@@ -61,7 +59,7 @@ class LanguageVerifier(nn.Module):
         """
         H, W = image_shape
         binary_mask = (anomaly_map > self.roi_threshold).astype(np.uint8) * 255
-        
+
         # Morphological opening to eliminate isolated pixel spikes
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
         binary_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_OPEN, kernel)

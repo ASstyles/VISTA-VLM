@@ -47,7 +47,7 @@ def validate_environment() -> dict:
         info["torch"]["cuda_available"] = torch.cuda.is_available()
         info["torch"]["device_count"] = torch.cuda.device_count()
         info["torch"]["cudnn_enabled"] = torch.backends.cudnn.enabled if hasattr(torch.backends, "cudnn") else False
-        
+
         if torch.cuda.is_available():
             for i in range(torch.cuda.device_count()):
                 prop = torch.cuda.get_device_properties(i)
@@ -69,7 +69,7 @@ def validate_environment() -> dict:
 
     # Test required dependencies
     required = [
-        "torchvision", "numpy", "scipy", "sklearn", "PIL", 
+        "torchvision", "numpy", "scipy", "sklearn", "PIL",
         "cv2", "matplotlib", "pydantic", "fastapi", "uvicorn", "yaml"
     ]
     for pkg in required:
@@ -119,14 +119,14 @@ def main():
         if st != "ok":
             all_ok = False
     print("=" * 60)
-    
+
     # Save diagnostic to file
     out_path = os.path.join(os.path.dirname(__file__), "..", "benchmarks", "environment_report.json")
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w") as f:
         json.dump(info, f, indent=2)
     print(f"Diagnostic saved to {out_path}")
-    
+
     return 0 if all_ok and info["torch"]["installed"] else 1
 
 if __name__ == "__main__":

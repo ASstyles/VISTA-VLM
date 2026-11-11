@@ -1,4 +1,3 @@
-import pytest
 import numpy as np
 from vista_vlm.models.language_verifier import LanguageVerifier
 

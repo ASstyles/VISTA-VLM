@@ -2,7 +2,7 @@ import os
 import torch
 from torch.utils.data import Dataset
 from PIL import Image
-from typing import List, Optional, Tuple, Dict, Any
+from typing import List, Optional, Dict, Any
 from vista_vlm.data.common_schema import ImageSample, DatasetReport
 from vista_vlm.data.transforms import VISTATransform
 
@@ -77,11 +77,11 @@ class BaseAnomalyDataset(Dataset):
         splits = {}
         for s in self.samples:
             splits[s.split] = splits.get(s.split, 0) + 1
-        
+
         anomalies = {"normal": 0, "anomalous": 0}
         defect_types = {}
         dim_ranges = {"width": [float("inf"), 0], "height": [float("inf"), 0]}
-        
+
         valid_masks = True
         for s in self.samples:
             if s.is_anomaly:

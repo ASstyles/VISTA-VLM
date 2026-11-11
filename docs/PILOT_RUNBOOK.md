@@ -1,10 +1,10 @@
-# VISTA-VLM V5.0 Industrial Pilot Deployment Runbook
+# VISTA-VLM V6.0 Industrial Pilot Deployment Runbook
 
-**Document ID:** `V5-DOC-PILOT-001`  
-**Version:** 5.0.0  
+**Document ID:** `V6-DOC-PILOT-001`  
+**Version:** 6.0.0  
 **Target:** 30-Day Manufacturing Plant Deployment  
-**Status:** PRODUCTION READY  
-**Classification:** ADVISORY / SUPERVISED PILOT  
+**Status:** PILOT READY (Gate D: BLOCKED Pending Partner Site Integration)  
+**Classification:** NON-SAFETY ADVISORY / SUPERVISED PILOT  
 
 ---
 
@@ -18,6 +18,12 @@ Deploying automated AI inspection directly into an active manufacturing line req
        v                                     v
 [Day 11-20: Selective Semi-Autonomous] -> [Day 21-30: Production Validation]
 ```
+
+> [!NOTE]
+> Prior to on-site commissioning, plant automation engineers can rehearse the entire 4-phase sequence using the VISTA-VLM industrial inspection line simulator:
+> ```bash
+> python scripts/simulate_inspection_line.py --category bottle --takt_time 500
+> ```
 
 ---
 
@@ -41,9 +47,9 @@ Deploying automated AI inspection directly into an active manufacturing line req
 ### Phase 3: Selective Semi-Autonomous Mode (Days 11 – 20)
 - **Objective**: Automate clear-cut rejections while protecting against ambiguous edge cases.
 - **Physical Line Action**:
-  - High-confidence defects ($s \ge \tau_{\text{anom}} + \delta$): **Automatically rejected** by pneumatic diverter.
-  - High-confidence nominal parts ($s \le \tau_{\text{normal}} - \delta$): **Automatically accepted**.
-  - Ambiguous / Uncertain band ($s \in [\tau_{\text{normal}}, \tau_{\text{anom}}]$): Diverted to manual review station (`disposition: HUMAN_REVIEW`).
+  - High-confidence defects ($s \ge \tau_{\text{conf}} + \delta$): **Automatically rejected** by pneumatic diverter.
+  - High-confidence nominal parts ($s \le \tau_{\text{conf}} - \delta$): **Automatically accepted**.
+  - Ambiguous / Uncertain band ($s \in [\tau_{\text{conf}} - \delta, \tau_{\text{conf}} + \delta]$): Diverted to manual review station (`disposition: HUMAN_REVIEW`).
 - **Success Criteria**:
   - Human review escalation rate $\le 8.0\%$ of total production volume.
   - Zero confirmed defect escapes passing through the line.
@@ -54,7 +60,7 @@ Deploying automated AI inspection directly into an active manufacturing line req
 - **Success Criteria**:
   - System availability / uptime $\ge 99.8\%$.
   - False alarm rate (overkill) $\le 1.0\%$.
-  - Defect escape rate $< 0.1\%$ across at least 300 physically audited defective parts.
+  - Defect escape rate $< 0.1\%$ across at least 300 physically audited defective parts with Clopper-Pearson exact one-sided binomial upper confidence bound.
 
 ---
 
@@ -64,6 +70,5 @@ Deploying automated AI inspection directly into an active manufacturing line req
 - [ ] **Illumination**: Constant-current diffuse dome LED strobe set to $2,500\text{ lux} \pm 50\text{ lux}$.
 - [ ] **Triggering**: Photoelectric retroreflective part sensor wired to Opto-isolated digital input.
 - [ ] **Actuation**: Pneumatic blow-off solenoid wired to fail-closed reject chute (100 PSI supply).
-- [ ] **PLC Interlock**: Hardware heartbeat relay connected to 24V line E-STOP loop.
-- [ ] **Computing**: Industrial PC (Intel Core i7, 32GB RAM, Ubuntu 22.04 LTS / Debian 12).
-
+- [ ] **PLC Interlock**: Independent Category 4 / PL e safety controllers manage all personnel safeguarding; AI inspection is non-safety advisory.
+- [ ] **Computing**: Industrial PC (Intel Core i7, 32GB RAM, Ubuntu 22.04 LTS / Debian 12) running hardened VISTA-VLM container.

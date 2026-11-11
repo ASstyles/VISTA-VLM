@@ -1,9 +1,9 @@
-# VISTA-VLM V5.0 Factory Emergency Rollback and Disaster Recovery Runbook
+# VISTA-VLM V6.0 Factory Emergency Rollback and Disaster Recovery Runbook
 
-**Document ID:** `V5-DOC-ROLL-001`  
-**Version:** 5.0.0  
+**Document ID:** `V6-DOC-ROLL-001`  
+**Version:** 6.0.0  
 **Target:** Plant Maintenance & Automation Engineers  
-**Classification:** SAFETY CRITICAL OPERATIONAL PROCEDURE  
+**Classification:** OPERATIONAL RECOVERY PROCEDURE  
 
 ---
 

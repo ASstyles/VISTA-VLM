@@ -1,4 +1,3 @@
-import pytest
 import torch
 from torch.utils.data import DataLoader
 from vista_vlm.models.baselines.patchcore import PatchCore
@@ -8,7 +7,7 @@ from vista_vlm.models.baselines.winclip import WinCLIP
 
 def test_patchcore_fit_and_predict():
     model = PatchCore(coreset_sampling_ratio=0.1, image_size=518)
-    
+
     class DictDataset(torch.utils.data.Dataset):
         def __len__(self): return 2
         def __getitem__(self, idx): return {"image": torch.randn(3, 518, 518)}

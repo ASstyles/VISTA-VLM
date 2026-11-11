@@ -1,0 +1,304 @@
+{
+  "kpis": {
+    "simulation_summary": {
+      "total_parts_inspected": 22,
+      "total_defective_parts": 12,
+      "total_normal_parts": 10,
+      "simulation_duration_s": 50.74,
+      "effective_throughput_fps": 0.43
+    },
+    "quality_kpis": {
+      "defects_escaped": 0,
+      "observed_defect_escape_rate": 0.0,
+      "escape_rate_95_ci": [
+        0.0,
+        0.2425
+      ],
+      "escape_rate_exact_95_upper_bound": 0.2209,
+      "false_rejections_overkill": 0,
+      "observed_false_rejection_rate": 0.0,
+      "operator_review_rate": 1.0
+    },
+    "latency_kpis": {
+      "takt_time_budget_ms": 500.0,
+      "p50_latency_ms": 2205.33,
+      "p95_latency_ms": 2799.52,
+      "p99_latency_ms": 2925.5,
+      "takt_time_violations": 22,
+      "takt_time_compliance_pct": 0.0
+    },
+    "plc_diverter_disposition_counts": {
+      "ACCEPT": 0,
+      "REJECT": 0,
+      "HOLD": 22,
+      "QUARANTINE": 0,
+      "HUMAN_REVIEW": 0
+    }
+  },
+  "audit_trail": [
+    {
+      "item_id": "PART-4E2F405F",
+      "timestamp": "2026-11-11T23:01:59Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\broken_large\\000.png",
+      "ground_truth": "DEFECTIVE",
+      "anomaly_score": 0.9389,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2213.62,
+      "audit_hash": "16c078e6ec3b3cca"
+    },
+    {
+      "item_id": "PART-74C3DAD6",
+      "timestamp": "2026-11-11T23:02:01Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\broken_large\\001.png",
+      "ground_truth": "DEFECTIVE",
+      "anomaly_score": 0.9372,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2306.07,
+      "audit_hash": "dac17970de6c967f"
+    },
+    {
+      "item_id": "PART-60399BBA",
+      "timestamp": "2026-11-11T23:02:03Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\broken_large\\002.png",
+      "ground_truth": "DEFECTIVE",
+      "anomaly_score": 0.9387,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2246.18,
+      "audit_hash": "cd46f2a5cfc7292a"
+    },
+    {
+      "item_id": "PART-996E0D5A",
+      "timestamp": "2026-11-11T23:02:06Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\contamination\\000.png",
+      "ground_truth": "DEFECTIVE",
+      "anomaly_score": 0.937,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2649.03,
+      "audit_hash": "7d760abeca9ba15e"
+    },
+    {
+      "item_id": "PART-DC64F066",
+      "timestamp": "2026-11-11T23:02:09Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\contamination\\001.png",
+      "ground_truth": "DEFECTIVE",
+      "anomaly_score": 0.9336,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2475.18,
+      "audit_hash": "4f5e5e5bc34c4d14"
+    },
+    {
+      "item_id": "PART-67AAF3CF",
+      "timestamp": "2026-11-11T23:02:11Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\contamination\\002.png",
+      "ground_truth": "DEFECTIVE",
+      "anomaly_score": 0.9358,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2045.09,
+      "audit_hash": "6b4e9a44869ddd19"
+    },
+    {
+      "item_id": "PART-B76EE333",
+      "timestamp": "2026-11-11T23:02:13Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\crack\\000.png",
+      "ground_truth": "DEFECTIVE",
+      "anomaly_score": 0.9337,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2053.11,
+      "audit_hash": "f906c94685939fb3"
+    },
+    {
+      "item_id": "PART-E367578D",
+      "timestamp": "2026-11-11T23:02:15Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\crack\\001.png",
+      "ground_truth": "DEFECTIVE",
+      "anomaly_score": 0.9342,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2053.57,
+      "audit_hash": "5f0583657cc5d602"
+    },
+    {
+      "item_id": "PART-F2BABB4F",
+      "timestamp": "2026-11-11T23:02:17Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\crack\\002.png",
+      "ground_truth": "DEFECTIVE",
+      "anomaly_score": 0.9341,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2154.64,
+      "audit_hash": "033a59859a4cd897"
+    },
+    {
+      "item_id": "PART-1C3EB5EF",
+      "timestamp": "2026-11-11T23:02:19Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\good\\000.png",
+      "ground_truth": "NORMAL",
+      "anomaly_score": 0.9335,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2031.83,
+      "audit_hash": "bf8fed5aac10b9d6"
+    },
+    {
+      "item_id": "PART-997160FC",
+      "timestamp": "2026-11-11T23:02:21Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\good\\001.png",
+      "ground_truth": "NORMAL",
+      "anomaly_score": 0.9338,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2069.85,
+      "audit_hash": "d999af95277ad42e"
+    },
+    {
+      "item_id": "PART-953BBDF7",
+      "timestamp": "2026-11-11T23:02:23Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\good\\002.png",
+      "ground_truth": "NORMAL",
+      "anomaly_score": 0.9336,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2079.62,
+      "audit_hash": "2be55f7ad4f7a3dd"
+    },
+    {
+      "item_id": "PART-BB36E1B9",
+      "timestamp": "2026-11-11T23:02:26Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\good\\003.png",
+      "ground_truth": "NORMAL",
+      "anomaly_score": 0.9334,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2673.31,
+      "audit_hash": "78140ab94c8978c0"
+    },
+    {
+      "item_id": "PART-CF1F68AB",
+      "timestamp": "2026-11-11T23:02:28Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\good\\004.png",
+      "ground_truth": "NORMAL",
+      "anomaly_score": 0.9336,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2129.6,
+      "audit_hash": "bbb69f950a7473ad"
+    },
+    {
+      "item_id": "PART-FC5A88C3",
+      "timestamp": "2026-11-11T23:02:31Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\good\\005.png",
+      "ground_truth": "NORMAL",
+      "anomaly_score": 0.9334,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2957.22,
+      "audit_hash": "651d90fa991b1602"
+    },
+    {
+      "item_id": "PART-7593951F",
+      "timestamp": "2026-11-11T23:02:33Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\good\\006.png",
+      "ground_truth": "NORMAL",
+      "anomaly_score": 0.9337,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2197.04,
+      "audit_hash": "27b6354817ea3272"
+    },
+    {
+      "item_id": "PART-1BEF16FE",
+      "timestamp": "2026-11-11T23:02:36Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\good\\007.png",
+      "ground_truth": "NORMAL",
+      "anomaly_score": 0.9333,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2551.52,
+      "audit_hash": "7e0b7e43c902948c"
+    },
+    {
+      "item_id": "PART-8F90A301",
+      "timestamp": "2026-11-11T23:02:38Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\good\\008.png",
+      "ground_truth": "NORMAL",
+      "anomaly_score": 0.9339,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2490.48,
+      "audit_hash": "dfb99e5d7f91761d"
+    },
+    {
+      "item_id": "PART-BD68C400",
+      "timestamp": "2026-11-11T23:02:40Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\good\\009.png",
+      "ground_truth": "NORMAL",
+      "anomaly_score": 0.9332,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2135.67,
+      "audit_hash": "6b8172ce6c9fbb79"
+    },
+    {
+      "item_id": "PART-A45EB91B",
+      "timestamp": "2026-11-11T23:02:43Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\scratch\\000.png",
+      "ground_truth": "DEFECTIVE",
+      "anomaly_score": 0.9343,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2806.16,
+      "audit_hash": "7d45674be6584fd2"
+    },
+    {
+      "item_id": "PART-986EFDAF",
+      "timestamp": "2026-11-11T23:02:45Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\scratch\\001.png",
+      "ground_truth": "DEFECTIVE",
+      "anomaly_score": 0.9332,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2312.77,
+      "audit_hash": "1da90c4163f6adb1"
+    },
+    {
+      "item_id": "PART-F41CE82A",
+      "timestamp": "2026-11-11T23:02:47Z",
+      "image_source": "data\\synthetic_fixtures\\mvtec\\bottle\\test\\scratch\\002.png",
+      "ground_truth": "DEFECTIVE",
+      "anomaly_score": 0.9334,
+      "operational_state": "OOD",
+      "physical_disposition": "HOLD",
+      "plc_action": "Pneumatic diverter drops to HOLD chute (Takt-Time Deadline Exceeded)",
+      "latency_ms": 2101.79,
+      "audit_hash": "8b702e15d3391c95"
+    }
+  ]
+}

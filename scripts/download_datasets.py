@@ -11,12 +11,10 @@ and standardized folder structuring for:
 """
 
 import os
-import sys
 import argparse
 import urllib.request
 import tarfile
 import zipfile
-import json
 import logging
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")

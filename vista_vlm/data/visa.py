@@ -1,7 +1,7 @@
 import os
 import glob
 from PIL import Image
-from typing import List, Optional
+from typing import List
 from vista_vlm.data.common_schema import ImageSample
 from vista_vlm.data.base import BaseAnomalyDataset
 from vista_vlm.utils.registry import DATASET_REGISTRY
@@ -69,12 +69,12 @@ class VisADataset(BaseAnomalyDataset):
 
         normal_files = sorted(glob.glob(os.path.join(found_normal[0], "*.*")))
         rng.shuffle(normal_files)
-        
+
         # Split normal images into train (70%), val_calibration (15%), test normal (15%)
         n_total = len(normal_files)
         n_val = int(n_total * val_ratio)
         n_test_normal = int(n_total * 0.15)
-        
+
         val_files = set(normal_files[:n_val])
         test_normal_files = set(normal_files[n_val:n_val + n_test_normal])
 

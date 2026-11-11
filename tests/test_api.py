@@ -17,7 +17,7 @@ from vista_vlm.api.schemas import FeedbackRequest
 def test_api_health():
     res = health_check()
     assert res.status == "healthy"
-    assert res.system_version in ["4.0.0", "5.0.0"]
+    assert res.system_version in ["4.0.0", "5.0.0", "6.0.0"]
     assert res.backbone == "dinov2_vits14"
 
 def test_api_liveness_readiness():

@@ -1,4 +1,4 @@
-export type InspectionStatus = 'NORMAL' | 'ANOMALOUS' | 'UNCERTAIN' | 'OOD' | 'ERROR';
+export type InspectionStatus = 'NORMAL' | 'ANOMALOUS' | 'ANOMALY_DETECTED' | 'ESCALATE_TO_HUMAN' | 'UNCERTAIN' | 'OOD' | 'ERROR';
 
 export interface BoundingBox {
   x1: number;

@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import List, Dict, Tuple, Optional, Union
-from vista_vlm.utils.registry import MODEL_REGISTRY
+from typing import List, Tuple, Union
 
 class CLIPVisionTransformer(nn.Module):
     """

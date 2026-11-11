@@ -8,9 +8,7 @@ from __future__ import annotations
 
 import os
 import pytest
-import torch
 import numpy as np
-from PIL import Image
 
 from vista_vlm.data.mvtec import MVTecDataset
 from vista_vlm.data.visa import VisADataset

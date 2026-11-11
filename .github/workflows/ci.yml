@@ -2,12 +2,51 @@ name: VISTA-VLM CI
 
 on:
   push:
-    branches: [ main, master, v4-research-production-upgrade, v5-real-world-qualification ]
+    branches: [ main, master, v4-research-production-upgrade, v5-real-world-qualification, v6-research-reliability ]
   pull_request:
-    branches: [ main, master, v4-research-production-upgrade, v5-real-world-qualification ]
+    branches: [ main, master, v4-research-production-upgrade, v5-real-world-qualification, v6-research-reliability ]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        cache: 'pip'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install ruff
+    - name: Run Ruff Lint Checks
+      run: |
+        python -m ruff check .
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Set up Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: "20"
+        cache: 'npm'
+        cache-dependency-path: studio/package-lock.json
+    - name: Install Studio dependencies
+      run: |
+        cd studio
+        npm ci
+    - name: Build Studio React/TypeScript production bundle
+      run: |
+        cd studio
+        npm run build
+
   test:
+    needs: [lint]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -72,7 +111,7 @@ jobs:
 
     - name: Build distribution packages (wheel and sdist)
       run: |
-        python -m build
+        python -m build --no-isolation
 
     - name: Test clean wheel installation in isolated environment
       run: |
