@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vista-vlm"
-version = "7.0.0"
+version = "7.1.0"
 description = "Vision Intelligence through Spatial and Textual Alignment for Industrial Anomaly Detection"
 authors = [
     {name = "VISTA-VLM Research Team"}

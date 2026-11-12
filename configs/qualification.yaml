@@ -1,5 +1,5 @@
-version: "7.0.0"
-title: "VISTA-VLM V7.0 Research Accuracy & Production Reliability Benchmark"
+version: "7.1.0"
+title: "VISTA-VLM V7.1 Research Accuracy & Production Reliability Benchmark"
 
 environment:
   expected_python: ">=3.10"

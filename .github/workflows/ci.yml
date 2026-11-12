@@ -2,9 +2,9 @@ name: VISTA-VLM CI
 
 on:
   push:
-    branches: [ main, master, v4-research-production-upgrade, v5-real-world-qualification, v6-research-reliability, v7-research-accuracy-reliability ]
+    branches: [ main, master, v4-research-production-upgrade, v5-real-world-qualification, v6-research-reliability, v7-research-accuracy-reliability, v7-research-validation-hardening ]
   pull_request:
-    branches: [ main, master, v4-research-production-upgrade, v5-real-world-qualification, v6-research-reliability, v7-research-accuracy-reliability ]
+    branches: [ main, master, v4-research-production-upgrade, v5-real-world-qualification, v6-research-reliability, v7-research-accuracy-reliability, v7-research-validation-hardening ]
 
 jobs:
   lint:
@@ -147,4 +147,9 @@ jobs:
       with:
         context: .
         push: false
-        tags: vista-vlm:v7.0.0
+        load: true
+        tags: vista-vlm:v7.1.0
+
+    - name: Smoke test container execution
+      run: |
+        docker run --rm vista-vlm:v7.1.0 python -c "import vista_vlm; print('Docker smoke test successful:', vista_vlm.__version__)"

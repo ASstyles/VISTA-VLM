@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from vista_vlm.models.baselines.patchcore import PatchCore
@@ -56,3 +57,35 @@ def test_winclip_zero_shot():
     assert "image_score" in out
     assert "anomaly_map" in out
     assert out["anomaly_map"].shape == (1, 1, 518, 518)
+
+
+def test_calibrate_baseline_thresholds():
+    """Verify that baseline thresholds are tuned on holdout data without test snooping."""
+    from vista_vlm.evaluation.benchmark_runner import calibrate_baseline_thresholds
+
+    class DummyBaseline:
+        def predict(self, x, **kwargs):
+            B = x.shape[0]
+            return {
+                "image_score": torch.ones(B) * 0.75,
+                "anomaly_map": torch.ones(B, 1, 518, 518) * 0.75
+            }
+
+    class DummyDataset(torch.utils.data.Dataset):
+        def __len__(self): return 4
+        def __getitem__(self, idx):
+            return {
+                "image": torch.randn(3, 518, 518),
+                "label": 1 if idx % 2 == 1 else 0,
+                "mask": torch.ones(1, 518, 518) if idx % 2 == 1 else torch.zeros(1, 518, 518)
+            }
+
+    loader = DataLoader(DummyDataset(), batch_size=2)
+    img_thresh, pix_thresh = calibrate_baseline_thresholds(
+        DummyBaseline(), loader, "patchcore", device="cpu"
+    )
+    assert isinstance(img_thresh, float)
+    assert isinstance(pix_thresh, float)
+    assert np.isfinite(img_thresh)
+    assert np.isfinite(pix_thresh)
+

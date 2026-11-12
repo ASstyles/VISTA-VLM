@@ -1,9 +1,15 @@
 import numpy as np
 import tempfile
+import json
 import os
-from vista_vlm.calibration.conformal import ConformalCalibrator
+import pytest
+from vista_vlm.calibration.conformal import ConformalCalibrator, InsufficientSampleSizeError
 from vista_vlm.calibration.ood import OODDetector
-from vista_vlm.calibration.selective import SelectivePredictor
+from vista_vlm.calibration.selective import (
+    SelectivePredictor,
+    wilson_score_interval,
+    exact_binomial_upper_bound
+)
 
 def test_split_conformal_calibrator():
     calibrator = ConformalCalibrator(target_false_alarm_rate=0.05)
@@ -112,3 +118,79 @@ def test_selective_predictor_risk_coverage():
     assert len(curve) == 10
     assert "delta" in curve[0]
     assert "coverage" in curve[0]
+
+
+def test_conformal_insufficient_sample_size():
+    calibrator = ConformalCalibrator(target_false_alarm_rate=0.01) # alpha=0.01 requires n >= 99
+    small_scores = [0.1, 0.2, 0.3, 0.4, 0.5]
+    with pytest.raises(InsufficientSampleSizeError):
+        calibrator.fit(small_scores, category="insufficient_cat")
+
+
+def test_conformal_artifact_tamper_rejection():
+    calibrator = ConformalCalibrator(target_false_alarm_rate=0.05)
+    normal_scores = np.random.uniform(0.1, 0.4, size=50).tolist()
+    calibrator.fit(normal_scores, category="secure_cat")
+
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
+        tmp_path = tmp.name
+
+    try:
+        calibrator.save(tmp_path)
+        # Tamper with the saved scores
+        with open(tmp_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        data["calibration_scores"]["secure_cat"][0] = 99.0 # Tamper!
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(data, f)
+
+        reloaded = ConformalCalibrator()
+        with pytest.raises(ValueError, match="TAMPERING/CORRUPTION DETECTED"):
+            reloaded.load(tmp_path)
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+
+def test_selective_predictor_prevents_zero_coverage_on_tight_distribution():
+    """Verify that calibrate_uncertainty_band does not collapse to 0% coverage on clustered scores."""
+    predictor = SelectivePredictor()
+    # Scores clustered tightly around 0.77 (like Cable/Candle)
+    tune_scores = np.array([
+        0.75, 0.76, 0.762, 0.765, 0.768, 0.770, 0.772,  # Normal (0)
+        0.775, 0.778, 0.780, 0.782, 0.785, 0.788, 0.790   # Anomaly (1)
+    ])
+    tune_labels = np.array([0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1])
+    thresh = 0.771
+
+    delta = predictor.calibrate_uncertainty_band(
+        tune_scores, tune_labels,
+        calibrated_threshold=thresh,
+        min_coverage=0.50
+    )
+
+    # Delta must be reasonably small, not wiping out everything
+    assert 0.001 <= delta <= 0.05
+
+    # Evaluate on test set with similar spread
+    test_scores = np.array([0.74, 0.755, 0.76, 0.766, 0.775, 0.78, 0.785, 0.795])
+    test_labels = np.array([0, 0, 0, 0, 1, 1, 1, 1])
+    res = predictor.evaluate_false_pass_risk(test_scores, test_labels, calibrated_threshold=thresh)
+
+    assert res["coverage"] >= 0.50
+    assert res["accepted_samples"] > 0
+    assert res["false_passes"] == 0
+
+
+def test_wilson_and_exact_binomial_bounds():
+    low, high = wilson_score_interval(0, 10, confidence=0.95)
+    assert low == 0.0
+    assert 0.20 <= high <= 0.35
+
+    ub = exact_binomial_upper_bound(0, 10, confidence=0.95)
+    assert 0.20 <= ub <= 0.35
+
+    # 0 trials fallback
+    low0, high0 = wilson_score_interval(0, 0)
+    assert low0 == 0.0 and high0 == 1.0
+    assert exact_binomial_upper_bound(0, 0) == 1.0

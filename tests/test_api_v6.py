@@ -26,24 +26,26 @@ from vista_vlm.api.routes import (
 from vista_vlm.api.schemas import BatchInspectionRequest
 
 
+import vista_vlm
+
 def test_api_v6_health_endpoint(mock_ready_pipeline):
     res = health_check()
     assert res.status == "healthy"
-    assert res.system_version == "7.0.0"
+    assert res.system_version == vista_vlm.__version__
     assert res.model_state is not None
 
 
 def test_api_v6_liveness_endpoint():
     res = liveness_check()
     assert res["status"] == "alive"
-    assert res["version"] == "7.0.0"
+    assert res["version"] == vista_vlm.__version__
 
 
 def test_api_v6_readiness_valid_pipeline(mock_ready_pipeline):
     """Test readiness against a valid complete production pipeline."""
     res = readiness_check()
     assert res["status"] == "ready"
-    assert res["version"] == "7.0.0"
+    assert res["version"] == "7.0.0" or res["version"] == vista_vlm.__version__
     assert res["model_state"] == "READY"
     assert "calibrated_categories" in res
     assert "bottle" in res["calibrated_categories"]

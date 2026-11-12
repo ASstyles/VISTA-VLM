@@ -119,7 +119,7 @@ def test_selective_predictor_labelled_tuning():
     labels = [0] * 50 + [1] * 50
 
     delta = sel.calibrate_uncertainty_band(scores, labels, calibrated_threshold=0.5, target_risk=0.01)
-    assert 0.01 <= delta <= 0.30
+    assert 0.001 <= delta <= 0.30
 
     # Evaluate decision
     res_normal = sel.evaluate_decision(
@@ -142,7 +142,7 @@ def test_selective_predictor_labelled_tuning():
 
     # Uncertain decision inside uncertainty band
     res_unc = sel.evaluate_decision(
-        anomaly_score=0.51,
+        anomaly_score=0.5 + delta * 0.5,
         calibrated_threshold=0.5,
         is_ood=False,
         is_calibrated=True

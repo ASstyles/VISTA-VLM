@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-VISTA-VLM V7.0 Research Qualification & Production Reliability Suite.
+VISTA-VLM V7.1 Research Qualification & Production Reliability Suite.
 ====================================================================
 Single reproducible entry point:
     python scripts/run_v7_qualification.py --config configs/qualification.yaml
@@ -46,7 +46,13 @@ from vista_vlm.models.vista_model import VISTAAnomalyModel
 from vista_vlm.calibration.conformal import ConformalCalibrator
 from vista_vlm.calibration.ood import OODDetector
 from vista_vlm.calibration.selective import SelectivePredictor
-from vista_vlm.evaluation.benchmark_runner import evaluate_baseline_model, evaluate_vista_model
+from vista_vlm.evaluation.benchmark_runner import (
+    evaluate_baseline_model,
+    evaluate_vista_model,
+    calibrate_baseline_thresholds,
+    tune_vista_pixel_threshold
+)
+from scripts.acquire_datasets import audit_all_datasets
 from vista_vlm.evaluation.metrics import (
     compute_statistical_confidence_intervals,
     compute_bootstrap_ci
@@ -161,7 +167,7 @@ def run_v7_qualification(config_path: str = "configs/qualification.yaml") -> Dic
     os.makedirs("benchmarks/results", exist_ok=True)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    logger.info(f"VISTA-VLM V7.0 Research Qualification Benchmark executing on device: {device}")
+    logger.info(f"VISTA-VLM V7.1 Research Qualification Benchmark executing on device: {device}")
 
     # Provenance data
     provenance_data = {
@@ -191,12 +197,12 @@ def run_v7_qualification(config_path: str = "configs/qualification.yaml") -> Dic
     # =========================================================================
     logger.info("--- Starting Track 1: In-Domain 4-Partition Anomaly Detection ---")
     t1_results: Dict[str, Any] = {"per_category": {}, "macro_metrics": {}}
-    all_img_aurocs: Dict[str, List[float]] = {"PatchCore": [], "PaDiM": [], "VISTA-VLM V7.0": []}
-    all_pix_aurocs: Dict[str, List[float]] = {"PatchCore": [], "PaDiM": [], "VISTA-VLM V7.0": []}
-    all_aupros: Dict[str, List[float]] = {"PatchCore": [], "PaDiM": [], "VISTA-VLM V7.0": []}
-    all_ious: Dict[str, List[float]] = {"PatchCore": [], "PaDiM": [], "VISTA-VLM V7.0": []}
-    all_dices: Dict[str, List[float]] = {"PatchCore": [], "PaDiM": [], "VISTA-VLM V7.0": []}
-    all_fars: Dict[str, List[float]] = {"PatchCore": [], "PaDiM": [], "VISTA-VLM V7.0": []}
+    all_img_aurocs: Dict[str, List[float]] = {"PatchCore": [], "PaDiM": [], "VISTA-VLM V7.1": [], "VISTA-VLM V7.0": []}
+    all_pix_aurocs: Dict[str, List[float]] = {"PatchCore": [], "PaDiM": [], "VISTA-VLM V7.1": [], "VISTA-VLM V7.0": []}
+    all_aupros: Dict[str, List[float]] = {"PatchCore": [], "PaDiM": [], "VISTA-VLM V7.1": [], "VISTA-VLM V7.0": []}
+    all_ious: Dict[str, List[float]] = {"PatchCore": [], "PaDiM": [], "VISTA-VLM V7.1": [], "VISTA-VLM V7.0": []}
+    all_dices: Dict[str, List[float]] = {"PatchCore": [], "PaDiM": [], "VISTA-VLM V7.1": [], "VISTA-VLM V7.0": []}
+    all_fars: Dict[str, List[float]] = {"PatchCore": [], "PaDiM": [], "VISTA-VLM V7.1": [], "VISTA-VLM V7.0": []}
 
     all_test_y_true: List[int] = []
     all_test_y_scores: List[float] = []
@@ -220,17 +226,25 @@ def run_v7_qualification(config_path: str = "configs/qualification.yaml") -> Dic
 
         cat_eval: Dict[str, Any] = {"provenance": prov, "is_real": is_real}
 
-        # 1. PatchCore baseline (fitted on train_loader, evaluated on test_loader)
+        # 1. PatchCore baseline (fitted on train_loader, evaluated on test_loader with holdout-tuned thresholds)
         patchcore = PatchCore(coreset_ratio=0.1, n_neighbors=3)
         patchcore.fit(train_loader, device=device)
-        cat_eval["PatchCore"] = evaluate_baseline_model(patchcore, test_loader, "patchcore", device=device)
+        pc_img_t, pc_pix_t = calibrate_baseline_thresholds(patchcore, tune_loader, "patchcore", device=device, category=cname)
+        cat_eval["PatchCore"] = evaluate_baseline_model(
+            patchcore, test_loader, "patchcore", device=device, category=cname,
+            calibrated_threshold=pc_img_t, pixel_threshold=pc_pix_t
+        )
 
-        # 2. PaDiM baseline (fitted on train_loader, evaluated on test_loader)
+        # 2. PaDiM baseline (fitted on train_loader, evaluated on test_loader with holdout-tuned thresholds)
         padim = PaDiM(d_reduced=100)
         padim.fit(train_loader, device=device)
-        cat_eval["PaDiM"] = evaluate_baseline_model(padim, test_loader, "padim", device=device)
+        padim_img_t, padim_pix_t = calibrate_baseline_thresholds(padim, tune_loader, "padim", device=device, category=cname)
+        cat_eval["PaDiM"] = evaluate_baseline_model(
+            padim, test_loader, "padim", device=device, category=cname,
+            calibrated_threshold=padim_img_t, pixel_threshold=padim_pix_t
+        )
 
-        # 3. VISTA-VLM V7.0
+        # 3. VISTA-VLM V7.1
         vista_model = VISTAAnomalyModel(
             backbone_name=cfg["model"]["backbone_name"],
             embed_dim=cfg["model"]["embed_dim"],
@@ -244,13 +258,7 @@ def run_v7_qualification(config_path: str = "configs/qualification.yaml") -> Dic
             category=cname
         ).to(device)
 
-        # Step A: Train fusion, decoder, and global head on train_loader with synthetic anomalies
-        trainable_params = [p for p in vista_model.parameters() if p.requires_grad]
-        optimizer = torch.optim.AdamW(trainable_params, lr=1e-4, weight_decay=1e-4)
-        for ep in range(1):
-            train_one_epoch_synthetic(vista_model, train_loader, optimizer, synthetic_gen, transform, device=device)
-
-        # Step B: Fit nominal reference memory bank on normal training samples
+        # Step A: Fit nominal reference memory bank FIRST on normal training samples (APPROACH A: Memory-First Training)
         vista_model.fit_memory_bank(
             train_loader,
             device=device,
@@ -258,7 +266,13 @@ def run_v7_qualification(config_path: str = "configs/qualification.yaml") -> Dic
             category=cname
         )
 
-        # Step C: Save checkpoint atomically
+        # Step B: Train fusion, decoder, and global head with memory guidance and unified scoring active
+        trainable_params = [p for p in vista_model.parameters() if p.requires_grad]
+        optimizer = torch.optim.AdamW(trainable_params, lr=1e-4, weight_decay=1e-4)
+        for ep in range(1):
+            train_one_epoch_synthetic(vista_model, train_loader, optimizer, synthetic_gen, transform, device=device)
+
+        # Step C: Save checkpoint atomically with V7.1 metadata
         ckpt_path = os.path.join("checkpoints", f"vista_{dname}_{cname}.pth")
         vista_model.save_checkpoint(
             ckpt_path,
@@ -267,9 +281,9 @@ def run_v7_qualification(config_path: str = "configs/qualification.yaml") -> Dic
             extra_metadata={
                 "category": cname,
                 "dataset": dname,
-                "version": "7.0.0",
+                "version": "7.1.0",
                 "coreset_algorithm": cfg["model"]["coreset_algorithm"],
-                "architecture": "v7.0.0-calibrated-multiscale-memory-residual-fusion"
+                "architecture": "v7.1.0-calibrated-multiscale-memory-residual-fusion"
             }
         )
 
@@ -311,13 +325,16 @@ def run_v7_qualification(config_path: str = "configs/qualification.yaml") -> Dic
             target_risk=cfg["calibration"]["selective_target_risk"]
         )
 
-        # Step G: Evaluate on final untouched test_loader
+        # Step G: Tune pixel threshold on independent val_tuning partition
+        vista_pix_t = tune_vista_pixel_threshold(vista_model, tune_loader, device=device)
+
+        # Step H: Evaluate on final untouched test_loader
         vista_res = evaluate_vista_model(
             vista_model,
             test_loader,
             device=device,
             calibrated_threshold=conformal_thresh,
-            pixel_threshold=None
+            pixel_threshold=vista_pix_t
         )
 
         # Evaluate selective prediction risk on test set
@@ -332,6 +349,7 @@ def run_v7_qualification(config_path: str = "configs/qualification.yaml") -> Dic
         )
         vista_res["selective_prediction"] = fp_analysis
         vista_res["selective_uncertainty_band"] = opt_delta
+        cat_eval["VISTA-VLM V7.1"] = vista_res
         cat_eval["VISTA-VLM V7.0"] = vista_res
 
         t1_results["per_category"][cname] = cat_eval
@@ -342,7 +360,7 @@ def run_v7_qualification(config_path: str = "configs/qualification.yaml") -> Dic
         all_test_y_scores.extend(test_y_scores)
 
         # Aggregate metrics
-        for mname in ["PatchCore", "PaDiM", "VISTA-VLM V7.0"]:
+        for mname in ["PatchCore", "PaDiM", "VISTA-VLM V7.1", "VISTA-VLM V7.0"]:
             res_m = cat_eval[mname]
             all_img_aurocs[mname].append(res_m["image_level"]["auroc"])
             all_pix_aurocs[mname].append(res_m["pixel_level"]["pixel_auroc"])
@@ -352,7 +370,7 @@ def run_v7_qualification(config_path: str = "configs/qualification.yaml") -> Dic
             all_fars[mname].append(res_m["reliability"]["empirical_false_alarm_rate"])
 
     # Compute Track 1 Macro Summary
-    for mname in ["PatchCore", "PaDiM", "VISTA-VLM V7.0"]:
+    for mname in ["PatchCore", "PaDiM", "VISTA-VLM V7.1", "VISTA-VLM V7.0"]:
         t1_results["macro_metrics"][mname] = {
             "image_auroc": compute_statistical_confidence_intervals(all_img_aurocs[mname]),
             "pixel_auroc": compute_statistical_confidence_intervals(all_pix_aurocs[mname]),
@@ -369,6 +387,7 @@ def run_v7_qualification(config_path: str = "configs/qualification.yaml") -> Dic
         n_bootstraps=1000,
         confidence=0.95
     )
+    qualification_report["bootstrap_cis"]["VISTA-VLM V7.1"] = boot_ci
     qualification_report["bootstrap_cis"]["VISTA-VLM V7.0"] = boot_ci
     qualification_report["tracks"]["track_1_in_domain"] = t1_results
 
@@ -499,9 +518,10 @@ def run_v7_qualification(config_path: str = "configs/qualification.yaml") -> Dic
     # =========================================================================
     # FORMAL GATES EVALUATION (Phases 8, 13 & 14)
     # =========================================================================
-    vista_macro = t1_results["macro_metrics"]["VISTA-VLM V7.0"]
+    vista_macro = t1_results["macro_metrics"]["VISTA-VLM V7.1"]
     gate_a_pass = True  # Software CI, builds, packaging passed
-    gate_b_pass = bool(real_datasets_available)  # Blocked if only synthetic fixtures available
+    dataset_audit = audit_all_datasets()
+    gate_b_pass = bool(dataset_audit["gate_b_status"] == "PASSED" and real_datasets_available)
 
     # Gate C rigorous multi-metric thresholds:
     img_auroc_ok = vista_macro["image_auroc"]["mean"] >= 0.95
@@ -561,8 +581,10 @@ def run_v7_qualification(config_path: str = "configs/qualification.yaml") -> Dic
     generate_v7_markdown_summary(qualification_report, md_path)
     logger.info(f"V7 Qualification markdown summary saved to: {md_path}")
 
-    # Also mirror results to benchmarks/results/
+    # Also mirror results to benchmarks/results/ and reports/
     with open("benchmarks/results/multi_track_benchmark.json", "w", encoding="utf-8") as f:
+        json.dump(qualification_report, f, indent=2)
+    with open("reports/V7_BENCHMARK_RESULTS.json", "w", encoding="utf-8") as f:
         json.dump(qualification_report, f, indent=2)
 
     return qualification_report
@@ -571,10 +593,10 @@ def run_v7_qualification(config_path: str = "configs/qualification.yaml") -> Dic
 def generate_v7_markdown_summary(report: Dict[str, Any], path: str):
     t1_macro = report["tracks"]["track_1_in_domain"]["macro_metrics"]
     gates = report["gates"]
-    boot_ci = report.get("bootstrap_cis", {}).get("VISTA-VLM V7.0", {})
+    boot_ci = report.get("bootstrap_cis", {}).get("VISTA-VLM V7.1", {})
 
     lines = [
-        "# VISTA-VLM V7.0 — Research Qualification & Reliability Report",
+        "# VISTA-VLM V7.1 — Research Qualification & Reliability Report",
         "",
         f"**Date:** {report['metadata']['timestamp']} | **VISTA-VLM Version:** {report['metadata']['vista_version']} | **PyTorch:** {report['metadata']['torch_version']}",
         f"**Split Protocol:** `{report['metadata']['split_protocol']}`",
@@ -595,7 +617,7 @@ def generate_v7_markdown_summary(report: Dict[str, Any], path: str):
         "|---|---:|---:|---:|---:|---:|---:|",
     ]
 
-    for m in ["PatchCore", "PaDiM", "VISTA-VLM V7.0"]:
+    for m in ["PatchCore", "PaDiM", "VISTA-VLM V7.1"]:
         st = t1_macro[m]
         lines.append(
             f"| **{m}** | {st['image_auroc']['mean']:.4f} ± {st['image_auroc']['std']:.4f} | "
@@ -618,7 +640,7 @@ def generate_v7_markdown_summary(report: Dict[str, Any], path: str):
         "",
         "## 3. Track 4: Few-Normal-Shot Sample Efficiency (MVTec Bottle)",
         "",
-        "| Few-Shot Regime | PatchCore Image AUROC | PaDiM Image AUROC | VISTA-VLM V7.0 Image AUROC | VISTA Pixel AUROC | VISTA AUPRO |",
+        "| Few-Shot Regime | PatchCore Image AUROC | PaDiM Image AUROC | VISTA-VLM V7.1 Image AUROC | VISTA Pixel AUROC | VISTA AUPRO |",
         "|---|---:|---:|---:|---:|---:|",
     ])
 
