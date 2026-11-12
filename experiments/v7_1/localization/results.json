@@ -1,0 +1,832 @@
+{
+  "bottle": {
+    "weight_0.65": {
+      "tuned_threshold": 0.725,
+      "metrics_tuned": {
+        "pixel_auroc": 0.9916,
+        "aupro": 0.9157,
+        "iou": 0.4964,
+        "dice": 0.6634,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 431,
+            "detected_count": 238,
+            "recall": 0.5522,
+            "mean_overlap": 0.4939
+          },
+          "small (0.1-1%)": {
+            "region_count": 7,
+            "detected_count": 5,
+            "recall": 0.7143,
+            "mean_overlap": 0.3056
+          },
+          "medium (1-5%)": {
+            "region_count": 3,
+            "detected_count": 3,
+            "recall": 1.0,
+            "mean_overlap": 0.8814
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.9897,
+        "aupro": 0.9157,
+        "iou": 0.1009,
+        "dice": 0.1834
+      }
+    },
+    "weight_0.35": {
+      "tuned_threshold": 0.5,
+      "metrics_tuned": {
+        "pixel_auroc": 0.9892,
+        "aupro": 0.9049,
+        "iou": 0.4339,
+        "dice": 0.6052,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 431,
+            "detected_count": 172,
+            "recall": 0.3991,
+            "mean_overlap": 0.3321
+          },
+          "small (0.1-1%)": {
+            "region_count": 7,
+            "detected_count": 6,
+            "recall": 0.8571,
+            "mean_overlap": 0.3314
+          },
+          "medium (1-5%)": {
+            "region_count": 3,
+            "detected_count": 3,
+            "recall": 1.0,
+            "mean_overlap": 0.896
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.9876,
+        "aupro": 0.9049,
+        "iou": 0.4339,
+        "dice": 0.6052
+      }
+    },
+    "weight_0.15": {
+      "tuned_threshold": 0.375,
+      "metrics_tuned": {
+        "pixel_auroc": 0.9851,
+        "aupro": 0.876,
+        "iou": 0.3891,
+        "dice": 0.5602,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 431,
+            "detected_count": 1,
+            "recall": 0.0023,
+            "mean_overlap": 0.0014
+          },
+          "small (0.1-1%)": {
+            "region_count": 7,
+            "detected_count": 3,
+            "recall": 0.4286,
+            "mean_overlap": 0.1544
+          },
+          "medium (1-5%)": {
+            "region_count": 3,
+            "detected_count": 3,
+            "recall": 1.0,
+            "mean_overlap": 0.6955
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.9854,
+        "aupro": 0.876,
+        "iou": 0.0,
+        "dice": 0.0
+      }
+    },
+    "weight_0.0": {
+      "tuned_threshold": 0.30000000000000004,
+      "metrics_tuned": {
+        "pixel_auroc": 0.6632,
+        "aupro": 0.0572,
+        "iou": 0.005,
+        "dice": 0.0099,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 431,
+            "detected_count": 0,
+            "recall": 0.0,
+            "mean_overlap": 0.0
+          },
+          "small (0.1-1%)": {
+            "region_count": 7,
+            "detected_count": 0,
+            "recall": 0.0,
+            "mean_overlap": 0.0204
+          },
+          "medium (1-5%)": {
+            "region_count": 3,
+            "detected_count": 0,
+            "recall": 0.0,
+            "mean_overlap": 0.0123
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.6616,
+        "aupro": 0.0572,
+        "iou": 0.0,
+        "dice": 0.0
+      }
+    }
+  },
+  "cable": {
+    "weight_0.65": {
+      "tuned_threshold": 0.7000000000000001,
+      "metrics_tuned": {
+        "pixel_auroc": 0.9406,
+        "aupro": 0.4816,
+        "iou": 0.456,
+        "dice": 0.6264,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 708,
+            "detected_count": 63,
+            "recall": 0.089,
+            "mean_overlap": 0.0761
+          },
+          "small (0.1-1%)": {
+            "region_count": 6,
+            "detected_count": 2,
+            "recall": 0.3333,
+            "mean_overlap": 0.1296
+          },
+          "medium (1-5%)": {
+            "region_count": 4,
+            "detected_count": 4,
+            "recall": 1.0,
+            "mean_overlap": 0.9227
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.9387,
+        "aupro": 0.4816,
+        "iou": 0.1213,
+        "dice": 0.2163
+      }
+    },
+    "weight_0.35": {
+      "tuned_threshold": 0.45000000000000007,
+      "metrics_tuned": {
+        "pixel_auroc": 0.9238,
+        "aupro": 0.3852,
+        "iou": 0.3388,
+        "dice": 0.5061,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 708,
+            "detected_count": 75,
+            "recall": 0.1059,
+            "mean_overlap": 0.0948
+          },
+          "small (0.1-1%)": {
+            "region_count": 6,
+            "detected_count": 2,
+            "recall": 0.3333,
+            "mean_overlap": 0.2084
+          },
+          "medium (1-5%)": {
+            "region_count": 4,
+            "detected_count": 4,
+            "recall": 1.0,
+            "mean_overlap": 0.963
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.9264,
+        "aupro": 0.3852,
+        "iou": 0.0536,
+        "dice": 0.1017
+      }
+    },
+    "weight_0.15": {
+      "tuned_threshold": 0.325,
+      "metrics_tuned": {
+        "pixel_auroc": 0.8798,
+        "aupro": 0.2243,
+        "iou": 0.0795,
+        "dice": 0.1474,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 708,
+            "detected_count": 65,
+            "recall": 0.0918,
+            "mean_overlap": 0.0795
+          },
+          "small (0.1-1%)": {
+            "region_count": 6,
+            "detected_count": 2,
+            "recall": 0.3333,
+            "mean_overlap": 0.132
+          },
+          "medium (1-5%)": {
+            "region_count": 4,
+            "detected_count": 4,
+            "recall": 1.0,
+            "mean_overlap": 0.6448
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.8814,
+        "aupro": 0.2243,
+        "iou": 0.0,
+        "dice": 0.0
+      }
+    },
+    "weight_0.0": {
+      "tuned_threshold": 0.2,
+      "metrics_tuned": {
+        "pixel_auroc": 0.5983,
+        "aupro": 0.0727,
+        "iou": 0.0117,
+        "dice": 0.023,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 708,
+            "detected_count": 75,
+            "recall": 0.1059,
+            "mean_overlap": 0.0975
+          },
+          "small (0.1-1%)": {
+            "region_count": 6,
+            "detected_count": 3,
+            "recall": 0.5,
+            "mean_overlap": 0.2005
+          },
+          "medium (1-5%)": {
+            "region_count": 4,
+            "detected_count": 4,
+            "recall": 1.0,
+            "mean_overlap": 0.767
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.6008,
+        "aupro": 0.0727,
+        "iou": 0.0,
+        "dice": 0.0
+      }
+    }
+  },
+  "capsule": {
+    "weight_0.65": {
+      "tuned_threshold": 0.75,
+      "metrics_tuned": {
+        "pixel_auroc": 0.9878,
+        "aupro": 0.8664,
+        "iou": 0.5453,
+        "dice": 0.7058,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 444,
+            "detected_count": 277,
+            "recall": 0.6239,
+            "mean_overlap": 0.5704
+          },
+          "small (0.1-1%)": {
+            "region_count": 10,
+            "detected_count": 10,
+            "recall": 1.0,
+            "mean_overlap": 0.418
+          },
+          "medium (1-5%)": {
+            "region_count": 3,
+            "detected_count": 3,
+            "recall": 1.0,
+            "mean_overlap": 0.8817
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.9884,
+        "aupro": 0.8664,
+        "iou": 0.1109,
+        "dice": 0.1997
+      }
+    },
+    "weight_0.35": {
+      "tuned_threshold": 0.55,
+      "metrics_tuned": {
+        "pixel_auroc": 0.9865,
+        "aupro": 0.8492,
+        "iou": 0.5516,
+        "dice": 0.711,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 444,
+            "detected_count": 282,
+            "recall": 0.6351,
+            "mean_overlap": 0.5926
+          },
+          "small (0.1-1%)": {
+            "region_count": 10,
+            "detected_count": 10,
+            "recall": 1.0,
+            "mean_overlap": 0.5859
+          },
+          "medium (1-5%)": {
+            "region_count": 3,
+            "detected_count": 3,
+            "recall": 1.0,
+            "mean_overlap": 0.9533
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.985,
+        "aupro": 0.8492,
+        "iou": 0.3484,
+        "dice": 0.5168
+      }
+    },
+    "weight_0.15": {
+      "tuned_threshold": 0.45000000000000007,
+      "metrics_tuned": {
+        "pixel_auroc": 0.9768,
+        "aupro": 0.8006,
+        "iou": 0.5303,
+        "dice": 0.693,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 444,
+            "detected_count": 195,
+            "recall": 0.4392,
+            "mean_overlap": 0.3833
+          },
+          "small (0.1-1%)": {
+            "region_count": 10,
+            "detected_count": 10,
+            "recall": 1.0,
+            "mean_overlap": 0.4114
+          },
+          "medium (1-5%)": {
+            "region_count": 3,
+            "detected_count": 3,
+            "recall": 1.0,
+            "mean_overlap": 0.9359
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.9767,
+        "aupro": 0.8006,
+        "iou": 0.1334,
+        "dice": 0.2355
+      }
+    },
+    "weight_0.0": {
+      "tuned_threshold": 0.4,
+      "metrics_tuned": {
+        "pixel_auroc": 0.8898,
+        "aupro": 0.3151,
+        "iou": 0.3011,
+        "dice": 0.4628,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 444,
+            "detected_count": 37,
+            "recall": 0.0833,
+            "mean_overlap": 0.0541
+          },
+          "small (0.1-1%)": {
+            "region_count": 10,
+            "detected_count": 3,
+            "recall": 0.3,
+            "mean_overlap": 0.1316
+          },
+          "medium (1-5%)": {
+            "region_count": 3,
+            "detected_count": 3,
+            "recall": 1.0,
+            "mean_overlap": 0.5492
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.8894,
+        "aupro": 0.3151,
+        "iou": 0.0,
+        "dice": 0.0
+      }
+    }
+  },
+  "leather": {
+    "weight_0.65": {
+      "tuned_threshold": 0.7000000000000001,
+      "metrics_tuned": {
+        "pixel_auroc": 0.9983,
+        "aupro": 0.995,
+        "iou": 0.5816,
+        "dice": 0.7354,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 461,
+            "detected_count": 406,
+            "recall": 0.8807,
+            "mean_overlap": 0.8451
+          },
+          "small (0.1-1%)": {
+            "region_count": 9,
+            "detected_count": 9,
+            "recall": 1.0,
+            "mean_overlap": 0.824
+          },
+          "medium (1-5%)": {
+            "region_count": 4,
+            "detected_count": 4,
+            "recall": 1.0,
+            "mean_overlap": 0.939
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.9983,
+        "aupro": 0.995,
+        "iou": 0.0988,
+        "dice": 0.1799
+      }
+    },
+    "weight_0.35": {
+      "tuned_threshold": 0.5,
+      "metrics_tuned": {
+        "pixel_auroc": 0.9981,
+        "aupro": 0.9947,
+        "iou": 0.5625,
+        "dice": 0.72,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 461,
+            "detected_count": 421,
+            "recall": 0.9132,
+            "mean_overlap": 0.8707
+          },
+          "small (0.1-1%)": {
+            "region_count": 9,
+            "detected_count": 9,
+            "recall": 1.0,
+            "mean_overlap": 0.8849
+          },
+          "medium (1-5%)": {
+            "region_count": 4,
+            "detected_count": 4,
+            "recall": 1.0,
+            "mean_overlap": 0.9092
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.9981,
+        "aupro": 0.9947,
+        "iou": 0.5625,
+        "dice": 0.72
+      }
+    },
+    "weight_0.15": {
+      "tuned_threshold": 0.375,
+      "metrics_tuned": {
+        "pixel_auroc": 0.9782,
+        "aupro": 0.9588,
+        "iou": 0.1015,
+        "dice": 0.1842,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 461,
+            "detected_count": 373,
+            "recall": 0.8091,
+            "mean_overlap": 0.764
+          },
+          "small (0.1-1%)": {
+            "region_count": 9,
+            "detected_count": 9,
+            "recall": 1.0,
+            "mean_overlap": 0.8173
+          },
+          "medium (1-5%)": {
+            "region_count": 4,
+            "detected_count": 4,
+            "recall": 1.0,
+            "mean_overlap": 0.2529
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.9787,
+        "aupro": 0.9588,
+        "iou": 0.0032,
+        "dice": 0.0064
+      }
+    },
+    "weight_0.0": {
+      "tuned_threshold": 0.325,
+      "metrics_tuned": {
+        "pixel_auroc": 0.4444,
+        "aupro": 0.4029,
+        "iou": 0.0104,
+        "dice": 0.0206,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 461,
+            "detected_count": 110,
+            "recall": 0.2386,
+            "mean_overlap": 0.1754
+          },
+          "small (0.1-1%)": {
+            "region_count": 9,
+            "detected_count": 7,
+            "recall": 0.7778,
+            "mean_overlap": 0.3718
+          },
+          "medium (1-5%)": {
+            "region_count": 4,
+            "detected_count": 0,
+            "recall": 0.0,
+            "mean_overlap": 0.0
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.4464,
+        "aupro": 0.4029,
+        "iou": 0.0,
+        "dice": 0.0
+      }
+    }
+  },
+  "tile": {
+    "weight_0.65": {
+      "tuned_threshold": 0.7000000000000001,
+      "metrics_tuned": {
+        "pixel_auroc": 0.9992,
+        "aupro": 0.9939,
+        "iou": 0.5614,
+        "dice": 0.7191,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 541,
+            "detected_count": 472,
+            "recall": 0.8725,
+            "mean_overlap": 0.8342
+          },
+          "small (0.1-1%)": {
+            "region_count": 8,
+            "detected_count": 8,
+            "recall": 1.0,
+            "mean_overlap": 0.8687
+          },
+          "medium (1-5%)": {
+            "region_count": 4,
+            "detected_count": 4,
+            "recall": 1.0,
+            "mean_overlap": 0.9733
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.9992,
+        "aupro": 0.9939,
+        "iou": 0.2276,
+        "dice": 0.3708
+      }
+    },
+    "weight_0.35": {
+      "tuned_threshold": 0.5,
+      "metrics_tuned": {
+        "pixel_auroc": 0.9992,
+        "aupro": 0.993,
+        "iou": 0.5664,
+        "dice": 0.7231,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 541,
+            "detected_count": 328,
+            "recall": 0.6063,
+            "mean_overlap": 0.5262
+          },
+          "small (0.1-1%)": {
+            "region_count": 8,
+            "detected_count": 8,
+            "recall": 1.0,
+            "mean_overlap": 0.6339
+          },
+          "medium (1-5%)": {
+            "region_count": 4,
+            "detected_count": 4,
+            "recall": 1.0,
+            "mean_overlap": 0.9652
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.9992,
+        "aupro": 0.993,
+        "iou": 0.5664,
+        "dice": 0.7231
+      }
+    },
+    "weight_0.15": {
+      "tuned_threshold": 0.4,
+      "metrics_tuned": {
+        "pixel_auroc": 0.9966,
+        "aupro": 0.9652,
+        "iou": 0.5314,
+        "dice": 0.694,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 541,
+            "detected_count": 73,
+            "recall": 0.1349,
+            "mean_overlap": 0.0948
+          },
+          "small (0.1-1%)": {
+            "region_count": 8,
+            "detected_count": 3,
+            "recall": 0.375,
+            "mean_overlap": 0.14
+          },
+          "medium (1-5%)": {
+            "region_count": 4,
+            "detected_count": 4,
+            "recall": 1.0,
+            "mean_overlap": 0.8518
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.9965,
+        "aupro": 0.9652,
+        "iou": 0.0056,
+        "dice": 0.0111
+      }
+    },
+    "weight_0.0": {
+      "tuned_threshold": 0.35,
+      "metrics_tuned": {
+        "pixel_auroc": 0.9289,
+        "aupro": 0.6082,
+        "iou": 0.3307,
+        "dice": 0.497,
+        "defect_size_stratification": {
+          "tiny (<0.1%)": {
+            "region_count": 541,
+            "detected_count": 9,
+            "recall": 0.0166,
+            "mean_overlap": 0.0075
+          },
+          "small (0.1-1%)": {
+            "region_count": 8,
+            "detected_count": 1,
+            "recall": 0.125,
+            "mean_overlap": 0.0145
+          },
+          "medium (1-5%)": {
+            "region_count": 4,
+            "detected_count": 4,
+            "recall": 1.0,
+            "mean_overlap": 0.5519
+          },
+          "large (>5%)": {
+            "region_count": 0,
+            "detected_count": 0,
+            "recall": 1.0,
+            "mean_overlap": 1.0
+          }
+        }
+      },
+      "metrics_default_0.5": {
+        "pixel_auroc": 0.9222,
+        "aupro": 0.6082,
+        "iou": 0.0,
+        "dice": 0.0
+      }
+    }
+  }
+}

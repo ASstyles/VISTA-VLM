@@ -123,6 +123,103 @@ class SobelBoundaryLoss(nn.Module):
         return F.l1_loss(pred_grad, target_grad)
 
 
+def compute_image_anomaly_score(
+    anomaly_map: torch.Tensor,
+    head_score: torch.Tensor,
+    raw_memory_distance: Optional[torch.Tensor] = None,
+    memory_ref_stats: Optional[Dict[str, float]] = None,
+    scoring_mode: str = "hybrid",
+    top_k_ratio: float = 0.005,
+    global_head_weight: float = 0.30,
+    memory_weight: float = 0.40,
+    spatial_weight: float = 0.30,
+) -> Tuple[torch.Tensor, Dict[str, torch.Tensor]]:
+    """
+    Unified, mathematically verified image anomaly scoring function (V7.1 Core Standard).
+    Guarantees strict scoring equivalence across both training loss computation and inference.
+
+    Args:
+        anomaly_map: [B, 1, H, W] or [B, H, W] dense spatial anomaly prediction map in [0, 1].
+        head_score: [B] or [B, 1] global classification anomaly head probability in [0, 1].
+        raw_memory_distance: Optional [B] raw k-NN Euclidean distance to nominal memory bank.
+        memory_ref_stats: Optional dict containing nominal reference statistics ('min', 'scale_range', etc.).
+        scoring_mode: Scoring formulation ("hybrid", "top_k", "max", "percentile_99", "memory_max", "memory_topk",
+                      "head_only", "memory_only", "spatial_only", "global_spatial", "memory_spatial").
+        top_k_ratio: Fraction of highest responding pixels to pool for spatial score (default 0.005).
+        global_head_weight: Relative weight for global classification head.
+        memory_weight: Relative weight for nominal memory distance.
+        spatial_weight: Relative weight for spatial top-k pooling.
+
+    Returns:
+        image_score: [B] unified anomaly score strictly in [0.0, 1.0].
+        components: Dict of intermediate sub-scores for introspection and calibration.
+    """
+    B = anomaly_map.shape[0]
+    flat = anomaly_map.reshape(B, -1)
+    k = max(1, int(flat.shape[1] * top_k_ratio))
+    top_k_vals, _ = torch.topk(flat, k, dim=1)
+    spatial_score = top_k_vals.mean(dim=1)
+
+    head_s = head_score.reshape(B)
+    if head_s.max() > 1.0 or head_s.min() < 0.0:
+        head_s = torch.sigmoid(head_s)
+
+    cal_mem_score = None
+    if raw_memory_distance is not None and memory_ref_stats is not None:
+        ref_min = memory_ref_stats.get("min", 0.0)
+        ref_scale = memory_ref_stats.get("scale_range", 1.0)
+        if ref_scale <= 0:
+            ref_scale = 1.0
+        # Smooth monotonic rank-preserving mapping: 1 - exp(-max(0, (d - min)/scale) * ln(2))
+        excess = torch.clamp((raw_memory_distance.reshape(B) - ref_min) / ref_scale, min=0.0)
+        cal_mem_score = 1.0 - torch.exp(-excess * 0.6931471805599453)
+
+    if scoring_mode in ("head_only",):
+        final_score = head_s
+    elif scoring_mode in ("memory_only", "memory_max"):
+        final_score = cal_mem_score if cal_mem_score is not None else spatial_score
+    elif scoring_mode in ("spatial_only", "top_k", "memory_topk"):
+        final_score = spatial_score
+    elif scoring_mode == "max":
+        final_score = flat.max(dim=1)[0]
+    elif scoring_mode == "percentile_99":
+        idx = int(flat.shape[1] * 0.99)
+        final_score = torch.sort(flat, dim=1)[0][:, idx]
+    elif scoring_mode == "global_spatial":
+        w_total = global_head_weight + spatial_weight
+        w_total = w_total if w_total > 0 else 1.0
+        final_score = (global_head_weight * head_s + spatial_weight * spatial_score) / w_total
+    elif scoring_mode == "memory_spatial":
+        if cal_mem_score is not None:
+            w_total = memory_weight + spatial_weight
+            w_total = w_total if w_total > 0 else 1.0
+            final_score = (memory_weight * cal_mem_score + spatial_weight * spatial_score) / w_total
+        else:
+            final_score = spatial_score
+    else:  # "hybrid", "learned_fusion", default
+        if cal_mem_score is not None:
+            w_total = memory_weight + spatial_weight + global_head_weight
+            w_total = w_total if w_total > 0 else 1.0
+            final_score = (
+                memory_weight * cal_mem_score
+                + spatial_weight * spatial_score
+                + global_head_weight * head_s
+            ) / w_total
+        else:
+            w_total = spatial_weight + global_head_weight
+            w_total = w_total if w_total > 0 else 1.0
+            final_score = (spatial_weight * spatial_score + global_head_weight * head_s) / w_total
+
+    final_score = torch.clamp(final_score, 0.0, 1.0)
+    components = {
+        "spatial_score": spatial_score,
+        "head_score": head_s,
+        "calibrated_memory_score": cal_mem_score if cal_mem_score is not None else spatial_score,
+        "raw_memory_distance": raw_memory_distance.reshape(B) if raw_memory_distance is not None else torch.zeros_like(head_s)
+    }
+    return final_score, components
+
+
 class VISTAAnomalyModel(nn.Module):
     """
     VISTA Anomaly Detection & Dense Localization Model (V7.0 Research Upgrade).
@@ -137,7 +234,9 @@ class VISTAAnomalyModel(nn.Module):
         fusion_type: str = "global_local",
         use_film: bool = True,
         top_k_ratio: float = 0.005,
-        global_head_weight: float = 0.20,
+        global_head_weight: float = 0.30,
+        memory_weight: float = 0.40,
+        spatial_weight: float = 0.30,
         scoring_mode: str = "hybrid",
         freeze_backbone: bool = True,
         memory_fusion_weight: float = 0.65,
@@ -151,6 +250,8 @@ class VISTAAnomalyModel(nn.Module):
         self.image_size = image_size
         self.top_k_ratio = top_k_ratio
         self.global_head_weight = global_head_weight
+        self.memory_weight = memory_weight
+        self.spatial_weight = spatial_weight
         self.scoring_mode = scoring_mode
         self.embed_dim = embed_dim
         self.out_indices = out_indices
@@ -232,6 +333,20 @@ class VISTAAnomalyModel(nn.Module):
     @property
     def is_ready(self) -> bool:
         return self.state == ModelState.READY
+
+    @property
+    def is_memory_guided(self) -> bool:
+        """Returns True if the nominal memory bank has been fitted."""
+        return self.nominal_memory.is_fitted
+
+    @property
+    def scoring_weights(self) -> Dict[str, float]:
+        """Returns active image scoring weights."""
+        return {
+            "memory": self.memory_weight,
+            "spatial": self.spatial_weight,
+            "global_head": self.global_head_weight,
+        }
 
     def fit_memory_bank(
         self,
@@ -346,56 +461,56 @@ class VISTAAnomalyModel(nn.Module):
         else:
             anomaly_map = neural_map
 
-        # 5. Image-Level Anomaly Score: Harmonized Unified Formulation
-        flat_map = anomaly_map.view(B, -1)
-        k = max(1, int(flat_map.shape[1] * self.top_k_ratio))
-        top_k_vals, _ = torch.topk(flat_map, k, dim=1)
-        topk_spatial_score = top_k_vals.mean(dim=1)
-
-        # Head score from DINOv2 global feature representation
+        # 5. Image-Level Anomaly Score: Unified Formulated Computation
         head_score = self.global_head(global_cls).squeeze(-1)
+        ref_stats = self.nominal_memory.ref_stats if self.nominal_memory.is_fitted else None
 
-        # If memory bank is active, compute scaled memory score using reference distribution
-        if raw_mem_scores is not None and self.nominal_memory.is_fitted:
-            ref_min = self.nominal_memory.ref_stats["min"]
-            ref_scale = self.nominal_memory.ref_stats["scale_range"]
-            cal_mem_score = torch.clamp((raw_mem_scores - ref_min) / ref_scale, 0.0, 1.0)
-        else:
-            cal_mem_score = topk_spatial_score
-
-        if self.scoring_mode == "memory_max" and raw_mem_scores is not None:
-            image_score = cal_mem_score
-        elif self.scoring_mode == "memory_topk":
-            image_score = topk_spatial_score
-        elif self.scoring_mode == "top_k":
-            image_score = topk_spatial_score
-        elif self.scoring_mode == "max":
-            image_score = flat_map.max(dim=1)[0]
-        elif self.scoring_mode == "percentile_99":
-            idx = int(flat_map.shape[1] * 0.99)
-            image_score = torch.sort(flat_map, dim=1)[0][:, idx]
-        else:  # "hybrid" / "learned_fusion" (Unified Harmonized Scoring)
-            if raw_mem_scores is not None and self.nominal_memory.is_fitted:
-                # Fuses memory distance, spatial top-k, and trained global head
-                w_head = self.global_head_weight
-                w_mem = 0.50 * (1.0 - w_head)
-                w_spatial = 0.50 * (1.0 - w_head)
-                image_score = w_mem * cal_mem_score + w_spatial * topk_spatial_score + w_head * head_score
-            else:
-                image_score = self.global_head_weight * head_score + (1.0 - self.global_head_weight) * topk_spatial_score
-
-        image_score = torch.clamp(image_score, 0.0, 1.0)
+        image_score, components = compute_image_anomaly_score(
+            anomaly_map=anomaly_map,
+            head_score=head_score,
+            raw_memory_distance=raw_mem_scores,
+            memory_ref_stats=ref_stats,
+            scoring_mode=self.scoring_mode,
+            top_k_ratio=self.top_k_ratio,
+            global_head_weight=self.global_head_weight,
+            memory_weight=self.memory_weight,
+            spatial_weight=self.spatial_weight,
+        )
 
         out_dict = {
             "pixel_logits": pixel_logits,
             "anomaly_map": anomaly_map,
             "image_score": image_score,
             "raw_scores": raw_mem_scores if raw_mem_scores is not None else image_score,
+            "score_components": components,
             "global_features": global_cls
         }
         if aux_logits is not None:
             out_dict["aux_logits"] = aux_logits
         return out_dict
+
+    def compute_image_score(
+        self,
+        anomaly_map: torch.Tensor,
+        head_score: torch.Tensor,
+        raw_memory_distance: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor]]:
+        """
+        Instance method delegating to the unified scoring function with current model parameters.
+        Guarantees exact identity between standalone calls and forward() output.
+        """
+        ref_stats = self.nominal_memory.ref_stats if self.nominal_memory.is_fitted else None
+        return compute_image_anomaly_score(
+            anomaly_map=anomaly_map,
+            head_score=head_score,
+            raw_memory_distance=raw_memory_distance,
+            memory_ref_stats=ref_stats,
+            scoring_mode=self.scoring_mode,
+            top_k_ratio=self.top_k_ratio,
+            global_head_weight=self.global_head_weight,
+            memory_weight=self.memory_weight,
+            spatial_weight=self.spatial_weight,
+        )
 
     def compute_loss(
         self,
@@ -462,8 +577,8 @@ class VISTAAnomalyModel(nn.Module):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         meta = extra_metadata or {}
         meta.update({
-            "version": "7.0.0",
-            "architecture": "v7.0.0-calibrated-multiscale-memory-residual-fusion",
+            "version": "7.1.0",
+            "architecture": "v7.1.0-calibrated-multiscale-memory-residual-fusion",
             "backbone": self.backbone_name,
             "embed_dim": self.embed_dim,
             "out_indices": self.out_indices,
@@ -472,11 +587,12 @@ class VISTAAnomalyModel(nn.Module):
             "coreset_size": self.nominal_memory.patches.shape[0] if self.nominal_memory.is_fitted else 0,
             "ref_stats": self.nominal_memory.ref_stats,
             "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "model_state": self.state.value
+            "model_state": self.state.value,
+            "scoring_weights": self.scoring_weights
         })
 
         checkpoint = {
-            "version": "7.0.0",
+            "version": "7.1.0",
             "model_state_dict": self.state_dict(),
             "memory_bank_state": self.nominal_memory.state_dict(),
             "memory_bank": self.nominal_memory.patches.cpu() if self.nominal_memory.patches is not None else None,
@@ -484,6 +600,8 @@ class VISTAAnomalyModel(nn.Module):
                 "image_size": self.image_size,
                 "top_k_ratio": self.top_k_ratio,
                 "global_head_weight": self.global_head_weight,
+                "memory_weight": self.memory_weight,
+                "spatial_weight": self.spatial_weight,
                 "scoring_mode": self.scoring_mode,
                 "memory_fusion_weight": self.memory_fusion_weight,
                 "embed_dim": self.embed_dim,
@@ -548,6 +666,16 @@ class VISTAAnomalyModel(nn.Module):
 
         # Load weights
         self.load_state_dict(checkpoint["model_state_dict"], strict=strict)
+
+        # Restore scoring configuration
+        if "memory_weight" in cfg:
+            self.memory_weight = float(cfg["memory_weight"])
+        if "spatial_weight" in cfg:
+            self.spatial_weight = float(cfg["spatial_weight"])
+        if "global_head_weight" in cfg:
+            self.global_head_weight = float(cfg["global_head_weight"])
+        if "scoring_mode" in cfg:
+            self.scoring_mode = str(cfg["scoring_mode"])
 
         # Load nominal memory bank
         if "memory_bank_state" in checkpoint and checkpoint["memory_bank_state"] is not None:

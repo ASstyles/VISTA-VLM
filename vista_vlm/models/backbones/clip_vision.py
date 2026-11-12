@@ -35,7 +35,7 @@ class CLIPVisionTransformer(nn.Module):
             batch_first=True,
             norm_first=True
         )
-        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=depth)
+        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=depth, enable_nested_tensor=False)
         self.ln_post = nn.LayerNorm(embed_dim)
         self.proj = nn.Parameter(torch.randn(embed_dim, out_dim) * (embed_dim ** -0.5))
 
@@ -128,7 +128,7 @@ class CLIPTextTransformer(nn.Module):
             batch_first=True,
             norm_first=True
         )
-        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=depth)
+        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=depth, enable_nested_tensor=False)
         self.ln_final = nn.LayerNorm(embed_dim)
         self.text_projection = nn.Parameter(torch.randn(embed_dim, out_dim) * (embed_dim ** -0.5))
 

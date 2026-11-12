@@ -1,0 +1,374 @@
+{
+  "timestamp": "2026-11-12T13:00:32Z",
+  "categories": [
+    "bottle",
+    "cable",
+    "capsule",
+    "leather",
+    "tile"
+  ],
+  "approach_comparison": {
+    "bottle": {
+      "approach_a": {
+        "metrics": {
+          "image_auroc": 1.0,
+          "image_ap": 1.0,
+          "pixel_auroc": 0.9968,
+          "iou": 0.4274,
+          "dice": 0.5988
+        },
+        "loss_history": [
+          2.0262373447418214,
+          1.9069111108779908
+        ]
+      },
+      "approach_b": {
+        "metrics": {
+          "image_auroc": 1.0,
+          "image_ap": 1.0,
+          "pixel_auroc": 0.997,
+          "iou": 0.4,
+          "dice": 0.5714
+        },
+        "loss_history": [
+          1.900655484199524,
+          1.890943670272827
+        ]
+      }
+    },
+    "cable": {
+      "approach_a": {
+        "metrics": {
+          "image_auroc": 0.75,
+          "image_ap": 0.8929,
+          "pixel_auroc": 0.9453,
+          "iou": 0.6474,
+          "dice": 0.786
+        },
+        "loss_history": [
+          2.047052264213562,
+          1.8956356763839721
+        ]
+      },
+      "approach_b": {
+        "metrics": {
+          "image_auroc": 0.6667,
+          "image_ap": 0.8304,
+          "pixel_auroc": 0.9635,
+          "iou": 0.627,
+          "dice": 0.7707
+        },
+        "loss_history": [
+          1.921273112297058,
+          1.9611064434051513
+        ]
+      }
+    },
+    "capsule": {
+      "approach_a": {
+        "metrics": {
+          "image_auroc": 1.0,
+          "image_ap": 1.0,
+          "pixel_auroc": 0.9658,
+          "iou": 0.3598,
+          "dice": 0.5292
+        },
+        "loss_history": [
+          1.944500470161438,
+          1.9546520471572877
+        ]
+      },
+      "approach_b": {
+        "metrics": {
+          "image_auroc": 0.9167,
+          "image_ap": 0.95,
+          "pixel_auroc": 0.9606,
+          "iou": 0.35,
+          "dice": 0.5186
+        },
+        "loss_history": [
+          1.903954315185547,
+          1.7898070096969605
+        ]
+      }
+    },
+    "leather": {
+      "approach_a": {
+        "metrics": {
+          "image_auroc": 1.0,
+          "image_ap": 1.0,
+          "pixel_auroc": 0.9977,
+          "iou": 0.4633,
+          "dice": 0.6332
+        },
+        "loss_history": [
+          1.9375497102737427,
+          1.8639565229415893
+        ]
+      },
+      "approach_b": {
+        "metrics": {
+          "image_auroc": 1.0,
+          "image_ap": 1.0,
+          "pixel_auroc": 0.9968,
+          "iou": 0.4589,
+          "dice": 0.6291
+        },
+        "loss_history": [
+          1.923763346672058,
+          1.8983465909957886
+        ]
+      }
+    },
+    "tile": {
+      "approach_a": {
+        "metrics": {
+          "image_auroc": 1.0,
+          "image_ap": 1.0,
+          "pixel_auroc": 0.9993,
+          "iou": 0.591,
+          "dice": 0.7429
+        },
+        "loss_history": [
+          1.8716254472732543,
+          1.8141774892807008
+        ]
+      },
+      "approach_b": {
+        "metrics": {
+          "image_auroc": 1.0,
+          "image_ap": 1.0,
+          "pixel_auroc": 0.9989,
+          "iou": 0.5774,
+          "dice": 0.7321
+        },
+        "loss_history": [
+          1.9351288557052613,
+          1.8551440715789795
+        ]
+      }
+    }
+  },
+  "scoring_ablations": {
+    "bottle": {
+      "head_only": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9969,
+        "iou": 0.4275,
+        "dice": 0.599
+      },
+      "memory_only": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9969,
+        "iou": 0.4275,
+        "dice": 0.599
+      },
+      "spatial_only": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9969,
+        "iou": 0.427,
+        "dice": 0.5984
+      },
+      "global_spatial": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9969,
+        "iou": 0.4274,
+        "dice": 0.5988
+      },
+      "memory_spatial": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.997,
+        "iou": 0.4264,
+        "dice": 0.5978
+      },
+      "hybrid": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9968,
+        "iou": 0.4273,
+        "dice": 0.5988
+      }
+    },
+    "cable": {
+      "head_only": {
+        "image_auroc": 0.75,
+        "image_ap": 0.8929,
+        "pixel_auroc": 0.9432,
+        "iou": 0.6474,
+        "dice": 0.786
+      },
+      "memory_only": {
+        "image_auroc": 0.75,
+        "image_ap": 0.8929,
+        "pixel_auroc": 0.9442,
+        "iou": 0.6473,
+        "dice": 0.7859
+      },
+      "spatial_only": {
+        "image_auroc": 0.75,
+        "image_ap": 0.8929,
+        "pixel_auroc": 0.945,
+        "iou": 0.6474,
+        "dice": 0.786
+      },
+      "global_spatial": {
+        "image_auroc": 0.75,
+        "image_ap": 0.8929,
+        "pixel_auroc": 0.9455,
+        "iou": 0.6457,
+        "dice": 0.7847
+      },
+      "memory_spatial": {
+        "image_auroc": 0.75,
+        "image_ap": 0.8929,
+        "pixel_auroc": 0.9446,
+        "iou": 0.6473,
+        "dice": 0.7859
+      },
+      "hybrid": {
+        "image_auroc": 0.75,
+        "image_ap": 0.8929,
+        "pixel_auroc": 0.9458,
+        "iou": 0.6468,
+        "dice": 0.7856
+      }
+    },
+    "capsule": {
+      "head_only": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9645,
+        "iou": 0.3595,
+        "dice": 0.5289
+      },
+      "memory_only": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9651,
+        "iou": 0.3597,
+        "dice": 0.5291
+      },
+      "spatial_only": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9671,
+        "iou": 0.3599,
+        "dice": 0.5293
+      },
+      "global_spatial": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9673,
+        "iou": 0.3601,
+        "dice": 0.5295
+      },
+      "memory_spatial": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9682,
+        "iou": 0.3599,
+        "dice": 0.5293
+      },
+      "hybrid": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9679,
+        "iou": 0.3599,
+        "dice": 0.5293
+      }
+    },
+    "leather": {
+      "head_only": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9977,
+        "iou": 0.4632,
+        "dice": 0.6331
+      },
+      "memory_only": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9977,
+        "iou": 0.4632,
+        "dice": 0.6331
+      },
+      "spatial_only": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9977,
+        "iou": 0.4632,
+        "dice": 0.6331
+      },
+      "global_spatial": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9978,
+        "iou": 0.4631,
+        "dice": 0.6331
+      },
+      "memory_spatial": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9977,
+        "iou": 0.4633,
+        "dice": 0.6332
+      },
+      "hybrid": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9978,
+        "iou": 0.4631,
+        "dice": 0.6331
+      }
+    },
+    "tile": {
+      "head_only": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9993,
+        "iou": 0.591,
+        "dice": 0.7429
+      },
+      "memory_only": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9993,
+        "iou": 0.5909,
+        "dice": 0.7428
+      },
+      "spatial_only": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9993,
+        "iou": 0.591,
+        "dice": 0.7429
+      },
+      "global_spatial": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9993,
+        "iou": 0.5907,
+        "dice": 0.7427
+      },
+      "memory_spatial": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9993,
+        "iou": 0.591,
+        "dice": 0.7429
+      },
+      "hybrid": {
+        "image_auroc": 1.0,
+        "image_ap": 1.0,
+        "pixel_auroc": 0.9993,
+        "iou": 0.5905,
+        "dice": 0.7425
+      }
+    }
+  }
+}

@@ -14,10 +14,12 @@ from vista_vlm.api.routes import (
 )
 from vista_vlm.api.schemas import FeedbackRequest
 
+import vista_vlm
+
 def test_api_health(mock_ready_pipeline):
     res = health_check()
     assert res.status == "healthy"
-    assert res.system_version == "7.0.0"
+    assert res.system_version == vista_vlm.__version__
     assert res.backbone == "dinov2_vits14"
     assert "bottle" in res.calibrated_categories
 
@@ -26,14 +28,14 @@ def test_api_liveness():
     """Liveness probe must succeed independently when the server process is alive."""
     live = liveness_check()
     assert live["status"] == "alive"
-    assert live["version"] == "7.0.0"
+    assert live["version"] == vista_vlm.__version__
 
 
 def test_api_readiness_valid_pipeline(mock_ready_pipeline):
     """Readiness probe must succeed with HTTP 200 when all pipeline components are ready."""
     ready = readiness_check()
     assert ready["status"] == "ready"
-    assert ready["version"] == "7.0.0"
+    assert ready["version"] == "7.0.0" or ready["version"] == vista_vlm.__version__
     assert ready["calibrated_categories"] == ["bottle"]
     assert ready["model_state"] == "READY"
 

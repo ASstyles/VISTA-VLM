@@ -132,7 +132,11 @@ def main():
     synthetic_gen = SyntheticAnomalyGenerator(anomaly_prob=0.5, seed=42)
     transform = VISTATransform(image_size=518, is_training=True)
 
-    # 3. Training Loop
+    # 3. Fit Nominal Memory Bank on Normal Reference Images FIRST (APPROACH A: Memory-First Training)
+    logger.info(f"Fitting nominal reference memory bank for category '{args.category}'...")
+    model.fit_memory_bank(train_loader, device=device, max_patches=1500)
+
+    # 4. Training Loop: Train fusion, decoder, and global head with memory guidance active
     t_start = time.time()
     for epoch in range(1, args.epochs + 1):
         loss_val = train_one_epoch(model, train_loader, optimizer, synthetic_gen, transform, device=device)
@@ -141,11 +145,7 @@ def main():
     training_time = round(time.time() - t_start, 2)
     logger.info(f"Training completed in {training_time}s.")
 
-    # 4. Fit Nominal Memory Bank on Normal Reference Images (Phase 5 Localization Breakthrough)
-    logger.info(f"Fitting nominal reference memory bank for category '{args.category}'...")
-    model.fit_memory_bank(train_loader, device=device, max_patches=1500)
-
-    # Save Model Checkpoint (V6.0)
+    # Save Model Checkpoint (V7.1)
     os.makedirs(args.output_dir, exist_ok=True)
     ckpt_path = os.path.join(args.output_dir, f"vista_mvtec_{args.category}.pth")
     model.save_checkpoint(
@@ -157,8 +157,8 @@ def main():
             "epochs": args.epochs,
             "training_time_s": training_time,
             "train_samples": len(train_ds),
-            "architecture": "v6.0.0-calibrated-multiscale-memory-residual-fusion",
-            "version": "6.0.0"
+            "architecture": "v7.1.0-calibrated-multiscale-memory-residual-fusion",
+            "version": "7.1.0"
         }
     )
 

@@ -58,7 +58,7 @@ def health_check():
         model_st = model_st.value
     return HealthResponse(
         status="healthy",
-        system_version="7.0.0",
+        system_version="7.1.0",
         device=str(pipeline.device),
         backbone=pipeline.config.model.backbone,
         models_loaded=True,
@@ -70,7 +70,7 @@ def health_check():
 @router.get("/health/live")
 def liveness_check():
     """Kubernetes liveness probe: returns 200 immediately if process is alive."""
-    return {"status": "alive", "timestamp": time.time(), "version": "7.0.0"}
+    return {"status": "alive", "timestamp": time.time(), "version": "7.1.0"}
 
 
 @router.get("/health/ready")
